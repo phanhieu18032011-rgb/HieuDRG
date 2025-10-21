@@ -230,3 +230,93 @@ loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/e0c7fcf6c077fc
 	   loadstring(game:HttpGet("https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua", true))()
   end
   })
+    AddButton(Tab4o, {
+     Name = " Chilli Hub ",
+    Callback = function()
+	   loadstring(game:HttpGet("https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"))()
+  end
+  })
+    AddButton(Tab4o, {
+     Name = "Makal Hub",
+    Callback = function()
+	   loadstring(game:HttpGet("https://raw.githubusercontent.com/DoliScriptz/loader/refs/heads/main/main.lua",true))()
+  end
+  })
+    AddButton(Tab4o, {
+     Name = "Lurk Hub",
+    Callback = function()
+	   loadstring(game:HttpGet("https://raw.githubusercontent.com/egor2078f/lurkhackv4/refs/heads/main/main.lua", true))()
+  end
+  })
+    AddButton(Tab4o, {
+     Name = "Ajjan Hub",
+    Callback = function()
+	   loadstring(game:HttpGet("https://raw.githubusercontent.com/onliengamerop/Steal-a-brainrot/refs/heads/main/Protected_3771863424757750.lua.txt"))()
+  end
+  })
+    AddButton(Tab4o, {
+     Name = "Hoho Hub",
+    Callback = function()
+	   loadstring(game:HttpGet("https://raw.githubusercontent.com/acsu123/HOHO_H/main/Loading_UI"))()
+  end
+  })
+    AddButton(Tab4o, {
+     Name = " Dencrycode Hub",
+    Callback = function()
+	   loadstring(game:HttpGet("https://raw.githubusercontent.com/Estevansit0/KJJK/refs/heads/main/PusarX-loader.lua"))()
+  end
+  })
+    AddButton(Tab4o, {
+     Name = " Tora Hub",
+    Callback = function()
+	   loadstring(game:HttpGet("https://raw.githubusercontent.com/gumanba/Scripts/refs/heads/main/StealaBrainrot"))()
+  end
+  })
+    AddButton(Tab4o, {
+     Name = " Fenorik Hub",
+    Callback = function()
+	   loadstring(game:HttpGet("https://raw.githubusercontent.com/Fenorik/FenorikHub/refs/heads/main/FenorikHubINIT.lua"))()
+  end
+  })
+    AddButton(Tab4o, {
+     Name = "Moskvv Hub",
+    Callback = function()
+	   loadstring(game:HttpGet("https://raw.githubusercontent.com/forkT3/Steal-a-Brianrot/main/Steal-A-Brianrot.lua"))()
+  end
+  })
+    AddButton(Tab5o, {
+     Name = " Lumin Hub",
+    Callback = function()
+	   loadstring(game:HttpGet("https://lumin-hub.lol/loader.lua",true))()
+  end
+  })
+    AddButton(Tab5o, {
+     Name = "Combo Wick Hub",
+    Callback = function()
+	   loadstring(game:HttpGet("https://v0-supabase-secure-storage.vercel.app/api/script/2ca1518801a95abf0dceb898774fa182"))()
+  end
+  })
+    AddButton(Tab5o, {
+     Name = "Bonk Hub",
+    Callback = function()
+	   loadstring(game:HttpGet("https://bonkhub.online/loader.lua",true))()
+  end
+  })
+    AddButton(Tab5o, {
+     Name = " Tora Hub",
+    Callback = function()
+	   loadstring(game:HttpGet("https://raw.githubusercontent.com/gumanba/Scripts/main/HuntyZombie"))()
+  end
+  })
+    AddButton(Tab6o, {
+     Name = "fly gui V3",
+    Callback = function()
+	   loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Fly-gui-v3-30439"))()
+  end
+  })
+  AddButton(Tab7o, {
+     Name = "hiện tại chưa có script old",
+    Callback = function()
+	   
+  end
+  })

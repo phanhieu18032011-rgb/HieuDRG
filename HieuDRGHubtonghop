@@ -116,3 +116,45 @@ loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/e0c7fcf6c077fc
 	   loadstring(game:HttpGet("https://raw.githubusercontent.com/DENGHUB2025/HUGHUB/main/WL", true))()
   end
   })
+    AddButton(Tab2o, {
+     Name = "Dark Spawner",
+    Callback = function()
+	   loadstring(game:HttpGet("https://pastefy.app/SC4qoDAW/raw"))()
+  end
+  })
+    AddButton(Tab2o, {
+     Name = "EzHub",
+    Callback = function()
+	   loadstring(game:HttpGet("https://api.junkie-development.de/api/v1/luascripts/public/8e08cda5c530a6529a71a14b94a33734eccc870e9f28220410eb21d719f66da9/download"))()
+  end
+  })
+    AddButton(Tab2o, {
+     Name = "ThunderZ Hub",
+    Callback = function()
+	   loadstring(game:HttpGet("https://pastebin.com/raw/FVTeB51h", true))()
+  end
+  })
+    AddButton(Tab2o, {
+     Name = " Dash Freeze Trade Script",
+    Callback = function()
+	   loadstring(game:HttpGet("https://raw.githubusercontent.com/Vax3478/Vax/refs/heads/main/Growagardenscriptkeylessdash"))()
+  end
+  })
+    AddButton(Tab2o, {
+     Name = " Speed Hub",
+    Callback = function()
+	   loadstring(game:HttpGet("https://pastebin.com/raw/jRPLCVCm", true))()
+  end
+  })
+    AddButton(Tab2o, {
+     Name = " Strawberry Cat Hub",
+    Callback = function()
+	   loadstring(game:HttpGet("https://raw.githubusercontent.com/shinichi-dz/phucshinsayhi/refs/heads/main/GrowAGarden.lua"))()
+  end
+  })
+    AddButton(Tab2o, {
+     Name = "Chilli Hub",
+    Callback = function()
+	   loadstring(game:HttpGet("https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"))()
+  end
+  })

@@ -150,7 +150,7 @@ wait(.1)
 game.StarterGui:SetCore("SendNotification", {
      Title = "HieuDRG Hub";
      Text = "Loading Main Ui";
-     Icon = "Success";
+     Icon = "";
      Duration = "2";
 })
 wait(.1)
@@ -171,14 +171,14 @@ local Window = Fluent:CreateWindow({
 })
 ----------------------------------------Tab----------------------------------------
 local Tabs = {
-    Tab1 = Window:AddTab({ Title = "Client", Icon = "Game" }),
-    Tab2 = Window:AddTab({ Title = "Blox Fruit", Icon = "Game" }),
-    Tab3 = Window:AddTab({ Title = "Grow a Garden", Icon = "Game" }),
-    Tab4 = Window:AddTab({ Title = "Steal a Brainrot", Icon = "Game" }),
-    Tab5 = Window:AddTab({ Title = "99 Night In The Forest ", Icon = "Game" }),
-    Tab6 = Window:AddTab({ Title = "Hunte Zombie", Icon = "Game" }),
-    Tab7 = Window:AddTab({ Title = "Settings", Icon = "Settings" }),
-    Tab8 = Window:AddTab({ Title = "Info", Icon = "Info" }),
+    Tab1 = Window:AddTab({ Title = "Client", Icon = "" }),
+    Tab2 = Window:AddTab({ Title = "Blox Fruit", Icon = "" }),
+    Tab3 = Window:AddTab({ Title = "Grow a Garden", Icon = "" }),
+    Tab4 = Window:AddTab({ Title = "Steal a Brainrot", Icon = "" }),
+    Tab5 = Window:AddTab({ Title = "99 Night In The Forest ", Icon = "" }),
+    Tab6 = Window:AddTab({ Title = "Hunte Zombie", Icon = "" }),
+    Tab7 = Window:AddTab({ Title = "Settings", Icon = "" }),
+    Tab8 = Window:AddTab({ Title = "Info", Icon = "" }),
 }
 ----------------------------------------clien----------------------------------------
 print("Client Tab Loading")
@@ -398,7 +398,7 @@ Tabs.If:AddParagraph({
     game.StarterGui:SetCore("SendNotification", {
      Title = "HieuDRG Hub";
      Text = "Loaded!";
-     Icon = "Success";
+     Icon = "";
      Duration = "2";
 })
 wait(.1) 

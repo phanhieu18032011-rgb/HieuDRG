@@ -315,8 +315,8 @@ Tabs.Blr:AddButton({
 print("Loading hunte zombie Script")
 wait(.5)
 Tabs.Shrimp:AddParagraph({
-        Title = ""
-        Content = ""
+        Title = "hunte zombie tab"
+        Content = "click rồi đợi 5s"
     })
 Tabs.Shrimp:AddButton({
         Title = "Combo Wick Hub",
@@ -337,23 +337,23 @@ Tabs.Shrimp:AddButton({
 print("Load setting Script")
 wait(.5)
 Tabs.AD:AddParagraph({
-        Title = "",
-        Content = ""
+        Title = "settings tab",
+        Content = "click rồi đợi 5s"
     })
     
 Tabs.AD:AddButton({
-        Title = "",
-        Description = "",
+        Title = "Soul Hub",
+        Description = "key",
         Callback = function()
-            
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/GoblinKun009/Script/refs/heads/main/soulhub", true))()
         end
     })
     
     Tabs.AD:AddButton({
-        Title = "",
-        Description = "",
+        Title = "TxZ Hub",
+        Description = "key",
         Callback = function()
-            
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/DrTxZ/Mercure-Hub/refs/heads/main/Mercure%20Hub.lua"))()
         end
     })
 ----------------------------------------info----------------------------------------

@@ -1,11 +1,11 @@
--- SHADOW CORE AI - 99 NIGHTS IN THE FOREST
--- ADVANCED ITEM FARMING & COLLECTION SYSTEM
+-- SHADOW CORE AI - BLOX FRUITS LEVEL FARMER
+-- ADVANCED NPC & BOSS FARMING SYSTEM
 
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
 local VirtualInput = game:GetService("VirtualInputManager")
+local TweenService = game:GetService("TweenService")
 
 local Player = Players.LocalPlayer
 local Mouse = Player:GetMouse()
@@ -13,169 +13,163 @@ local Mouse = Player:GetMouse()
 -- CONFIGURATION
 local Config = {
     Enabled = false,
-    FarmRadius = 500,
-    ItemWhitelist = {"Wood", "Stone", "Berry", "Mushroom", "Flower", "Herb"},
-    PriorityItems = {"Berry", "Mushroom"}, -- Items to target first
-    AutoAvoidEnemies = true,
-    NightRetreat = true,
-    SaveInventory = true,
-    WebhookURL = "" -- Discord webhook for notifications
+    FarmMode = "NPC", -- "NPC" or "BOSS"
+    SelectedBoss = "Saber Expert",
+    AutoQuest = true,
+    AutoSellFruits = true,
+    AutoStoreFruits = true,
+    HopIfLowPlayer = true,
+    AntiAFK = true,
+    WebhookURL = ""
 }
 
--- ITEM DATABASE
-local ItemDatabase = {
-    Wood = {
-        Name = "Wood",
-        Type = "Resource",
-        Priority = 2,
-        Models = {"Log", "Wood", "Tree"},
-        Value = 1
+-- NPC DATABASE BY SEA
+local NPCDatabase = {
+    ["First Sea"] = {
+        {Name = "Bandit", Level = 5, Quest = "BanditQuest1"},
+        {Name = "Monkey", Level = 10, Quest = "JungleQuest"},
+        {Name = "Gorilla", Level = 15, Quest = "JungleQuest"},
+        {Name = "Pirate", Level = 20, Quest = "BuggyQuest1"},
+        {Name = "Brute", Level = 30, Quest = "BuggyQuest2"},
+        {Name = "Desert Bandit", Level = 40, Quest = "DesertQuest"},
+        {Name = "Desert Officer", Level = 50, Quest = "DesertQuest"},
+        {Name = "Snow Bandit", Level = 60, Quest = "SnowQuest"},
+        {Name = "Snowman", Level = 70, Quest = "SnowQuest"},
+        {Name = "Chief Petty Officer", Level = 80, Quest = "MarineQuest2"},
+        {Name = "Sky Bandit", Level = 90, Quest = "SkyQuest"},
+        {Name = "Dark Master", Level = 100, Quest = "SkyQuest"}
     },
-    Stone = {
-        Name = "Stone", 
-        Type = "Resource",
-        Priority = 2,
-        Models = {"Rock", "Stone", "Boulder"},
-        Value = 1
+    ["Second Sea"] = {
+        {Name = "Pirate Millionaire", Level = 150, Quest = "PiratePortQuest"},
+        {Name = "Dragon Crew Warrior", Level = 175, Quest = "AmazonQuest1"},
+        {Name = "Dragon Crew Archer", Level = 190, Quest = "AmazonQuest1"},
+        {Name = "Female Islander", Level = 200, Quest = "AmazonQuest2"},
+        {Name = "Giant Islander", Level = 210, Quest = "AmazonQuest2"},
+        {Name = "Marine Captain", Level = 225, Quest = "MarineTreeQuest"},
+        {Name = "Galley Pirate", Level = 240, Quest = "DeepForestQuest1"}
     },
-    Berry = {
-        Name = "Berry",
-        Type = "Food",
-        Priority = 1,
-        Models = {"Berry", "Bush", "BerryBush"},
-        Value = 2
-    },
-    Mushroom = {
-        Name = "Mushroom",
-        Type = "Food", 
-        Priority = 1,
-        Models = {"Mushroom", "Fungus"},
-        Value = 3
-    },
-    Flower = {
-        Name = "Flower",
-        Type = "Crafting",
-        Priority = 3,
-        Models = {"Flower", "Rose", "Daisy"},
-        Value = 2
-    },
-    Herb = {
-        Name = "Herb",
-        Type = "Healing",
-        Priority = 2,
-        Models = {"Herb", "Leaf", "Plant"},
-        Value = 3
+    ["Third Sea"] = {
+        {Name = "Mercenary", Level = 300, Quest = "Area1Quest"},
+        {Name = "Swan Pirate", Level = 350, Quest = "Area2Quest"},
+        {Name = "Factory Staff", Level = 400, Quest = "FishmanQuest"},
+        {Name = "Marine Lieutenant", Level = 450, Quest = "MarineQuest3"}
     }
 }
 
--- GAME STATE TRACKING
-local GameState = {
-    CurrentNight = 1,
-    IsNight = false,
-    PlayerHealth = 100,
-    Inventory = {},
-    Enemies = {},
-    SafeZone = nil
+-- BOSS DATABASE
+local BossDatabase = {
+    "Saber Expert",
+    "The Saw", 
+    "Greybeard",
+    "Darkbeard",
+    "Order",
+    "Cursed Captain",
+    "Beautiful Pirate",
+    "Stone",
+    "Island Empress",
+    "Kilo Admiral",
+    "Captain Elephant"
 }
 
--- ITEM CACHE
-local ItemCache = {}
-local CollectedItems = 0
+-- GAME STATE
+local GameState = {
+    CurrentSea = "First Sea",
+    PlayerLevel = 1,
+    CurrentNPC = nil,
+    IsBusy = false,
+    QuestActive = false
+}
+
+-- TARGET CACHE
+local TargetCache = {}
+local KillCount = 0
 local StartTime = os.time()
 
--- ENEMY DETECTION
-function ScanEnemies()
+-- DETECT CURRENT SEA
+function GetCurrentSea()
+    local map = Workspace:FindFirstChild("Map")
+    if map then
+        if map:FindFirstChild("IceCastle") then
+            return "First Sea"
+        elseif map:FindFirstChild("Mansion") then
+            return "Second Sea" 
+        elseif map:FindFirstChild("Hydra") then
+            return "Third Sea"
+        end
+    end
+    return "First Sea"
+end
+
+-- GET PLAYER LEVEL
+function GetPlayerLevel()
+    local leaderstats = Player:FindFirstChild("leaderstats")
+    if leaderstats and leaderstats:FindFirstChild("Level") then
+        return leaderstats.Level.Value
+    end
+    return 1
+end
+
+-- FIND OPTIMAL NPC
+function FindOptimalNPC()
+    local currentLevel = GetPlayerLevel()
+    local currentSea = GetCurrentSea()
+    local availableNPCs = NPCDatabase[currentSea] or NPCDatabase["First Sea"]
+    
+    local optimalNPC = nil
+    for _, npcData in pairs(availableNPCs) do
+        if npcData.Level <= currentLevel + 50 then
+            if optimalNPC == nil or npcData.Level > optimalNPC.Level then
+                optimalNPC = npcData
+            end
+        end
+    end
+    
+    return optimalNPC or availableNPCs[1]
+end
+
+-- SCAN FOR ENEMIES
+function ScanEnemies(targetName)
     local enemies = {}
     
-    for _, obj in pairs(Workspace:GetDescendants()) do
-        if obj:FindFirstChild("Humanoid") and obj.Humanoid.Health > 0 then
-            if obj:FindFirstChild("Head") and obj.Name ~= Player.Character.Name then
-                local isEnemy = string.find(obj.Name:lower(), "enemy") or 
-                               string.find(obj.Name:lower(), "monster") or
-                               string.find(obj.Name:lower(), "creature") or
-                               obj:FindFirstChild("EnemyTag")
-                
-                if isEnemy then
+    -- Check workspace enemies
+    local enemiesFolder = Workspace:FindFirstChild("Enemies")
+    if enemiesFolder then
+        for _, enemy in pairs(enemiesFolder:GetChildren()) do
+            if enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
+                if string.find(enemy.Name:lower(), targetName:lower()) then
                     table.insert(enemies, {
-                        Object = obj,
-                        Position = obj.PrimaryPart.Position,
-                        Distance = (Player.Character.HumanoidRootPart.Position - obj.PrimaryPart.Position).Magnitude
+                        Object = enemy,
+                        Position = enemy:FindFirstChild("HumanoidRootPart").Position,
+                        Distance = (Player.Character.HumanoidRootPart.Position - enemy:FindFirstChild("HumanoidRootPart").Position).Magnitude
                     })
                 end
             end
         end
     end
     
-    return enemies
-end
-
--- SMART ITEM SCANNING WITH PRIORITY SYSTEM
-function ScanItems()
-    local items = {}
-    local character = Player.Character
-    if not character then return items end
-    
-    local rootPart = character:FindFirstChild("HumanoidRootPart")
-    if not rootPart then return items end
-
-    -- Scan for collectible items
-    for _, obj in pairs(Workspace:GetDescendants()) do
-        if obj:IsA("Part") or obj:IsA("MeshPart") or obj:IsA("UnionOperation") then
-            local distance = (rootPart.Position - obj.Position).Magnitude
-            
-            if distance <= Config.FarmRadius then
-                -- Check if object matches item database
-                for itemName, itemData in pairs(ItemDatabase) do
-                    for _, modelName in pairs(itemData.Models) do
-                        if string.find(obj.Name:lower(), modelName:lower()) or 
-                           string.find(obj.Parent.Name:lower(), modelName:lower()) then
-                            
-                            if not ItemCache[obj] then
-                                table.insert(items, {
-                                    Object = obj,
-                                    Type = itemName,
-                                    Position = obj.Position,
-                                    Distance = distance,
-                                    Priority = itemData.Priority,
-                                    Value = itemData.Value
-                                })
-                                ItemCache[obj] = true
-                            end
-                        end
-                    end
-                end
-                
-                -- Check for click detectors (interactive items)
-                if obj:FindFirstChild("ClickDetector") and distance < 20 then
-                    if not ItemCache[obj] then
-                        table.insert(items, {
-                            Object = obj,
-                            Type = "Interactive",
-                            Position = obj.Position,
-                            Distance = distance,
-                            Priority = 1,
-                            Value = 1
-                        })
-                        ItemCache[obj] = true
-                    end
-                end
+    -- Check NPCs in workspace
+    for _, npc in pairs(Workspace:GetChildren()) do
+        if npc:FindFirstChild("Humanoid") and npc.Humanoid.Health > 0 then
+            if string.find(npc.Name:lower(), targetName:lower()) then
+                table.insert(enemies, {
+                    Object = npc,
+                    Position = npc:FindFirstChild("HumanoidRootPart").Position,
+                    Distance = (Player.Character.HumanoidRootPart.Position - npc:FindFirstChild("HumanoidRootPart").Position).Magnitude
+                })
             end
         end
     end
     
-    -- Sort by priority and distance
-    table.sort(items, function(a, b)
-        if a.Priority == b.Priority then
-            return a.Distance < b.Distance
-        end
-        return a.Priority > b.Priority
+    -- Sort by distance
+    table.sort(enemies, function(a, b)
+        return a.Distance < b.Distance
     end)
     
-    return items
+    return enemies
 end
 
--- INTELLIGENT MOVEMENT SYSTEM
-function MoveToPosition(position, avoidEnemies)
+-- SMART MOVEMENT SYSTEM
+function MoveToPosition(position)
     local character = Player.Character
     if not character then return false end
     
@@ -184,27 +178,13 @@ function MoveToPosition(position, avoidEnemies)
     
     if not humanoid or not rootPart then return false end
     
-    if avoidEnemies and Config.AutoAvoidEnemies then
-        local enemies = ScanEnemies()
-        for _, enemy in pairs(enemies) do
-            if enemy.Distance < 30 then
-                -- Avoid enemy by moving away
-                local awayDirection = (rootPart.Position - enemy.Position).Unit
-                local safePosition = rootPart.Position + (awayDirection * 50)
-                humanoid:MoveTo(safePosition)
-                task.wait(2)
-                return false
-            end
-        end
-    end
-    
-    -- Smooth movement with pathfinding
+    -- Use pathfinding or direct movement
     humanoid:MoveTo(position)
     
     -- Wait for arrival with timeout
-    local startWait = os.time()
-    while (rootPart.Position - position).Magnitude > 10 do
-        if os.time() - startWait > 10 then -- 10 second timeout
+    local startTime = os.time()
+    while (rootPart.Position - position).Magnitude > 15 do
+        if os.time() - startTime > 10 then
             return false
         end
         task.wait(0.1)
@@ -213,307 +193,231 @@ function MoveToPosition(position, avoidEnemies)
     return true
 end
 
--- ITEM COLLECTION ENGINE
-function CollectItem(item)
+-- AUTO ATTACK SYSTEM
+function AttackTarget(target)
     local character = Player.Character
     if not character then return false end
     
-    -- Move to item
-    local success = MoveToPosition(item.Position, true)
-    if not success then return false end
+    -- Move to attack range
+    local attackPosition = target.Position + (target.Position - character.HumanoidRootPart.Position).Unit * 10
+    MoveToPosition(attackPosition)
     
-    task.wait(0.5) -- Stabilize
-    
-    -- Collection methods based on item type
-    if item.Object:FindFirstChild("ClickDetector") then
-        -- Use click detector
-        fireclickdetector(item.Object.ClickDetector)
-        CollectedItems = CollectedItems + 1
-        
-    elseif item.Object:FindFirstChild("ProximityPrompt") then
-        -- Use proximity prompt
-        fireproximityprompt(item.Object.ProximityPrompt)
-        CollectedItems = CollectedItems + 1
-        
-    else
-        -- Try tool interaction
-        local backpack = Player:FindFirstChild("Backpack")
-        local characterTools = character:GetChildren()
-        
-        -- Find an appropriate tool
-        local tool = nil
-        for _, item in pairs(characterTools) do
-            if item:IsA("Tool") then
-                tool = item
-                break
-            end
-        end
-        
-        if not tool and backpack then
-            for _, item in pairs(backpack:GetChildren()) do
-                if item:IsA("Tool") then
-                    tool = item
-                    break
-                end
-            end
-        end
-        
-        if tool then
-            -- Equip and use tool
-            tool.Parent = character
-            task.wait(0.2)
-            
-            -- Simulate tool use
-            if tool:FindFirstChild("Handle") then
-                tool.Handle.CFrame = item.Object.CFrame
-                VirtualInput:SendKeyEvent(true, "E", false, game)
-                task.wait(0.1)
-                VirtualInput:SendKeyEvent(false, "E", false, game)
-                CollectedItems = CollectedItems + 1
-            end
-        else
-            -- Last resort: click on object
-            Mouse.TargetFilter = item.Object
-            Mouse.Target = item.Object
-            VirtualInput:SendMouseButtonEvent(
-                item.Object.Position.X,
-                item.Object.Position.Y,
-                0, -- Left mouse button
-                true, -- Down
-                game,
-                1
-            )
-            task.wait(0.1)
-            VirtualInput:SendMouseButtonEvent(
-                item.Object.Position.X,
-                item.Object.Position.Y,
-                0, -- Left mouse button
-                false, -- Up
-                game,
-                1
-            )
-            CollectedItems = CollectedItems + 1
-        end
+    -- Spam attack keys
+    local attackKeys = {"X", "Z", "C", "V", "F"}
+    for _, key in pairs(attackKeys) do
+        VirtualInput:SendKeyEvent(true, key, false, game)
+        task.wait(0.05)
+        VirtualInput:SendKeyEvent(false, key, false, game)
     end
     
-    -- Remove from cache
-    ItemCache[item.Object] = nil
-    
-    -- Update inventory tracking
-    GameState.Inventory[item.Type] = (GameState.Inventory[item.Type] or 0) + 1
-    
-    task.wait(0.5) -- Collection cooldown
     return true
 end
 
--- NIGHT TIME SAFETY SYSTEM
-function CheckNightTime()
-    local lighting = Workspace:FindFirstChildOfClass("Lighting")
-    if lighting then
-        -- Check if it's night based on lighting
-        local currentTime = lighting:GetAttribute("Time") or lighting.ClockTime or 12
-        GameState.IsNight = currentTime < 6 or currentTime > 18
+-- QUEST AUTOMATION
+function AcceptQuest(questName)
+    local npc = FindNPCForQuest(questName)
+    if npc then
+        MoveToPosition(npc.HumanoidRootPart.Position)
+        task.wait(1)
         
-        if GameState.IsNight and Config.NightRetreat then
-            -- Find safe zone (campfire, base, etc.)
-            if not GameState.SafeZone then
-                for _, obj in pairs(Workspace:GetDescendants()) do
-                    if obj.Name == "Campfire" or obj.Name == "Base" or obj.Name == "SafeZone" then
-                        GameState.SafeZone = obj
-                        break
-                    end
-                end
-            end
-            
-            -- Return to safe zone at night
-            if GameState.SafeZone then
-                MoveToPosition(GameState.SafeZone.Position, false)
-                return true
+        -- Click on NPC to accept quest
+        fireclickdetector(npc:FindFirstChild("ClickDetector"))
+        return true
+    end
+    return false
+end
+
+function FindNPCForQuest(questName)
+    for _, npc in pairs(Workspace:GetChildren()) do
+        if npc:FindFirstChild("ClickDetector") then
+            if string.find(npc.Name:lower(), questName:lower()) then
+                return npc
             end
         end
     end
-    return false
+    return nil
 end
 
 -- MAIN FARMING LOOP
 function FarmingLoop()
     while Config.Enabled do
-        -- Check game state
         if not Player.Character or Player.Character.Humanoid.Health <= 0 then
             task.wait(5)
             continue
         end
         
-        -- Night time check
-        if CheckNightTime() then
-            task.wait(10) -- Wait at safe zone
-            continue
-        end
+        GameState.PlayerLevel = GetPlayerLevel()
+        GameState.CurrentSea = GetCurrentSea()
         
-        -- Scan for items
-        local items = ScanItems()
-        
-        if #items > 0 then
-            -- Collect highest priority item
-            local targetItem = items[1]
+        if Config.FarmMode == "NPC" then
+            -- NPC FARMING MODE
+            local targetNPC = FindOptimalNPC()
+            GameState.CurrentNPC = targetNPC
             
-            if Config.ItemWhitelist then
-                for _, allowedItem in pairs(Config.ItemWhitelist) do
-                    if targetItem.Type == allowedItem then
-                        CollectItem(targetItem)
-                        break
-                    end
-                end
-            else
-                CollectItem(targetItem)
+            -- Accept quest if needed
+            if Config.AutoQuest and not GameState.QuestActive then
+                AcceptQuest(targetNPC.Quest)
+                task.wait(2)
             end
             
-            task.wait(1) -- Cooldown between collections
-        else
-            -- No items found, explore randomly
-            local randomDirection = Vector3.new(
-                math.random(-Config.FarmRadius, Config.FarmRadius),
-                0,
-                math.random(-Config.FarmRadius, Config.FarmRadius)
-            )
-            local explorePosition = Player.Character.HumanoidRootPart.Position + randomDirection
+            -- Find and attack enemies
+            local enemies = ScanEnemies(targetNPC.Name)
             
-            MoveToPosition(explorePosition, true)
-            task.wait(3)
+            if #enemies > 0 then
+                local target = enemies[1]
+                AttackTarget(target)
+                
+                -- Wait for enemy death
+                local startWait = os.time()
+                while target.Object and target.Object:FindFirstChild("Humanoid") and target.Object.Humanoid.Health > 0 do
+                    if os.time() - startWait > 30 then
+                        break -- Timeout
+                    end
+                    AttackTarget(target)
+                    task.wait(0.5)
+                end
+                
+                KillCount = KillCount + 1
+            else
+                -- No enemies found, explore
+                local randomPos = Player.Character.HumanoidRootPart.Position + Vector3.new(
+                    math.random(-100, 100),
+                    0,
+                    math.random(-100, 100)
+                )
+                MoveToPosition(randomPos)
+            end
+            
+        else
+            -- BOSS FARMING MODE
+            local bosses = ScanEnemies(Config.SelectedBoss)
+            
+            if #bosses > 0 then
+                local boss = bosses[1]
+                AttackTarget(boss)
+            else
+                -- Boss not found, wait or change position
+                task.wait(5)
+            end
         end
         
-        -- Clear cache periodically
-        if os.time() % 30 == 0 then
-            ItemCache = {}
-        end
-        
-        task.wait(0.1)
+        task.wait(0.5)
     end
 end
 
--- DISCORD WEBHOOK NOTIFICATIONS
-function SendNotification(message)
-    if Config.WebhookURL ~= "" then
-        local success, result = pcall(function()
-            local data = {
-                ["content"] = message,
-                ["embeds"] = {{
-                    ["title"] = "99 Nights Farmer",
-                    ["description"] = "Item Collection Report",
-                    ["color"] = 65280,
-                    ["fields"] = {
-                        {
-                            ["name"] = "Items Collected",
-                            ["value"] = CollectedItems,
-                            ["inline"] = true
-                        },
-                        {
-                            ["name"] = "Session Time",
-                            ["value"] = os.time() - StartTime .. " seconds",
-                            ["inline"] = true
-                        }
-                    },
-                    ["timestamp"] = os.date("!%Y-%m-%dT%H:%M:%SZ")
-                }}
-            }
-            
-            return game:HttpGet(Config.WebhookURL, {
-                Method = "POST",
-                Headers = {
-                    ["Content-Type"] = "application/json"
-                },
-                Body = game:GetService("HttpService"):JSONEncode(data)
-            })
-        end)
+-- ANTI-AFK SYSTEM
+function SetupAntiAFK()
+    while true do
+        if Config.AntiAFK and Config.Enabled then
+            VirtualInput:SendKeyEvent(true, "W", false, game)
+            task.wait(1)
+            VirtualInput:SendKeyEvent(false, "W", false, game)
+            VirtualInput:SendKeyEvent(true, "S", false, game)
+            task.wait(1)
+            VirtualInput:SendKeyEvent(false, "S", false, game)
+        end
+        task.wait(30)
+    end
+end
+
+-- SERVER HOP FUNCTION
+function ServerHop()
+    local servers = {}
+    local success, result = pcall(function()
+        return game:GetService("HttpService"):JSONDecode(
+            game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Desc&limit=100")
+        )
+    end)
+    
+    if success and result.data then
+        for _, server in pairs(result.data) do
+            if server.playing < server.maxPlayers and server.id ~= game.JobId then
+                table.insert(servers, server.id)
+            end
+        end
         
-        if not success then
-            warn("Failed to send Discord notification: " .. result)
+        if #servers > 0 then
+            game:GetService("TeleportService"):TeleportToPlaceInstance(
+                game.PlaceId,
+                servers[math.random(1, #servers)]
+            )
         end
     end
 end
 
 -- ADVANCED UI
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bloodball/-back-ups-for-libs/main/0x"))()
-local Window = Library:CreateWindow("99 Nights Farmer", "Shadow Core AI")
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+local Window = Library.CreateLib("Shadow Core - Blox Fruits Farmer", "DarkTheme")
 
-local MainTab = Window:CreateTab("Main Controls")
-local ItemsTab = Window:CreateTab("Item Settings")
-local SafetyTab = Window:CreateTab("Safety Settings")
+-- MAIN TAB
+local MainTab = Window:NewTab("Main")
+local MainSection = MainTab:NewSection("Auto Farm Controls")
 
--- MAIN CONTROLS
-MainTab:CreateToggle("Enable Auto Farm", false, function(State)
-    Config.Enabled = State
-    if State then
+MainSection:NewToggle("Enable Auto Farm", "Start/Stop Auto Farming", function(state)
+    Config.Enabled = state
+    if state then
         StartTime = os.time()
-        CollectedItems = 0
+        KillCount = 0
         FarmingLoop()
-        Library:CreateNotification("Farm", "Auto Farming Started!", 5)
+        Library:Notify("Auto Farm", "Started Auto Farming!", "ok")
     else
-        Library:CreateNotification("Farm", "Auto Farming Stopped!", 5)
-        SendNotification("Farming session ended. Collected " .. CollectedItems .. " items.")
+        Library:Notify("Auto Farm", "Stopped Auto Farming!", "ok")
     end
 end)
 
-MainTab:CreateSlider("Farm Radius", 100, 1000, 500, true, function(Value)
-    Config.FarmRadius = Value
+MainSection:NewDropdown("Farm Mode", {"NPC", "BOSS"}, function(mode)
+    Config.FarmMode = mode
 end)
 
-MainTab:CreateToggle("Save Inventory Data", true, function(State)
-    Config.SaveInventory = State
+MainSection:NewDropdown("Select Boss", BossDatabase, function(boss)
+    Config.SelectedBoss = boss
 end)
 
--- ITEM SETTINGS
-for itemName, itemData in pairs(ItemDatabase) do
-    ItemsTab:CreateToggle("Collect " .. itemName, true, function(State)
-        if State then
-            if not table.find(Config.ItemWhitelist, itemName) then
-                table.insert(Config.ItemWhitelist, itemName)
-            end
-        else
-            local index = table.find(Config.ItemWhitelist, itemName)
-            if index then
-                table.remove(Config.ItemWhitelist, index)
-            end
-        end
-    end)
-end
+-- SETTINGS TAB
+local SettingsTab = Window:NewTab("Settings")
+local SettingsSection = SettingsTab:NewSection("Farm Settings")
 
--- SAFETY SETTINGS
-SafetyTab:CreateToggle("Auto Avoid Enemies", true, function(State)
-    Config.AutoAvoidEnemies = State
+SettingsSection:NewToggle("Auto Accept Quest", "Auto accept quests", function(state)
+    Config.AutoQuest = state
 end)
 
-SafetyTab:CreateToggle("Retreat at Night", true, function(State)
-    Config.NightRetreat = State
+SettingsSection:NewToggle("Auto Sell Fruits", "Auto sell fruits", function(state)
+    Config.AutoSellFruits = state
 end)
 
-SafetyTab:CreateButton("Return to Safe Zone", function()
-    CheckNightTime()
-    if GameState.SafeZone then
-        MoveToPosition(GameState.SafeZone.Position, false)
-    end
+SettingsSection:NewToggle("Anti AFK", "Prevent AFK detection", function(state)
+    Config.AntiAFK = state
 end)
 
--- STATS DISPLAY
-local StatsTab = Window:CreateTab("Statistics")
-StatsTab:CreateLabel("Items Collected: 0")
-StatsTab:CreateLabel("Session Time: 0s")
-StatsTab:CreateLabel("Current Night: 1")
+-- STATS TAB
+local StatsTab = Window:NewTab("Statistics")
+StatsSection = StatsTab:NewSection("Farming Stats")
+
+StatsSection:NewLabel("Kills: 0")
+StatsSection:NewLabel("Time: 0s")
+StatsSection:NewLabel("Current NPC: None")
+StatsSection:NewLabel("Player Level: 1")
 
 -- AUTO UPDATE STATS
 RunService.Heartbeat:Connect(function()
     if Config.Enabled then
+        local timeElapsed = os.time() - StartTime
+        local minutes = math.floor(timeElapsed / 60)
+        local seconds = timeElapsed % 60
+        
         pcall(function()
-            Window:UpdateTab("Statistics", {
-                "Items Collected: " .. CollectedItems,
-                "Session Time: " .. (os.time() - StartTime) .. "s",
-                "Current Night: " .. GameState.CurrentNight
+            StatsTab:UpdateSection("Farming Stats", {
+                "Kills: " .. KillCount,
+                "Time: " .. string.format("%02d:%02d", minutes, seconds),
+                "Current NPC: " .. (GameState.CurrentNPC and GameState.CurrentNPC.Name or "None"),
+                "Player Level: " .. GameState.PlayerLevel
             })
         end)
     end
 end)
 
-Library:Init()
+-- START ANTI-AFK
+task.spawn(SetupAntiAFK)
 
--- INITIAL MESSAGE
-Library:CreateNotification("99 Nights Farmer", "Shadow Core AI Loaded Successfully!", 5)
+-- INITIALIZE
+Library:Notify("Shadow Core AI", "Blox Fruits Farmer Loaded!", "ok")

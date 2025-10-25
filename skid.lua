@@ -1,450 +1,526 @@
--- SHADOW CORE AI - PREMIUM HAMMER-STYLE UI
+-- HIEUDRG FLY HUB - PREMIUM FLY SCRIPT
+-- SHADOW CORE AI POWERED
+
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
--- CREATE MAIN WINDOW
+-- CREATE EPIC WINDOW
 local Window = Rayfield:CreateWindow({
-   Name = "🔮 SHADOW CORE PREMIUM",
-   LoadingTitle = "Shadow Core AI Initializing...",
-   LoadingSubtitle = "Powered by Advanced Intelligence",
+   Name = "🛸 HIEUDRG FLY HUB",
+   LoadingTitle = "HIEUDRG Premium Fly System",
+   LoadingSubtitle = "Powered by Shadow Core AI",
    ConfigurationSaving = {
       Enabled = true,
-      FolderName = "ShadowCore",
-      FileName = "PremiumConfig"
+      FolderName = "HieuDRGConfig",
+      FileName = "FlySettings"
    },
-   Discord = {
-      Enabled = true,
-      Invite = "shadowcore",
-      RememberJoins = true
-   },
-   KeySystem = false,
-   KeySettings = {
-      Title = "Shadow Core Access",
-      Subtitle = "Enter Key",
-      Note = "Join Discord for Key",
-      FileName = "ShadowKey",
-      SaveKey = true,
-      GrabKeyFromSite = false,
-      Key = {"SHADOWCORE2024"}
+   Theme = {
+      BackgroundColor = Color3.fromRGB(10, 10, 10),
+      HeaderColor = Color3.fromRGB(40, 0, 80),
+      TextColor = Color3.fromRGB(255, 255, 255),
+      IconColor = Color3.fromRGB(255, 105, 180),
+      ElementColor = Color3.fromRGB(20, 20, 20)
    }
 })
 
--- CREATE MULTIPLE TABS WITH EPIC DESIGN
+-- FLY SYSTEM VARIABLES
+local FlySettings = {
+   Enabled = false,
+   Speed = 50,
+   VerticalSpeed = 50,
+   NoClip = false,
+   FlyKey = "F",
+   Style = "Default"
+}
+
+local BodyVelocity
+local BodyGyro
+local FlyConnection
+
+-- CREATE TABS
 local Tabs = {
-    Main0 = Window:CreateTab({ 
-        Name = "⚡ MAIN HUB", 
+    Main = Window:CreateTab({ 
+        Name = "🛸 FLY CONTROL", 
         Icon = "rbxassetid://7733716865"
     }),
     
-    Combat = Window:CreateTab({ 
-        Name = "🔫 COMBAT", 
+    Settings = Window:CreateTab({ 
+        Name = "⚙️ FLY SETTINGS", 
         Icon = "rbxassetid://7733716865" 
     }),
     
-    Farm = Window:CreateTab({ 
-        Name = "🌾 AUTO FARM", 
-        Icon = "rbxassetid://7733716865" 
-    }),
-    
-    Teleport = Window:CreateTab({ 
-        Name = "📍 TELEPORT", 
+    Visuals = Window:CreateTab({ 
+        Name = "🎨 VISUALS", 
         Icon = "rbxassetid://7733716865" 
     }),
     
     Player = Window:CreateTab({ 
         Name = "👤 PLAYER", 
         Icon = "rbxassetid://7733716865" 
-    }),
-    
-    Scripts = Window:CreateTab({ 
-        Name = "📜 SCRIPTS", 
-        Icon = "rbxassetid://7733716865" 
-    }),
-    
-    Settings = Window:CreateTab({ 
-        Name = "⚙️ SETTINGS", 
-        Icon = "rbxassetid://7733716865" 
     })
 }
 
--- MAIN0 TAB CONTENT
-local Main0Section1 = Tabs.Main0:CreateSection("🎯 CORE FEATURES")
+-- MAIN FLY CONTROL SECTION
+local FlySection = Tabs.Main:CreateSection("🚀 FLY CONTROL SYSTEM")
 
-Tabs.Main0:AddButton({
-    Title = "🔥 ACTIVATE SHADOW MODE",
-    Description = "Kích hoạt chế độ siêu cấp",
-    Callback = function()
-        Rayfield:Notify({
-            Title = "SHADOW MODE ACTIVATED",
-            Content = "Maximum performance enabled!",
-            Duration = 6.5,
-            Image = "rbxassetid://7733716865"
-        })
-        -- Add your activation code here
-    end
-})
-
-Tabs.Main0:AddButton({
-    Title = "🚀 LOAD UNIVERSAL SCRIPT",
-    Description = "Tải script đa năng",
-    Callback = function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
-    end
-})
-
-Tabs.Main0:AddButton({
-    Title = "💀 NUKE SERVER",
-    Description = "Phá hủy server (ADMIN ONLY)",
-    Callback = function()
-        Rayfield:Notify({
-            Title = "NUKE WARNING",
-            Content = "This action cannot be undone!",
-            Duration = 6.5,
-            Image = "rbxassetid://7733716865",
-            Actions = {
-                Ignore = {
-                    Name = "Cancel",
-                    Callback = function()
-                        print("Nuke cancelled")
-                    end
-                },
-                Confirm = {
-                    Name = "CONFIRM NUKE",
-                    Callback = function()
-                        -- Nuke code here
-                        Rayfield:Notify({
-                            Title = "SERVER NUKE INITIATED",
-                            Content = "Destruction in progress...",
-                            Duration = 6.5,
-                            Image = "rbxassetid://7733716865"
-                        })
-                    end
-                }
-            }
-        })
-    end
-})
-
-local Main0Section2 = Tabs.Main0:CreateSection("📊 SERVER INFO")
-
-Tabs.Main0:AddParagraph("SERVER STATUS", "Players: " .. #game.Players:GetPlayers() .. "/" .. game.Players.MaxPlayers)
-
-Tabs.Main0:AddButton({
-    Title = "🔄 REFRESH SERVER INFO",
-    Description = "Cập nhật thông tin server",
-    Callback = function()
-        Tabs.Main0:UpdateParagraph("SERVER STATUS", "Players: " .. #game.Players:GetPlayers() .. "/" .. game.Players.MaxPlayers)
-    end
-})
-
--- COMBAT TAB
-local CombatSection1 = Tabs.Combat:CreateSection("🎯 AIMBOT & COMBAT")
-
-Tabs.Combat:AddToggle({
-    Title = "AIMBOT ENABLED",
-    Description = "Tự động ngắm bắn",
-    Default = false,
-    Callback = function(Value)
-        getgenv().AimbotEnabled = Value
-        Rayfield:Notify({
-            Title = "AIMBOT " .. (Value and "ENABLED" or "DISABLED"),
-            Content = "Combat system updated",
-            Duration = 3,
-            Image = "rbxassetid://7733716865"
-        })
-    end
-})
-
-Tabs.Combat:AddSlider({
-    Title = "AIMBOT SMOOTHNESS",
-    Description = "Độ mượt khi ngắm bắn",
-    Default = 50,
-    Min = 1,
-    Max = 100,
-    Callback = function(Value)
-        getgenv().AimbotSmoothness = Value
-    end
-})
-
-Tabs.Combat:AddToggle({
-    Title = "WALLHACK ESP",
-    Description = "Nhìn xuyên tường",
-    Default = false,
-    Callback = function(Value)
-        getgenv().WallhackEnabled = Value
-    end
-})
-
--- AUTO FARM TAB
-local FarmSection1 = Tabs.Farm:CreateSection("🌾 FARMING SYSTEMS")
-
-Tabs.Farm:AddToggle({
-    Title = "AUTO FARM LEVEL",
-    Description = "Tự động farm level",
-    Default = false,
-    Callback = function(Value)
-        getgenv().AutoFarm = Value
+Tabs.Main:AddToggle({
+   Title = "🛸 ACTIVATE FLY",
+   Description = "Bật/Tắt hệ thống bay",
+   Default = false,
+   Callback = function(Value)
+        FlySettings.Enabled = Value
         if Value then
+            ActivateFly()
             Rayfield:Notify({
-                Title = "AUTO FARM STARTED",
-                Content = "Farming in progress...",
-                Duration = 3,
-                Image = "rbxassetid://7733716865"
+               Title = "FLY ACTIVATED",
+               Content = "Fly system enabled! Press " .. FlySettings.FlyKey .. " to fly",
+               Duration = 5,
+               Image = "rbxassetid://7733716865"
             })
-        end
-    end
-})
-
-Tabs.Farm:AddDropdown({
-    Title = "FARM MODE",
-    Description = "Chọn chế độ farm",
-    Default = "NPC",
-    Options = {"NPC", "BOSS", "CHEST", "QUESTS"},
-    Callback = function(Value)
-        getgenv().FarmMode = Value
-    end
-})
-
-Tabs.Farm:AddSlider({
-    Title = "FARM RADIUS",
-    Description = "Bán kính tìm mục tiêu",
-    Default = 500,
-    Min = 100,
-    Max = 2000,
-    Callback = function(Value)
-        getgenv().FarmRadius = Value
-    end
-})
-
--- TELEPORT TAB
-local TeleportSection1 = Tabs.Teleport:CreateSection("📍 LOCATIONS")
-
-Tabs.Teleport:AddButton({
-    Title = "🏝️ TELEPORT TO FIRST SEA",
-    Description = "Dịch chuyển đến First Sea",
-    Callback = function()
-        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1000, 100, 1000)
-    end
-})
-
-Tabs.Teleport:AddButton({
-    Title = "🌊 TELEPORT TO SECOND SEA", 
-    Description = "Dịch chuyển đến Second Sea",
-    Callback = function()
-        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(2000, 100, 2000)
-    end
-})
-
-Tabs.Teleport:AddButton({
-    Title = "⚓ TELEPORT TO THIRD SEA",
-    Description = "Dịch chuyển đến Third Sea",
-    Callback = function()
-        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(3000, 100, 3000)
-    end
-})
-
-local TeleportSection2 = Tabs.Teleport:CreateSection("🎯 BOSS TELEPORT")
-
-Tabs.Teleport:AddDropdown({
-    Title = "SELECT BOSS",
-    Description = "Chọn boss để teleport",
-    Default = "Saber Expert",
-    Options = {"Saber Expert", "The Saw", "Greybeard", "Darkbeard", "Order"},
-    Callback = function(Value)
-        getgenv().SelectedBoss = Value
-    end
-})
-
-Tabs.Teleport:AddButton({
-    Title = "🚀 TELEPORT TO BOSS",
-    Description = "Dịch chuyển đến boss đã chọn",
-    Callback = function()
-        Rayfield:Notify({
-            Title = "BOSS TELEPORT",
-            Content = "Teleporting to " .. getgenv().SelectedBoss,
-            Duration = 3,
-            Image = "rbxassetid://7733716865"
-        })
-    end
-})
-
--- PLAYER TAB
-local PlayerSection1 = Tabs.Player:CreateSection("👤 PLAYER MODIFICATIONS")
-
-Tabs.Player:AddSlider({
-    Title = "WALKSPEED",
-    Description = "Tốc độ di chuyển",
-    Default = 16,
-    Min = 16,
-    Max = 200,
-    Callback = function(Value)
-        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
-    end
-})
-
-Tabs.Player:AddSlider({
-    Title = "JUMP POWER",
-    Description = "Lực nhảy",
-    Default = 50,
-    Min = 50,
-    Max = 200,
-    Callback = function(Value)
-        game.Players.LocalPlayer.Character.Humanoid.JumpPower = Value
-    end
-})
-
-Tabs.Player:AddToggle({
-    Title = "NO CLIP",
-    Description = "Đi xuyên vật thể",
-    Default = false,
-    Callback = function(Value)
-        getgenv().NoClip = Value
-    end
-})
-
-Tabs.Player:AddButton({
-    Title = "🔄 REFRESH CHARACTER",
-    Description = "Reset nhân vật",
-    Callback = function()
-        game.Players.LocalPlayer.Character:BreakJoints()
-    end
-})
-
--- SCRIPTS TAB
-local ScriptsSection1 = Tabs.Scripts:CreateSection("📜 SCRIPT LIBRARY")
-
-Tabs.Scripts:AddButton({
-    Title = "🌀 INFINITE YIELD",
-    Description = "Admin commands FE",
-    Callback = function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
-    end
-})
-
-Tabs.Scripts:AddButton({
-    Title = "⚡ DARK HUB",
-    Description = "Multi-game exploits",
-    Callback = function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/RandomAdamYT/DarkHub/master/Init"))()
-    end
-})
-
-Tabs.Scripts:AddButton({
-    Title = "💧 HYDROGEN",
-    Description = "Modern UI hub",
-    Callback = function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/gamerfeller/Hydrogen/main/loader.lua"))()
-    end
-})
-
-local ScriptsSection2 = Tabs.Scripts:CreateSection("🎮 GAME SPECIFIC")
-
-Tabs.Scripts:AddButton({
-    Title = "🔪 BLOX FRUITS",
-    Description = "Blox Fruits scripts",
-    Callback = function()
-        if game.PlaceId == 2753915549 then
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/xQuartyx/DonateMe/main/ScriptLoader"))()
         else
+            DeactivateFly()
             Rayfield:Notify({
-                Title = "WRONG GAME",
-                Content = "This script is for Blox Fruits only!",
-                Duration = 5,
-                Image = "rbxassetid://7733716865"
+               Title = "FLY DEACTIVATED",
+               Content = "Fly system disabled",
+               Duration = 3,
+               Image = "rbxassetid://7733716865"
             })
         end
-    end
+   end
 })
 
-Tabs.Scripts:AddButton({
-    Title = "🎯 ARSENAL",
-    Description = "Arsenal hacks",
-    Callback = function()
-        if game.PlaceId == 286090429 then
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/lerkram/Arsenal-Universal-Aimbot-ESP/main/Aimbot"))()
-        end
-    end
+Tabs.Main:AddButton({
+   Title = "🎯 QUICK FLY TOGGLE",
+   Description = "Bật fly nhanh (giữ F)",
+   Callback = function()
+        Rayfield:Notify({
+           Title = "QUICK FLY",
+           Content = "Hold F to fly, release to stop",
+           Duration = 4,
+           Image = "rbxassetid://7733716865"
+        })
+        SetupQuickFly()
+   end
 })
 
--- SETTINGS TAB
-local SettingsSection1 = Tabs.Settings:CreateSection("🎨 UI CUSTOMIZATION")
+Tabs.Main:AddButton({
+   Title = "🌀 INFINITE FLY",
+   Description = "Fly không giới hạn thời gian",
+   Callback = function()
+        FlySettings.Enabled = true
+        ActivateFly()
+        Rayfield:Notify({
+           Title = "INFINITE FLY",
+           Content = "Unlimited fly activated!",
+           Duration = 4,
+           Image = "rbxassetid://7733716865"
+        })
+   end
+})
+
+-- FLY STATS SECTION
+local StatsSection = Tabs.Main:CreateSection("📊 FLY STATISTICS")
+
+local SpeedDisplay = Tabs.Main:AddParagraph("CURRENT SPEED", "Horizontal: " .. FlySettings.Speed .. " | Vertical: " .. FlySettings.VerticalSpeed)
+local StatusDisplay = Tabs.Main:AddParagraph("FLY STATUS", "🛑 DISABLED")
+
+-- FLY SETTINGS TAB
+local SpeedSection = Tabs.Settings:CreateSection("🎯 SPEED CONTROL")
+
+Tabs.Settings:AddSlider({
+   Title = "HORIZONTAL SPEED",
+   Description = "Tốc độ bay ngang",
+   Default = 50,
+   Min = 1,
+   Max = 200,
+   Callback = function(Value)
+        FlySettings.Speed = Value
+        UpdateFlySpeed()
+        SpeedDisplay:Set("CURRENT SPEED: Horizontal: " .. FlySettings.Speed .. " | Vertical: " .. FlySettings.VerticalSpeed)
+   end
+})
+
+Tabs.Settings:AddSlider({
+   Title = "VERTICAL SPEED",
+   Description = "Tốc độ bay lên/xuống",
+   Default = 50,
+   Min = 1,
+   Max = 100,
+   Callback = function(Value)
+        FlySettings.VerticalSpeed = Value
+        UpdateFlySpeed()
+        SpeedDisplay:Set("CURRENT SPEED: Horizontal: " .. FlySettings.Speed .. " | Vertical: " .. FlySettings.VerticalSpeed)
+   end
+})
+
+local ControlSection = Tabs.Settings:CreateSection("🎮 CONTROL SETTINGS")
 
 Tabs.Settings:AddDropdown({
-    Title = "UI THEME",
-    Description = "Chọn theme cho giao diện",
-    Default = "Dark",
-    Options = {"Dark", "Darker", "Light", "Blood", "Ocean"},
-    Callback = function(Value)
+   Title = "FLY STYLE",
+   Description = "Chọn kiểu bay",
+   Default = "Default",
+   Options = {"Default", "Smooth", "Boost", "Drift", "Helicopter"},
+   Callback = function(Value)
+        FlySettings.Style = Value
         Rayfield:Notify({
-            Title = "THEME CHANGED",
-            Content = "UI Theme: " .. Value,
-            Duration = 3,
-            Image = "rbxassetid://7733716865"
+           Title = "FLY STYLE CHANGED",
+           Content = "Style: " .. Value,
+           Duration = 3,
+           Image = "rbxassetid://7733716865"
         })
-    end
+   end
 })
 
 Tabs.Settings:AddKeybind({
-    Title = "UI TOGGLE KEYBIND",
-    Description = "Phím tắt ẩn/hiện UI",
-    Default = "RightShift",
-    Callback = function(Key)
-        getgenv().UIToggleKey = Key
-    end
+   Title = "FLY TOGGLE KEY",
+   Description = "Phím bật/tắt bay nhanh",
+   Default = "F",
+   Callback = function(Key)
+        FlySettings.FlyKey = Key
+        Rayfield:Notify({
+           Title = "FLY KEY UPDATED",
+           Content = "Press " .. Key .. " to toggle fly",
+           Duration = 3,
+           Image = "rbxassetid://7733716865"
+        })
+   end
 })
 
 Tabs.Settings:AddToggle({
-    Title = "WATERMARK",
-    Description = "Hiển thị watermark",
-    Default = true,
-    Callback = function(Value)
-        getgenv().ShowWatermark = Value
-    end
+   Title = "AUTO NO-CLIP",
+   Description = "Tự động bật no-clip khi bay",
+   Default = false,
+   Callback = function(Value)
+        FlySettings.NoClip = Value
+        if FlySettings.Enabled then
+            UpdateNoClip()
+        end
+   end
 })
 
-local SettingsSection2 = Tabs.Settings:CreateSection("🔧 SYSTEM")
+-- VISUALS TAB
+local EffectsSection = Tabs.Visuals:CreateSection("✨ VISUAL EFFECTS")
 
-Tabs.Settings:AddButton({
-    Title = "💾 SAVE CONFIG",
-    Description = "Lưu cài đặt hiện tại",
-    Callback = function()
-        Rayfield:Notify({
-            Title = "CONFIG SAVED",
-            Content = "Settings have been saved!",
-            Duration = 3,
-            Image = "rbxassetid://7733716865"
-        })
-    end
+Tabs.Visuals:AddToggle({
+   Title = "TRAIL EFFECT",
+   Description = "Hiệu ứng vệt đuôi khi bay",
+   Default = false,
+   Callback = function(Value)
+        if Value then
+            CreateFlyTrail()
+        else
+            RemoveFlyTrail()
+        end
+   end
 })
 
-Tabs.Settings:AddButton({
-    Title = "🗑️ DESTROY UI",
-    Description = "Xóa giao diện hiện tại",
-    Callback = function()
-        Rayfield:Destroy()
-    end
+Tabs.Visuals:AddToggle({
+   Title = "SPARKLE EFFECT",
+   Description = "Hiệu ứng tia lửa khi bay",
+   Default = false,
+   Callback = function(Value)
+        if Value then
+            CreateSparkleEffect()
+        else
+            RemoveSparkleEffect()
+        end
+   end
 })
 
-Tabs.Settings:AddButton({
-    Title = "🔄 RELOAD UI",
-    Description = "Tải lại giao diện",
-    Callback = function()
-        Rayfield:Destroy()
-        task.wait(1)
-        -- Reload script here
-    end
+Tabs.Visuals:AddColorPicker({
+   Title = "TRAIL COLOR",
+   Description = "Chọn màu cho hiệu ứng bay",
+   Default = Color3.fromRGB(255, 105, 180),
+   Callback = function(Value)
+        UpdateTrailColor(Value)
+   end
 })
+
+local ThemeSection = Tabs.Visuals:CreateSection("🎨 UI THEME")
+
+Tabs.Visuals:AddDropdown({
+   Title = "THEME COLOR",
+   Description = "Chọn màu chủ đề cho UI",
+   Default = "Purple",
+   Options = {"Purple", "Pink", "Blue", "Red", "Green", "Gold"},
+   Callback = function(Value)
+        ChangeThemeColor(Value)
+   end
+})
+
+-- PLAYER TAB
+local PlayerSection = Tabs.Player:CreateSection("👤 PLAYER SETTINGS")
+
+Tabs.Player:AddSlider({
+   Title = "WALKSPEED",
+   Description = "Tốc độ chạy bộ",
+   Default = 16,
+   Min = 16,
+   Max = 200,
+   Callback = function(Value)
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
+   end
+})
+
+Tabs.Player:AddSlider({
+   Title = "JUMP POWER",
+   Description = "Lực nhảy",
+   Default = 50,
+   Min = 50,
+   Max = 200,
+   Callback = function(Value)
+        game.Players.LocalPlayer.Character.Humanoid.JumpPower = Value
+   end
+})
+
+Tabs.Player:AddToggle({
+   Title = "NO CLIP",
+   Description = "Đi xuyên vật thể",
+   Default = false,
+   Callback = function(Value)
+        if Value then
+            EnableNoClip()
+        else
+            DisableNoClip()
+        end
+   end
+})
+
+-- FLY SYSTEM FUNCTIONS
+function ActivateFly()
+    local character = game.Players.LocalPlayer.Character
+    if not character then return end
+    
+    local humanoid = character:FindFirstChild("Humanoid")
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    
+    if not humanoid or not rootPart then return end
+    
+    -- Create BodyVelocity for movement
+    BodyVelocity = Instance.new("BodyVelocity")
+    BodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    BodyVelocity.MaxForce = Vector3.new(10000, 10000, 10000)
+    BodyVelocity.Parent = rootPart
+    
+    -- Create BodyGyro for stability
+    BodyGyro = Instance.new("BodyGyro")
+    BodyGyro.MaxTorque = Vector3.new(10000, 10000, 10000)
+    BodyGyro.P = 1000
+    BodyGyro.D = 50
+    BodyGyro.Parent = rootPart
+    
+    -- Enable no-clip if setting is on
+    if FlySettings.NoClip then
+        UpdateNoClip()
+    end
+    
+    -- Start fly loop
+    FlyConnection = game:GetService("RunService").Heartbeat:Connect(function()
+        if not FlySettings.Enabled or not BodyVelocity or not BodyGyro then return end
+        
+        BodyGyro.CFrame = workspace.CurrentCamera.CFrame
+        
+        local direction = Vector3.new()
+        
+        -- Horizontal movement
+        if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.W) then
+            direction = direction + workspace.CurrentCamera.CFrame.LookVector
+        end
+        if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.S) then
+            direction = direction - workspace.CurrentCamera.CFrame.LookVector
+        end
+        if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.A) then
+            direction = direction - workspace.CurrentCamera.CFrame.RightVector
+        end
+        if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.D) then
+            direction = direction + workspace.CurrentCamera.CFrame.RightVector
+        end
+        
+        -- Vertical movement
+        if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.Space) then
+            direction = direction + Vector3.new(0, 1, 0)
+        end
+        if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.LeftShift) then
+            direction = direction - Vector3.new(0, 1, 0)
+        end
+        
+        -- Apply speed based on style
+        local horizontalSpeed = FlySettings.Speed
+        local verticalSpeed = FlySettings.VerticalSpeed
+        
+        if FlySettings.Style == "Boost" then
+            horizontalSpeed = horizontalSpeed * 1.5
+        elseif FlySettings.Style == "Smooth" then
+            horizontalSpeed = horizontalSpeed * 0.7
+        end
+        
+        BodyVelocity.Velocity = direction.Unit * horizontalSpeed + Vector3.new(0, direction.Y * verticalSpeed, 0)
+    end)
+    
+    StatusDisplay:Set("🟢 FLYING - Style: " .. FlySettings.Style)
+end
+
+function DeactivateFly()
+    if BodyVelocity then
+        BodyVelocity:Destroy()
+        BodyVelocity = nil
+    end
+    if BodyGyro then
+        BodyGyro:Destroy()
+        BodyGyro = nil
+    end
+    if FlyConnection then
+        FlyConnection:Disconnect()
+        FlyConnection = nil
+    end
+    
+    DisableNoClip()
+    RemoveFlyTrail()
+    RemoveSparkleEffect()
+    
+    StatusDisplay:Set("🛑 DISABLED")
+end
+
+function UpdateFlySpeed()
+    -- Speed updates automatically in the fly loop
+end
+
+function UpdateNoClip()
+    local character = game.Players.LocalPlayer.Character
+    if not character then return end
+    
+    for _, part in pairs(character:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.CanCollide = not FlySettings.NoClip
+        end
+    end
+end
+
+function EnableNoClip()
+    local character = game.Players.LocalPlayer.Character
+    if not character then return end
+    
+    for _, part in pairs(character:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.CanCollide = false
+        end
+    end
+end
+
+function DisableNoClip()
+    local character = game.Players.LocalPlayer.Character
+    if not character then return end
+    
+    for _, part in pairs(character:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.CanCollide = true
+        end
+    end
+end
+
+function CreateFlyTrail()
+    local character = game.Players.LocalPlayer.Character
+    if not character then return end
+    
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return end
+    
+    local trail = Instance.new("Trail")
+    trail.Attachment0 = Instance.new("Attachment", rootPart)
+    trail.Attachment1 = Instance.new("Attachment", rootPart)
+    trail.Attachment1.Position = Vector3.new(0, 0, -2)
+    trail.Color = ColorSequence.new(Color3.fromRGB(255, 105, 180))
+    trail.Lifetime = 0.5
+    trail.Parent = rootPart
+end
+
+function RemoveFlyTrail()
+    local character = game.Players.LocalPlayer.Character
+    if not character then return end
+    
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return end
+    
+    for _, child in pairs(rootPart:GetChildren()) do
+        if child:IsA("Trail") then
+            child:Destroy()
+        end
+    end
+end
+
+function CreateSparkleEffect()
+    -- Sparkle effect implementation
+end
+
+function RemoveSparkleEffect()
+    -- Remove sparkle effect implementation
+end
+
+function UpdateTrailColor(color)
+    -- Update trail color implementation
+end
+
+function ChangeThemeColor(theme)
+    local themeColors = {
+        Purple = Color3.fromRGB(128, 0, 128),
+        Pink = Color3.fromRGB(255, 105, 180),
+        Blue = Color3.fromRGB(0, 120, 255),
+        Red = Color3.fromRGB(255, 0, 0),
+        Green = Color3.fromRGB(0, 255, 0),
+        Gold = Color3.fromRGB(255, 215, 0)
+    }
+    
+    -- Update UI theme colors here
+end
+
+function SetupQuickFly()
+    game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        
+        if input.KeyCode == Enum.KeyCode[FlySettings.FlyKey] then
+            FlySettings.Enabled = true
+            ActivateFly()
+        end
+    end)
+    
+    game:GetService("UserInputService").InputEnded:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        
+        if input.KeyCode == Enum.KeyCode[FlySettings.FlyKey] then
+            FlySettings.Enabled = false
+            DeactivateFly()
+        end
+    end)
+end
+
+-- KEYBIND SYSTEM
+game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    
+    if input.KeyCode == Enum.KeyCode[FlySettings.FlyKey] then
+        FlySettings.Enabled = not FlySettings.Enabled
+        if FlySettings.Enabled then
+            ActivateFly()
+        else
+            DeactivateFly()
+        end
+    end
+end)
 
 -- INITIAL NOTIFICATION
 Rayfield:Notify({
-    Title = "SHADOW CORE AI LOADED",
-    Content = "Premium UI Activated Successfully!",
-    Duration = 6.5,
-    Image = "rbxassetid://7733716865"
+   Title = "🛸 HIEUDRG FLY HUB LOADED",
+   Content = "Premium Fly System Activated!\nPress " .. FlySettings.FlyKey .. " to toggle fly",
+   Duration = 8,
+   Image = "rbxassetid://7733716865"
 })
 
--- AUTO-UPDATE PLAYER COUNT
+-- AUTO-UPDATE DISPLAY
 task.spawn(function()
-    while task.wait(5) do
-        Tabs.Main0:UpdateParagraph("SERVER STATUS", "Players: " .. #game.Players:GetPlayers() .. "/" .. game.Players.MaxPlayers)
+    while task.wait(1) do
+        if FlySettings.Enabled then
+            StatusDisplay:Set("🟢 FLYING - Style: " .. FlySettings.Style)
+        else
+            StatusDisplay:Set("🛑 DISABLED")
+        end
     end
 end)

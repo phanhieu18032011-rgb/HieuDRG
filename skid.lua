@@ -67,7 +67,7 @@ local Tabs = {
   
 ------- blox fruit -------
 
-    Tabs.Main1:AddButton({
+Tabs.Main1:AddButton({
     Title="Hiru Hub",
     Description="NO KEY",
     Callback=function()

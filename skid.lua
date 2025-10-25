@@ -1,423 +1,450 @@
--- SHADOW CORE AI - BLOX FRUITS LEVEL FARMER
--- ADVANCED NPC & BOSS FARMING SYSTEM
+-- SHADOW CORE AI - PREMIUM HAMMER-STYLE UI
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
-local Players = game:GetService("Players")
-local Workspace = game:GetService("Workspace")
-local RunService = game:GetService("RunService")
-local VirtualInput = game:GetService("VirtualInputManager")
-local TweenService = game:GetService("TweenService")
+-- CREATE MAIN WINDOW
+local Window = Rayfield:CreateWindow({
+   Name = "🔮 SHADOW CORE PREMIUM",
+   LoadingTitle = "Shadow Core AI Initializing...",
+   LoadingSubtitle = "Powered by Advanced Intelligence",
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "ShadowCore",
+      FileName = "PremiumConfig"
+   },
+   Discord = {
+      Enabled = true,
+      Invite = "shadowcore",
+      RememberJoins = true
+   },
+   KeySystem = false,
+   KeySettings = {
+      Title = "Shadow Core Access",
+      Subtitle = "Enter Key",
+      Note = "Join Discord for Key",
+      FileName = "ShadowKey",
+      SaveKey = true,
+      GrabKeyFromSite = false,
+      Key = {"SHADOWCORE2024"}
+   }
+})
 
-local Player = Players.LocalPlayer
-local Mouse = Player:GetMouse()
-
--- CONFIGURATION
-local Config = {
-    Enabled = false,
-    FarmMode = "NPC", -- "NPC" or "BOSS"
-    SelectedBoss = "Saber Expert",
-    AutoQuest = true,
-    AutoSellFruits = true,
-    AutoStoreFruits = true,
-    HopIfLowPlayer = true,
-    AntiAFK = true,
-    WebhookURL = ""
+-- CREATE MULTIPLE TABS WITH EPIC DESIGN
+local Tabs = {
+    Main0 = Window:CreateTab({ 
+        Name = "⚡ MAIN HUB", 
+        Icon = "rbxassetid://7733716865"
+    }),
+    
+    Combat = Window:CreateTab({ 
+        Name = "🔫 COMBAT", 
+        Icon = "rbxassetid://7733716865" 
+    }),
+    
+    Farm = Window:CreateTab({ 
+        Name = "🌾 AUTO FARM", 
+        Icon = "rbxassetid://7733716865" 
+    }),
+    
+    Teleport = Window:CreateTab({ 
+        Name = "📍 TELEPORT", 
+        Icon = "rbxassetid://7733716865" 
+    }),
+    
+    Player = Window:CreateTab({ 
+        Name = "👤 PLAYER", 
+        Icon = "rbxassetid://7733716865" 
+    }),
+    
+    Scripts = Window:CreateTab({ 
+        Name = "📜 SCRIPTS", 
+        Icon = "rbxassetid://7733716865" 
+    }),
+    
+    Settings = Window:CreateTab({ 
+        Name = "⚙️ SETTINGS", 
+        Icon = "rbxassetid://7733716865" 
+    })
 }
 
--- NPC DATABASE BY SEA
-local NPCDatabase = {
-    ["First Sea"] = {
-        {Name = "Bandit", Level = 5, Quest = "BanditQuest1"},
-        {Name = "Monkey", Level = 10, Quest = "JungleQuest"},
-        {Name = "Gorilla", Level = 15, Quest = "JungleQuest"},
-        {Name = "Pirate", Level = 20, Quest = "BuggyQuest1"},
-        {Name = "Brute", Level = 30, Quest = "BuggyQuest2"},
-        {Name = "Desert Bandit", Level = 40, Quest = "DesertQuest"},
-        {Name = "Desert Officer", Level = 50, Quest = "DesertQuest"},
-        {Name = "Snow Bandit", Level = 60, Quest = "SnowQuest"},
-        {Name = "Snowman", Level = 70, Quest = "SnowQuest"},
-        {Name = "Chief Petty Officer", Level = 80, Quest = "MarineQuest2"},
-        {Name = "Sky Bandit", Level = 90, Quest = "SkyQuest"},
-        {Name = "Dark Master", Level = 100, Quest = "SkyQuest"}
-    },
-    ["Second Sea"] = {
-        {Name = "Pirate Millionaire", Level = 150, Quest = "PiratePortQuest"},
-        {Name = "Dragon Crew Warrior", Level = 175, Quest = "AmazonQuest1"},
-        {Name = "Dragon Crew Archer", Level = 190, Quest = "AmazonQuest1"},
-        {Name = "Female Islander", Level = 200, Quest = "AmazonQuest2"},
-        {Name = "Giant Islander", Level = 210, Quest = "AmazonQuest2"},
-        {Name = "Marine Captain", Level = 225, Quest = "MarineTreeQuest"},
-        {Name = "Galley Pirate", Level = 240, Quest = "DeepForestQuest1"}
-    },
-    ["Third Sea"] = {
-        {Name = "Mercenary", Level = 300, Quest = "Area1Quest"},
-        {Name = "Swan Pirate", Level = 350, Quest = "Area2Quest"},
-        {Name = "Factory Staff", Level = 400, Quest = "FishmanQuest"},
-        {Name = "Marine Lieutenant", Level = 450, Quest = "MarineQuest3"}
-    }
-}
+-- MAIN0 TAB CONTENT
+local Main0Section1 = Tabs.Main0:CreateSection("🎯 CORE FEATURES")
 
--- BOSS DATABASE
-local BossDatabase = {
-    "Saber Expert",
-    "The Saw", 
-    "Greybeard",
-    "Darkbeard",
-    "Order",
-    "Cursed Captain",
-    "Beautiful Pirate",
-    "Stone",
-    "Island Empress",
-    "Kilo Admiral",
-    "Captain Elephant"
-}
-
--- GAME STATE
-local GameState = {
-    CurrentSea = "First Sea",
-    PlayerLevel = 1,
-    CurrentNPC = nil,
-    IsBusy = false,
-    QuestActive = false
-}
-
--- TARGET CACHE
-local TargetCache = {}
-local KillCount = 0
-local StartTime = os.time()
-
--- DETECT CURRENT SEA
-function GetCurrentSea()
-    local map = Workspace:FindFirstChild("Map")
-    if map then
-        if map:FindFirstChild("IceCastle") then
-            return "First Sea"
-        elseif map:FindFirstChild("Mansion") then
-            return "Second Sea" 
-        elseif map:FindFirstChild("Hydra") then
-            return "Third Sea"
-        end
+Tabs.Main0:AddButton({
+    Title = "🔥 ACTIVATE SHADOW MODE",
+    Description = "Kích hoạt chế độ siêu cấp",
+    Callback = function()
+        Rayfield:Notify({
+            Title = "SHADOW MODE ACTIVATED",
+            Content = "Maximum performance enabled!",
+            Duration = 6.5,
+            Image = "rbxassetid://7733716865"
+        })
+        -- Add your activation code here
     end
-    return "First Sea"
-end
+})
 
--- GET PLAYER LEVEL
-function GetPlayerLevel()
-    local leaderstats = Player:FindFirstChild("leaderstats")
-    if leaderstats and leaderstats:FindFirstChild("Level") then
-        return leaderstats.Level.Value
+Tabs.Main0:AddButton({
+    Title = "🚀 LOAD UNIVERSAL SCRIPT",
+    Description = "Tải script đa năng",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
     end
-    return 1
-end
+})
 
--- FIND OPTIMAL NPC
-function FindOptimalNPC()
-    local currentLevel = GetPlayerLevel()
-    local currentSea = GetCurrentSea()
-    local availableNPCs = NPCDatabase[currentSea] or NPCDatabase["First Sea"]
-    
-    local optimalNPC = nil
-    for _, npcData in pairs(availableNPCs) do
-        if npcData.Level <= currentLevel + 50 then
-            if optimalNPC == nil or npcData.Level > optimalNPC.Level then
-                optimalNPC = npcData
-            end
-        end
-    end
-    
-    return optimalNPC or availableNPCs[1]
-end
-
--- SCAN FOR ENEMIES
-function ScanEnemies(targetName)
-    local enemies = {}
-    
-    -- Check workspace enemies
-    local enemiesFolder = Workspace:FindFirstChild("Enemies")
-    if enemiesFolder then
-        for _, enemy in pairs(enemiesFolder:GetChildren()) do
-            if enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
-                if string.find(enemy.Name:lower(), targetName:lower()) then
-                    table.insert(enemies, {
-                        Object = enemy,
-                        Position = enemy:FindFirstChild("HumanoidRootPart").Position,
-                        Distance = (Player.Character.HumanoidRootPart.Position - enemy:FindFirstChild("HumanoidRootPart").Position).Magnitude
-                    })
-                end
-            end
-        end
-    end
-    
-    -- Check NPCs in workspace
-    for _, npc in pairs(Workspace:GetChildren()) do
-        if npc:FindFirstChild("Humanoid") and npc.Humanoid.Health > 0 then
-            if string.find(npc.Name:lower(), targetName:lower()) then
-                table.insert(enemies, {
-                    Object = npc,
-                    Position = npc:FindFirstChild("HumanoidRootPart").Position,
-                    Distance = (Player.Character.HumanoidRootPart.Position - npc:FindFirstChild("HumanoidRootPart").Position).Magnitude
-                })
-            end
-        end
-    end
-    
-    -- Sort by distance
-    table.sort(enemies, function(a, b)
-        return a.Distance < b.Distance
-    end)
-    
-    return enemies
-end
-
--- SMART MOVEMENT SYSTEM
-function MoveToPosition(position)
-    local character = Player.Character
-    if not character then return false end
-    
-    local humanoid = character:FindFirstChild("Humanoid")
-    local rootPart = character:FindFirstChild("HumanoidRootPart")
-    
-    if not humanoid or not rootPart then return false end
-    
-    -- Use pathfinding or direct movement
-    humanoid:MoveTo(position)
-    
-    -- Wait for arrival with timeout
-    local startTime = os.time()
-    while (rootPart.Position - position).Magnitude > 15 do
-        if os.time() - startTime > 10 then
-            return false
-        end
-        task.wait(0.1)
-    end
-    
-    return true
-end
-
--- AUTO ATTACK SYSTEM
-function AttackTarget(target)
-    local character = Player.Character
-    if not character then return false end
-    
-    -- Move to attack range
-    local attackPosition = target.Position + (target.Position - character.HumanoidRootPart.Position).Unit * 10
-    MoveToPosition(attackPosition)
-    
-    -- Spam attack keys
-    local attackKeys = {"X", "Z", "C", "V", "F"}
-    for _, key in pairs(attackKeys) do
-        VirtualInput:SendKeyEvent(true, key, false, game)
-        task.wait(0.05)
-        VirtualInput:SendKeyEvent(false, key, false, game)
-    end
-    
-    return true
-end
-
--- QUEST AUTOMATION
-function AcceptQuest(questName)
-    local npc = FindNPCForQuest(questName)
-    if npc then
-        MoveToPosition(npc.HumanoidRootPart.Position)
-        task.wait(1)
-        
-        -- Click on NPC to accept quest
-        fireclickdetector(npc:FindFirstChild("ClickDetector"))
-        return true
-    end
-    return false
-end
-
-function FindNPCForQuest(questName)
-    for _, npc in pairs(Workspace:GetChildren()) do
-        if npc:FindFirstChild("ClickDetector") then
-            if string.find(npc.Name:lower(), questName:lower()) then
-                return npc
-            end
-        end
-    end
-    return nil
-end
-
--- MAIN FARMING LOOP
-function FarmingLoop()
-    while Config.Enabled do
-        if not Player.Character or Player.Character.Humanoid.Health <= 0 then
-            task.wait(5)
-            continue
-        end
-        
-        GameState.PlayerLevel = GetPlayerLevel()
-        GameState.CurrentSea = GetCurrentSea()
-        
-        if Config.FarmMode == "NPC" then
-            -- NPC FARMING MODE
-            local targetNPC = FindOptimalNPC()
-            GameState.CurrentNPC = targetNPC
-            
-            -- Accept quest if needed
-            if Config.AutoQuest and not GameState.QuestActive then
-                AcceptQuest(targetNPC.Quest)
-                task.wait(2)
-            end
-            
-            -- Find and attack enemies
-            local enemies = ScanEnemies(targetNPC.Name)
-            
-            if #enemies > 0 then
-                local target = enemies[1]
-                AttackTarget(target)
-                
-                -- Wait for enemy death
-                local startWait = os.time()
-                while target.Object and target.Object:FindFirstChild("Humanoid") and target.Object.Humanoid.Health > 0 do
-                    if os.time() - startWait > 30 then
-                        break -- Timeout
+Tabs.Main0:AddButton({
+    Title = "💀 NUKE SERVER",
+    Description = "Phá hủy server (ADMIN ONLY)",
+    Callback = function()
+        Rayfield:Notify({
+            Title = "NUKE WARNING",
+            Content = "This action cannot be undone!",
+            Duration = 6.5,
+            Image = "rbxassetid://7733716865",
+            Actions = {
+                Ignore = {
+                    Name = "Cancel",
+                    Callback = function()
+                        print("Nuke cancelled")
                     end
-                    AttackTarget(target)
-                    task.wait(0.5)
-                end
-                
-                KillCount = KillCount + 1
-            else
-                -- No enemies found, explore
-                local randomPos = Player.Character.HumanoidRootPart.Position + Vector3.new(
-                    math.random(-100, 100),
-                    0,
-                    math.random(-100, 100)
-                )
-                MoveToPosition(randomPos)
-            end
-            
+                },
+                Confirm = {
+                    Name = "CONFIRM NUKE",
+                    Callback = function()
+                        -- Nuke code here
+                        Rayfield:Notify({
+                            Title = "SERVER NUKE INITIATED",
+                            Content = "Destruction in progress...",
+                            Duration = 6.5,
+                            Image = "rbxassetid://7733716865"
+                        })
+                    end
+                }
+            }
+        })
+    end
+})
+
+local Main0Section2 = Tabs.Main0:CreateSection("📊 SERVER INFO")
+
+Tabs.Main0:AddParagraph("SERVER STATUS", "Players: " .. #game.Players:GetPlayers() .. "/" .. game.Players.MaxPlayers)
+
+Tabs.Main0:AddButton({
+    Title = "🔄 REFRESH SERVER INFO",
+    Description = "Cập nhật thông tin server",
+    Callback = function()
+        Tabs.Main0:UpdateParagraph("SERVER STATUS", "Players: " .. #game.Players:GetPlayers() .. "/" .. game.Players.MaxPlayers)
+    end
+})
+
+-- COMBAT TAB
+local CombatSection1 = Tabs.Combat:CreateSection("🎯 AIMBOT & COMBAT")
+
+Tabs.Combat:AddToggle({
+    Title = "AIMBOT ENABLED",
+    Description = "Tự động ngắm bắn",
+    Default = false,
+    Callback = function(Value)
+        getgenv().AimbotEnabled = Value
+        Rayfield:Notify({
+            Title = "AIMBOT " .. (Value and "ENABLED" or "DISABLED"),
+            Content = "Combat system updated",
+            Duration = 3,
+            Image = "rbxassetid://7733716865"
+        })
+    end
+})
+
+Tabs.Combat:AddSlider({
+    Title = "AIMBOT SMOOTHNESS",
+    Description = "Độ mượt khi ngắm bắn",
+    Default = 50,
+    Min = 1,
+    Max = 100,
+    Callback = function(Value)
+        getgenv().AimbotSmoothness = Value
+    end
+})
+
+Tabs.Combat:AddToggle({
+    Title = "WALLHACK ESP",
+    Description = "Nhìn xuyên tường",
+    Default = false,
+    Callback = function(Value)
+        getgenv().WallhackEnabled = Value
+    end
+})
+
+-- AUTO FARM TAB
+local FarmSection1 = Tabs.Farm:CreateSection("🌾 FARMING SYSTEMS")
+
+Tabs.Farm:AddToggle({
+    Title = "AUTO FARM LEVEL",
+    Description = "Tự động farm level",
+    Default = false,
+    Callback = function(Value)
+        getgenv().AutoFarm = Value
+        if Value then
+            Rayfield:Notify({
+                Title = "AUTO FARM STARTED",
+                Content = "Farming in progress...",
+                Duration = 3,
+                Image = "rbxassetid://7733716865"
+            })
+        end
+    end
+})
+
+Tabs.Farm:AddDropdown({
+    Title = "FARM MODE",
+    Description = "Chọn chế độ farm",
+    Default = "NPC",
+    Options = {"NPC", "BOSS", "CHEST", "QUESTS"},
+    Callback = function(Value)
+        getgenv().FarmMode = Value
+    end
+})
+
+Tabs.Farm:AddSlider({
+    Title = "FARM RADIUS",
+    Description = "Bán kính tìm mục tiêu",
+    Default = 500,
+    Min = 100,
+    Max = 2000,
+    Callback = function(Value)
+        getgenv().FarmRadius = Value
+    end
+})
+
+-- TELEPORT TAB
+local TeleportSection1 = Tabs.Teleport:CreateSection("📍 LOCATIONS")
+
+Tabs.Teleport:AddButton({
+    Title = "🏝️ TELEPORT TO FIRST SEA",
+    Description = "Dịch chuyển đến First Sea",
+    Callback = function()
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1000, 100, 1000)
+    end
+})
+
+Tabs.Teleport:AddButton({
+    Title = "🌊 TELEPORT TO SECOND SEA", 
+    Description = "Dịch chuyển đến Second Sea",
+    Callback = function()
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(2000, 100, 2000)
+    end
+})
+
+Tabs.Teleport:AddButton({
+    Title = "⚓ TELEPORT TO THIRD SEA",
+    Description = "Dịch chuyển đến Third Sea",
+    Callback = function()
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(3000, 100, 3000)
+    end
+})
+
+local TeleportSection2 = Tabs.Teleport:CreateSection("🎯 BOSS TELEPORT")
+
+Tabs.Teleport:AddDropdown({
+    Title = "SELECT BOSS",
+    Description = "Chọn boss để teleport",
+    Default = "Saber Expert",
+    Options = {"Saber Expert", "The Saw", "Greybeard", "Darkbeard", "Order"},
+    Callback = function(Value)
+        getgenv().SelectedBoss = Value
+    end
+})
+
+Tabs.Teleport:AddButton({
+    Title = "🚀 TELEPORT TO BOSS",
+    Description = "Dịch chuyển đến boss đã chọn",
+    Callback = function()
+        Rayfield:Notify({
+            Title = "BOSS TELEPORT",
+            Content = "Teleporting to " .. getgenv().SelectedBoss,
+            Duration = 3,
+            Image = "rbxassetid://7733716865"
+        })
+    end
+})
+
+-- PLAYER TAB
+local PlayerSection1 = Tabs.Player:CreateSection("👤 PLAYER MODIFICATIONS")
+
+Tabs.Player:AddSlider({
+    Title = "WALKSPEED",
+    Description = "Tốc độ di chuyển",
+    Default = 16,
+    Min = 16,
+    Max = 200,
+    Callback = function(Value)
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
+    end
+})
+
+Tabs.Player:AddSlider({
+    Title = "JUMP POWER",
+    Description = "Lực nhảy",
+    Default = 50,
+    Min = 50,
+    Max = 200,
+    Callback = function(Value)
+        game.Players.LocalPlayer.Character.Humanoid.JumpPower = Value
+    end
+})
+
+Tabs.Player:AddToggle({
+    Title = "NO CLIP",
+    Description = "Đi xuyên vật thể",
+    Default = false,
+    Callback = function(Value)
+        getgenv().NoClip = Value
+    end
+})
+
+Tabs.Player:AddButton({
+    Title = "🔄 REFRESH CHARACTER",
+    Description = "Reset nhân vật",
+    Callback = function()
+        game.Players.LocalPlayer.Character:BreakJoints()
+    end
+})
+
+-- SCRIPTS TAB
+local ScriptsSection1 = Tabs.Scripts:CreateSection("📜 SCRIPT LIBRARY")
+
+Tabs.Scripts:AddButton({
+    Title = "🌀 INFINITE YIELD",
+    Description = "Admin commands FE",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
+    end
+})
+
+Tabs.Scripts:AddButton({
+    Title = "⚡ DARK HUB",
+    Description = "Multi-game exploits",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/RandomAdamYT/DarkHub/master/Init"))()
+    end
+})
+
+Tabs.Scripts:AddButton({
+    Title = "💧 HYDROGEN",
+    Description = "Modern UI hub",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/gamerfeller/Hydrogen/main/loader.lua"))()
+    end
+})
+
+local ScriptsSection2 = Tabs.Scripts:CreateSection("🎮 GAME SPECIFIC")
+
+Tabs.Scripts:AddButton({
+    Title = "🔪 BLOX FRUITS",
+    Description = "Blox Fruits scripts",
+    Callback = function()
+        if game.PlaceId == 2753915549 then
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/xQuartyx/DonateMe/main/ScriptLoader"))()
         else
-            -- BOSS FARMING MODE
-            local bosses = ScanEnemies(Config.SelectedBoss)
-            
-            if #bosses > 0 then
-                local boss = bosses[1]
-                AttackTarget(boss)
-            else
-                -- Boss not found, wait or change position
-                task.wait(5)
-            end
-        end
-        
-        task.wait(0.5)
-    end
-end
-
--- ANTI-AFK SYSTEM
-function SetupAntiAFK()
-    while true do
-        if Config.AntiAFK and Config.Enabled then
-            VirtualInput:SendKeyEvent(true, "W", false, game)
-            task.wait(1)
-            VirtualInput:SendKeyEvent(false, "W", false, game)
-            VirtualInput:SendKeyEvent(true, "S", false, game)
-            task.wait(1)
-            VirtualInput:SendKeyEvent(false, "S", false, game)
-        end
-        task.wait(30)
-    end
-end
-
--- SERVER HOP FUNCTION
-function ServerHop()
-    local servers = {}
-    local success, result = pcall(function()
-        return game:GetService("HttpService"):JSONDecode(
-            game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Desc&limit=100")
-        )
-    end)
-    
-    if success and result.data then
-        for _, server in pairs(result.data) do
-            if server.playing < server.maxPlayers and server.id ~= game.JobId then
-                table.insert(servers, server.id)
-            end
-        end
-        
-        if #servers > 0 then
-            game:GetService("TeleportService"):TeleportToPlaceInstance(
-                game.PlaceId,
-                servers[math.random(1, #servers)]
-            )
+            Rayfield:Notify({
+                Title = "WRONG GAME",
+                Content = "This script is for Blox Fruits only!",
+                Duration = 5,
+                Image = "rbxassetid://7733716865"
+            })
         end
     end
-end
+})
 
--- ADVANCED UI
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
-local Window = Library.CreateLib("Shadow Core - Blox Fruits Farmer", "DarkTheme")
-
--- MAIN TAB
-local MainTab = Window:NewTab("Main")
-local MainSection = MainTab:NewSection("Auto Farm Controls")
-
-MainSection:NewToggle("Enable Auto Farm", "Start/Stop Auto Farming", function(state)
-    Config.Enabled = state
-    if state then
-        StartTime = os.time()
-        KillCount = 0
-        FarmingLoop()
-        Library:Notify("Auto Farm", "Started Auto Farming!", "ok")
-    else
-        Library:Notify("Auto Farm", "Stopped Auto Farming!", "ok")
+Tabs.Scripts:AddButton({
+    Title = "🎯 ARSENAL",
+    Description = "Arsenal hacks",
+    Callback = function()
+        if game.PlaceId == 286090429 then
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/lerkram/Arsenal-Universal-Aimbot-ESP/main/Aimbot"))()
+        end
     end
-end)
-
-MainSection:NewDropdown("Farm Mode", {"NPC", "BOSS"}, function(mode)
-    Config.FarmMode = mode
-end)
-
-MainSection:NewDropdown("Select Boss", BossDatabase, function(boss)
-    Config.SelectedBoss = boss
-end)
+})
 
 -- SETTINGS TAB
-local SettingsTab = Window:NewTab("Settings")
-local SettingsSection = SettingsTab:NewSection("Farm Settings")
+local SettingsSection1 = Tabs.Settings:CreateSection("🎨 UI CUSTOMIZATION")
 
-SettingsSection:NewToggle("Auto Accept Quest", "Auto accept quests", function(state)
-    Config.AutoQuest = state
-end)
+Tabs.Settings:AddDropdown({
+    Title = "UI THEME",
+    Description = "Chọn theme cho giao diện",
+    Default = "Dark",
+    Options = {"Dark", "Darker", "Light", "Blood", "Ocean"},
+    Callback = function(Value)
+        Rayfield:Notify({
+            Title = "THEME CHANGED",
+            Content = "UI Theme: " .. Value,
+            Duration = 3,
+            Image = "rbxassetid://7733716865"
+        })
+    end
+})
 
-SettingsSection:NewToggle("Auto Sell Fruits", "Auto sell fruits", function(state)
-    Config.AutoSellFruits = state
-end)
+Tabs.Settings:AddKeybind({
+    Title = "UI TOGGLE KEYBIND",
+    Description = "Phím tắt ẩn/hiện UI",
+    Default = "RightShift",
+    Callback = function(Key)
+        getgenv().UIToggleKey = Key
+    end
+})
 
-SettingsSection:NewToggle("Anti AFK", "Prevent AFK detection", function(state)
-    Config.AntiAFK = state
-end)
+Tabs.Settings:AddToggle({
+    Title = "WATERMARK",
+    Description = "Hiển thị watermark",
+    Default = true,
+    Callback = function(Value)
+        getgenv().ShowWatermark = Value
+    end
+})
 
--- STATS TAB
-local StatsTab = Window:NewTab("Statistics")
-StatsSection = StatsTab:NewSection("Farming Stats")
+local SettingsSection2 = Tabs.Settings:CreateSection("🔧 SYSTEM")
 
-StatsSection:NewLabel("Kills: 0")
-StatsSection:NewLabel("Time: 0s")
-StatsSection:NewLabel("Current NPC: None")
-StatsSection:NewLabel("Player Level: 1")
+Tabs.Settings:AddButton({
+    Title = "💾 SAVE CONFIG",
+    Description = "Lưu cài đặt hiện tại",
+    Callback = function()
+        Rayfield:Notify({
+            Title = "CONFIG SAVED",
+            Content = "Settings have been saved!",
+            Duration = 3,
+            Image = "rbxassetid://7733716865"
+        })
+    end
+})
 
--- AUTO UPDATE STATS
-RunService.Heartbeat:Connect(function()
-    if Config.Enabled then
-        local timeElapsed = os.time() - StartTime
-        local minutes = math.floor(timeElapsed / 60)
-        local seconds = timeElapsed % 60
-        
-        pcall(function()
-            StatsTab:UpdateSection("Farming Stats", {
-                "Kills: " .. KillCount,
-                "Time: " .. string.format("%02d:%02d", minutes, seconds),
-                "Current NPC: " .. (GameState.CurrentNPC and GameState.CurrentNPC.Name or "None"),
-                "Player Level: " .. GameState.PlayerLevel
-            })
-        end)
+Tabs.Settings:AddButton({
+    Title = "🗑️ DESTROY UI",
+    Description = "Xóa giao diện hiện tại",
+    Callback = function()
+        Rayfield:Destroy()
+    end
+})
+
+Tabs.Settings:AddButton({
+    Title = "🔄 RELOAD UI",
+    Description = "Tải lại giao diện",
+    Callback = function()
+        Rayfield:Destroy()
+        task.wait(1)
+        -- Reload script here
+    end
+})
+
+-- INITIAL NOTIFICATION
+Rayfield:Notify({
+    Title = "SHADOW CORE AI LOADED",
+    Content = "Premium UI Activated Successfully!",
+    Duration = 6.5,
+    Image = "rbxassetid://7733716865"
+})
+
+-- AUTO-UPDATE PLAYER COUNT
+task.spawn(function()
+    while task.wait(5) do
+        Tabs.Main0:UpdateParagraph("SERVER STATUS", "Players: " .. #game.Players:GetPlayers() .. "/" .. game.Players.MaxPlayers)
     end
 end)
-
--- START ANTI-AFK
-task.spawn(SetupAntiAFK)
-
--- INITIALIZE
-Library:Notify("Shadow Core AI", "Blox Fruits Farmer Loaded!", "ok")

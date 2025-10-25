@@ -1,5 +1,5 @@
--- HIEUDRG FLY HUB - RGB 7 COLOR THEME
--- REDESIGNED WITH EPIC RAINBOW UI
+-- HIEUDRG FLY HUB - STREAMLINED VERSION
+-- REMOVED UP/DOWN BUTTONS - CLEANER UI
 
 local main = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
@@ -9,12 +9,11 @@ local CloseButton = Instance.new("TextButton")
 local MinimizeButton = Instance.new("TextButton")
 local ContentFrame = Instance.new("Frame")
 local FlyButton = Instance.new("TextButton")
-local UpButton = Instance.new("TextButton")
-local DownButton = Instance.new("TextButton")
 local SpeedLabel = Instance.new("TextLabel")
 local IncreaseSpeed = Instance.new("TextButton")
 local DecreaseSpeed = Instance.new("TextButton")
 local StatusLabel = Instance.new("TextLabel")
+local ControlsLabel = Instance.new("TextLabel")
 
 -- RGB 7 COLOR PALETTE
 local RGBColors = {
@@ -39,7 +38,7 @@ MainFrame.Parent = main
 MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 MainFrame.BorderSizePixel = 0
 MainFrame.Position = UDim2.new(0.1, 0, 0.3, 0)
-MainFrame.Size = UDim2.new(0, 300, 0, 350)
+MainFrame.Size = UDim2.new(0, 280, 0, 300) -- Reduced height
 MainFrame.ClipsDescendants = true
 
 -- ADD GRADIENT EFFECT
@@ -117,14 +116,14 @@ FlyButton.Name = "FlyButton"
 FlyButton.Parent = ContentFrame
 FlyButton.BackgroundColor3 = RGBColors[4] -- Green
 FlyButton.Position = UDim2.new(0.1, 0, 0.05, 0)
-FlyButton.Size = UDim2.new(0.8, 0, 0, 50)
+FlyButton.Size = UDim2.new(0.8, 0, 0, 60) -- Larger button
 FlyButton.Font = Enum.Font.GothamBold
 FlyButton.Text = "🛸 BẬT FLY"
 FlyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-FlyButton.TextSize = 16
+FlyButton.TextSize = 18
 
 local FlyCorner = Instance.new("UICorner")
-FlyCorner.CornerRadius = UDim.new(0, 10)
+FlyCorner.CornerRadius = UDim.new(0, 12)
 FlyCorner.Parent = FlyButton
 
 local FlyStroke = Instance.new("UIStroke")
@@ -132,59 +131,36 @@ FlyStroke.Color = RGBColors[5] -- Blue border
 FlyStroke.Thickness = 2
 FlyStroke.Parent = FlyButton
 
--- UP BUTTON
-UpButton.Name = "UpButton"
-UpButton.Parent = ContentFrame
-UpButton.BackgroundColor3 = RGBColors[2] -- Orange
-UpButton.Position = UDim2.new(0.1, 0, 0.25, 0)
-UpButton.Size = UDim2.new(0.35, 0, 0, 40)
-UpButton.Font = Enum.Font.GothamBold
-UpButton.Text = "⬆️ UP"
-UpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-UpButton.TextSize = 14
-
-local UpCorner = Instance.new("UICorner")
-UpCorner.CornerRadius = UDim.new(0, 8)
-UpCorner.Parent = UpButton
-
--- DOWN BUTTON
-DownButton.Name = "DownButton"
-DownButton.Parent = ContentFrame
-DownButton.BackgroundColor3 = RGBColors[6] -- Indigo
-DownButton.Position = UDim2.new(0.55, 0, 0.25, 0)
-DownButton.Size = UDim2.new(0.35, 0, 0, 40)
-DownButton.Font = Enum.Font.GothamBold
-DownButton.Text = "⬇️ DOWN"
-DownButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-DownButton.TextSize = 14
-
-local DownCorner = Instance.new("UICorner")
-DownCorner.CornerRadius = UDim.new(0, 8)
-DownCorner.Parent = DownButton
-
 -- SPEED LABEL
 SpeedLabel.Name = "SpeedLabel"
 SpeedLabel.Parent = ContentFrame
 SpeedLabel.BackgroundColor3 = RGBColors[5] -- Blue
-SpeedLabel.Position = UDim2.new(0.1, 0, 0.45, 0)
-SpeedLabel.Size = UDim2.new(0.8, 0, 0, 35)
+SpeedLabel.Position = UDim2.new(0.1, 0, 0.35, 0)
+SpeedLabel.Size = UDim2.new(0.8, 0, 0, 40)
 SpeedLabel.Font = Enum.Font.GothamBold
 SpeedLabel.Text = "🎯 TỐC ĐỘ: 50"
 SpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-SpeedLabel.TextSize = 14
+SpeedLabel.TextSize = 16
 
 local SpeedCorner = Instance.new("UICorner")
-SpeedCorner.CornerRadius = UDim.new(0, 8)
+SpeedCorner.CornerRadius = UDim.new(0, 10)
 SpeedCorner.Parent = SpeedLabel
+
+-- SPEED CONTROL BUTTONS CONTAINER
+local SpeedControlsFrame = Instance.new("Frame")
+SpeedControlsFrame.Name = "SpeedControlsFrame"
+SpeedControlsFrame.Parent = ContentFrame
+SpeedControlsFrame.BackgroundTransparency = 1
+SpeedControlsFrame.Position = UDim2.new(0.1, 0, 0.55, 0)
+SpeedControlsFrame.Size = UDim2.new(0.8, 0, 0, 40)
 
 -- INCREASE SPEED BUTTON
 IncreaseSpeed.Name = "IncreaseSpeed"
-IncreaseSpeed.Parent = ContentFrame
+IncreaseSpeed.Parent = SpeedControlsFrame
 IncreaseSpeed.BackgroundColor3 = RGBColors[3] -- Yellow
-IncreaseSpeed.Position = UDim2.new(0.1, 0, 0.6, 0)
-IncreaseSpeed.Size = UDim2.new(0.35, 0, 0, 35)
+IncreaseSpeed.Size = UDim2.new(0.48, 0, 1, 0)
 IncreaseSpeed.Font = Enum.Font.GothamBold
-IncreaseSpeed.Text = "📈 TĂNG"
+IncreaseSpeed.Text = "📈 TĂNG TỐC"
 IncreaseSpeed.TextColor3 = Color3.fromRGB(0, 0, 0)
 IncreaseSpeed.TextSize = 14
 
@@ -194,12 +170,12 @@ IncreaseCorner.Parent = IncreaseSpeed
 
 -- DECREASE SPEED BUTTON
 DecreaseSpeed.Name = "DecreaseSpeed"
-DecreaseSpeed.Parent = ContentFrame
+DecreaseSpeed.Parent = SpeedControlsFrame
 DecreaseSpeed.BackgroundColor3 = RGBColors[1] -- Red
-DecreaseSpeed.Position = UDim2.new(0.55, 0, 0.6, 0)
-DecreaseSpeed.Size = UDim2.new(0.35, 0, 0, 35)
+DecreaseSpeed.Position = UDim2.new(0.52, 0, 0, 0)
+DecreaseSpeed.Size = UDim2.new(0.48, 0, 1, 0)
 DecreaseSpeed.Font = Enum.Font.GothamBold
-DecreaseSpeed.Text = "📉 GIẢM"
+DecreaseSpeed.Text = "📉 GIẢM TỐC"
 DecreaseSpeed.TextColor3 = Color3.fromRGB(255, 255, 255)
 DecreaseSpeed.TextSize = 14
 
@@ -207,21 +183,32 @@ local DecreaseCorner = Instance.new("UICorner")
 DecreaseCorner.CornerRadius = UDim.new(0, 8)
 DecreaseCorner.Parent = DecreaseSpeed
 
+-- CONTROLS LABEL
+ControlsLabel.Name = "ControlsLabel"
+ControlsLabel.Parent = ContentFrame
+ControlsLabel.BackgroundColor3 = RGBColors[7] -- Violet
+ControlsLabel.Position = UDim2.new(0.1, 0, 0.75, 0)
+ControlsLabel.Size = UDim2.new(0.8, 0, 0, 70)
+ControlsLabel.Font = Enum.Font.Gotham
+ControlsLabel.Text = "🎮 ĐIỀU KHIỂN:\nW/A/S/D - Bay các hướng\nSpace - Bay lên | Shift - Bay xuống\nF - Bật/Tắt Fly nhanh"
+ControlsLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+ControlsLabel.TextSize = 12
+ControlsLabel.TextWrapped = true
+
+local ControlsCorner = Instance.new("UICorner")
+ControlsCorner.CornerRadius = UDim.new(0, 8)
+ControlsCorner.Parent = ControlsLabel
+
 -- STATUS LABEL
 StatusLabel.Name = "StatusLabel"
 StatusLabel.Parent = ContentFrame
-StatusLabel.BackgroundColor3 = RGBColors[7] -- Violet
-StatusLabel.Position = UDim2.new(0.1, 0, 0.8, 0)
-StatusLabel.Size = UDim2.new(0.8, 0, 0, 40)
-StatusLabel.Font = Enum.Font.Gotham
-StatusLabel.Text = "🔴 FLY: TẮT\n🎮 F: Bật/Tắt Fly"
-StatusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-StatusLabel.TextSize = 12
-StatusLabel.TextWrapped = true
-
-local StatusCorner = Instance.new("UICorner")
-StatusCorner.CornerRadius = UDim.new(0, 8)
-StatusCorner.Parent = StatusLabel
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Position = UDim2.new(0.1, 0, 0.25, 0)
+StatusLabel.Size = UDim2.new(0.8, 0, 0, 30)
+StatusLabel.Font = Enum.Font.GothamBold
+StatusLabel.Text = "🔴 FLY ĐANG TẮT"
+StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+StatusLabel.TextSize = 14
 
 -- =============================================
 -- FLY SYSTEM VARIABLES
@@ -283,6 +270,7 @@ local function startFlying()
         
         local direction = Vector3.new(0, 0, 0)
         
+        -- Horizontal movement
         if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.W) then
             direction = direction + workspace.CurrentCamera.CFrame.LookVector
         end
@@ -296,6 +284,15 @@ local function startFlying()
             direction = direction + workspace.CurrentCamera.CFrame.RightVector
         end
         
+        -- Vertical movement
+        if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.Space) then
+            direction = direction + Vector3.new(0, 1, 0)
+        end
+        if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.LeftShift) then
+            direction = direction + Vector3.new(0, -1, 0)
+        end
+        
+        -- Apply speed
         if direction.Magnitude > 0 then
             bodyVelocity.Velocity = direction.Unit * currentSpeed
         else
@@ -303,7 +300,9 @@ local function startFlying()
         end
     end)
     
-    StatusLabel.Text = "🟢 FLY: BẬT\n🎮 F: Bật/Tắt Fly\n⬆️ Space: Bay lên\n⬇️ Shift: Bay xuống"
+    -- Update UI
+    StatusLabel.Text = "🟢 FLY ĐANG BẬT"
+    StatusLabel.TextColor3 = Color3.fromRGB(50, 255, 50)
     FlyButton.Text = "🛸 TẮT FLY"
     FlyButton.BackgroundColor3 = RGBColors[1] -- Red when active
 end
@@ -318,7 +317,9 @@ local function stopFlying()
         bodyGyro = nil
     end
     
-    StatusLabel.Text = "🔴 FLY: TẮT\n🎮 F: Bật/Tắt Fly"
+    -- Update UI
+    StatusLabel.Text = "🔴 FLY ĐANG TẮT"
+    StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
     FlyButton.Text = "🛸 BẬT FLY"
     FlyButton.BackgroundColor3 = RGBColors[4] -- Green when inactive
 end
@@ -332,20 +333,6 @@ FlyButton.MouseButton1Click:Connect(function()
         startFlying()
     else
         stopFlying()
-    end
-end)
-
-UpButton.MouseButton1Click:Connect(function()
-    local character = game.Players.LocalPlayer.Character
-    if character and flyEnabled then
-        character.HumanoidRootPart.Position = character.HumanoidRootPart.Position + Vector3.new(0, 10, 0)
-    end
-end)
-
-DownButton.MouseButton1Click:Connect(function()
-    local character = game.Players.LocalPlayer.Character
-    if character and flyEnabled then
-        character.HumanoidRootPart.Position = character.HumanoidRootPart.Position + Vector3.new(0, -10, 0)
     end
 end)
 
@@ -368,11 +355,11 @@ MinimizeButton.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
     if isMinimized then
         ContentFrame.Visible = false
-        MainFrame.Size = UDim2.new(0, 300, 0, 40)
+        MainFrame.Size = UDim2.new(0, 280, 0, 40)
         MinimizeButton.Text = "+"
     else
         ContentFrame.Visible = true
-        MainFrame.Size = UDim2.new(0, 300, 0, 350)
+        MainFrame.Size = UDim2.new(0, 280, 0, 300)
         MinimizeButton.Text = "–"
     end
 end)
@@ -441,8 +428,10 @@ spawn(animateRainbow)
 -- Initial notification
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "🌈 HIEUDRG FLY HUB",
-    Text = "RGB Fly System Activated!\nPress F to toggle fly",
+    Text = "Fly System Activated!\nPress F to toggle fly",
     Duration = 5
 })
 
-print("🌈 HIEUDRG FLY HUB - RGB Edition Loaded!")
+print("🌈 HIEUDRG FLY HUB - Streamlined Version Loaded!")
+print("🎮 Controls: W/A/S/D + Space/Shift")
+print("🎯 Press F to toggle fly quickly")

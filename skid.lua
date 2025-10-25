@@ -35,7 +35,7 @@ blurEffect.Parent = game:GetService("Lighting")
 -- Frame chứa toàn bộ UI
 local containerFrame = Instance.new("Frame")
 containerFrame.Size = UDim2.new(1, 0, 1, 0)
-containerFrame.Position = UDim2.new(0, 0, 1, 0) -- bắt đầu từ dưới màn hình
+containerFrame.Position = UDim2.new(0, 0, 1, 0)
 containerFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 20)
 containerFrame.BackgroundTransparency = 0.15
 containerFrame.BorderSizePixel = 0
@@ -134,13 +134,13 @@ statusLabel.Parent = containerFrame
 
 -- RGB Color System
 local rgbColors = {
-    Color3.fromRGB(255, 0, 0),      -- Red
-    Color3.fromRGB(255, 127, 0),    -- Orange
-    Color3.fromRGB(255, 255, 0),    -- Yellow
-    Color3.fromRGB(0, 255, 0),      -- Green
-    Color3.fromRGB(0, 0, 255),      -- Blue
-    Color3.fromRGB(75, 0, 130),     -- Indigo
-    Color3.fromRGB(148, 0, 211)     -- Violet
+    Color3.fromRGB(255, 0, 0),
+    Color3.fromRGB(255, 127, 0),
+    Color3.fromRGB(255, 255, 0),
+    Color3.fromRGB(0, 255, 0),
+    Color3.fromRGB(0, 0, 255),
+    Color3.fromRGB(75, 0, 130),
+    Color3.fromRGB(148, 0, 211)
 }
 
 -- Function to apply RGB effect
@@ -153,7 +153,7 @@ local function applyRGBEffect(label)
             if currentIndex > #rgbColors then
                 currentIndex = 1
             end
-            task.wait(0.3) -- Change color every 0.3 seconds
+            task.wait(0.3)
         end
     end)
 end
@@ -173,7 +173,6 @@ tween:Play()
 -- Bắt đầu đếm thời gian sau tween
 local startTime = tick()
 tween.Completed:Connect(function()
-    -- Bắt đầu cập nhật thời gian sau khi tween hoàn tất
     task.spawn(function()
         while screenGui.Parent do
             local elapsed = math.floor(tick() - startTime)
@@ -186,7 +185,7 @@ tween.Completed:Connect(function()
     end)
 end)
 
--- Đợi UI load xong rồi mới start farm
+-- Đợi UI load xong
 task.wait(2)
 
 -- MAIN FRUIT FARMING CODE
@@ -227,7 +226,6 @@ local function farmFruits()
                         tween:Play()
                         tween.Completed:Wait()
                         
-                        -- Chờ pickup fruit
                         task.wait(1)
                         
                         -- Tìm fruit trong backpack hoặc character
@@ -265,19 +263,19 @@ local function farmFruits()
         end)
         
         statusLabel.Text = "🟢 STATUS: SEARCHING FRUITS"
-        task.wait(3) -- Chờ 3 giây trước khi scan lại
+        task.wait(3)
     end
 end
 
 -- Start fruit farming
 task.spawn(farmFruits)
 
--- Server hop system (đơn giản hóa)
+-- Server hop system
 local function simpleServerHop()
     local placeId = game.PlaceId
     
     while screenGui and screenGui.Parent do
-        task.wait(1800) -- Chờ 30 phút
+        task.wait(1800)
         
         pcall(function()
             statusLabel.Text = "🟠 STATUS: SERVER HOPPING"
@@ -285,7 +283,7 @@ local function simpleServerHop()
             local servers = {}
             local cursor = ""
             
-            for i = 1, 3 do -- Thử 3 lần
+            for i = 1, 3 do
                 local url
                 if cursor == "" then
                     url = "https://games.roblox.com/v1/games/" .. placeId .. "/servers/Public?sortOrder=Asc&limit=25"
@@ -313,7 +311,6 @@ local function simpleServerHop()
                 task.wait(1)
             end
             
-            -- Thử teleport đến server
             if #servers > 0 then
                 local randomServer = servers[math.random(1, #servers)]
                 game:GetService("TeleportService"):TeleportToPlaceInstance(placeId, randomServer, LocalPlayer)
@@ -329,7 +326,7 @@ task.spawn(simpleServerHop)
 LocalPlayer.CharacterAdded:Connect(function(character)
     Character = character
     HumanoidRootPart = character:WaitForChild("HumanoidRootPart")
-    task.wait(2) -- Wait for character to fully load
+    task.wait(2)
     statusLabel.Text = "🟢 STATUS: CHARACTER RESPAWNED"
 end)
 
@@ -340,15 +337,9 @@ task.spawn(function()
         VirtualInputManager:SendKeyEvent(true, "Space", false, game)
         task.wait(0.1)
         VirtualInputManager:SendKeyEvent(false, "Space", false, game)
-        task.wait(29) -- Mỗi 30 giây
+        task.wait(29)
     end
 end)
 
-print("========================================")
 print("HIEUDRG HUB KAITUN - ACTIVATED SUCCESS!")
 print("Player: " .. player.Name)
-print("RGB UI: ENABLED")
-print("Fruit Farm: ENABLED")
-print("Server Hop: ENABLED")
-print("========================================")
-[file content end]

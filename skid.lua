@@ -1,5 +1,5 @@
--- HIEUDRG FLY HUB - RGB 7 COLOR EDITION
--- Based on FlyGuiV3 - Removed Up/Down Buttons
+-- HIEUDRG FLY HUB - RGB 7 COLOR + NO CLIP
+-- Based on FlyGuiV3 - Added No Clip Feature
 
 local main = Instance.new("ScreenGui")
 local Frame = Instance.new("Frame")
@@ -10,7 +10,8 @@ local speed = Instance.new("TextLabel")
 local mine = Instance.new("TextButton")
 local closebutton = Instance.new("TextButton")
 local mini = Instance.new("TextButton")
-local mini2 = Instance.new("TextButton")
+local noclipButton = Instance.new("TextButton")
+local statusLabel = Instance.new("TextLabel")
 
 -- RGB 7 COLOR PALETTE
 local RGBColors = {
@@ -28,31 +29,30 @@ main.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 main.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 main.ResetOnSpawn = false
 
--- MAIN FRAME WITH RGB GRADIENT BACKGROUND
+-- MAIN FRAME
 Frame.Parent = main
 Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 Frame.BorderSizePixel = 0
 Frame.Position = UDim2.new(0.100320168, 0, 0.379746825, 0)
-Frame.Size = UDim2.new(0, 250, 0, 180)
-Frame.ClipsDescendants = true
+Frame.Size = UDim2.new(0, 250, 0, 220)
 
--- ADD MODERN CORNERS AND BORDER
+-- MODERN CORNERS
 local UICorner = Instance.new("UICorner")
 UICorner.CornerRadius = UDim.new(0, 12)
 UICorner.Parent = Frame
 
 local UIStroke = Instance.new("UIStroke")
-UIStroke.Color = RGBColors[4] -- Green border
+UIStroke.Color = RGBColors[4]
 UIStroke.Thickness = 2
 UIStroke.Parent = Frame
 
--- TITLE LABEL WITH RAINBOW EFFECT
+-- TITLE
 TextLabel.Parent = Frame
-TextLabel.BackgroundColor3 = RGBColors[1] -- Red start
+TextLabel.BackgroundColor3 = RGBColors[1]
 TextLabel.Position = UDim2.new(0.1, 0, 0, 0)
 TextLabel.Size = UDim2.new(0.8, 0, 0, 35)
 TextLabel.Font = Enum.Font.GothamBold
-TextLabel.Text = "🌈 HIEUDRG FLY HUB"
+TextLabel.Text = "HIEUDRG FLY HUB"
 TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 TextLabel.TextSize = 16
 
@@ -60,34 +60,44 @@ local TitleCorner = Instance.new("UICorner")
 TitleCorner.CornerRadius = UDim.new(0, 8)
 TitleCorner.Parent = TextLabel
 
--- FLY TOGGLE BUTTON
+-- FLY BUTTON
 onof.Name = "onof"
 onof.Parent = Frame
-onof.BackgroundColor3 = RGBColors[4] -- Green
-onof.Position = UDim2.new(0.1, 0, 0.25, 0)
-onof.Size = UDim2.new(0.8, 0, 0, 40)
+onof.BackgroundColor3 = RGBColors[4]
+onof.Position = UDim2.new(0.1, 0, 0.2, 0)
+onof.Size = UDim2.new(0.8, 0, 0, 30)
 onof.Font = Enum.Font.GothamBold
-onof.Text = "🛸 BẬT FLY"
+onof.Text = "BAT FLY"
 onof.TextColor3 = Color3.fromRGB(255, 255, 255)
 onof.TextSize = 14
 
 local OnOffCorner = Instance.new("UICorner")
-OnOffCorner.CornerRadius = UDim.new(0, 8)
+OnOffCorner.CornerRadius = UDim.new(0, 6)
 OnOffCorner.Parent = onof
 
-local OnOffStroke = Instance.new("UIStroke")
-OnOffStroke.Color = RGBColors[5] -- Blue border
-OnOffStroke.Thickness = 2
-OnOffStroke.Parent = onof
+-- NO CLIP BUTTON
+noclipButton.Name = "noclipButton"
+noclipButton.Parent = Frame
+noclipButton.BackgroundColor3 = RGBColors[5]
+noclipButton.Position = UDim2.new(0.1, 0, 0.4, 0)
+noclipButton.Size = UDim2.new(0.8, 0, 0, 30)
+noclipButton.Font = Enum.Font.GothamBold
+noclipButton.Text = "NO CLIP: TAT"
+noclipButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+noclipButton.TextSize = 14
+
+local NoclipCorner = Instance.new("UICorner")
+NoclipCorner.CornerRadius = UDim.new(0, 6)
+NoclipCorner.Parent = noclipButton
 
 -- SPEED LABEL
 speed.Name = "speed"
 speed.Parent = Frame
-speed.BackgroundColor3 = RGBColors[5] -- Blue
-speed.Position = UDim2.new(0.1, 0, 0.5, 0)
-speed.Size = UDim2.new(0.8, 0, 0, 30)
+speed.BackgroundColor3 = RGBColors[5]
+speed.Position = UDim2.new(0.1, 0, 0.6, 0)
+speed.Size = UDim2.new(0.8, 0, 0, 25)
 speed.Font = Enum.Font.GothamBold
-speed.Text = "🎯 Tốc độ: 50"
+speed.Text = "Toc do: 50"
 speed.TextColor3 = Color3.fromRGB(255, 255, 255)
 speed.TextSize = 14
 
@@ -95,14 +105,14 @@ local SpeedCorner = Instance.new("UICorner")
 SpeedCorner.CornerRadius = UDim.new(0, 6)
 SpeedCorner.Parent = speed
 
--- INCREASE SPEED BUTTON
+-- INCREASE SPEED
 plus.Name = "plus"
 plus.Parent = Frame
-plus.BackgroundColor3 = RGBColors[3] -- Yellow
-plus.Position = UDim2.new(0.1, 0, 0.7, 0)
-plus.Size = UDim2.new(0.35, 0, 0, 30)
+plus.BackgroundColor3 = RGBColors[3]
+plus.Position = UDim2.new(0.1, 0, 0.75, 0)
+plus.Size = UDim2.new(0.35, 0, 0, 25)
 plus.Font = Enum.Font.GothamBold
-plus.Text = "📈 TĂNG"
+plus.Text = "TANG"
 plus.TextColor3 = Color3.fromRGB(0, 0, 0)
 plus.TextSize = 12
 
@@ -110,14 +120,14 @@ local PlusCorner = Instance.new("UICorner")
 PlusCorner.CornerRadius = UDim.new(0, 6)
 PlusCorner.Parent = plus
 
--- DECREASE SPEED BUTTON
+-- DECREASE SPEED
 mine.Name = "mine"
 mine.Parent = Frame
-mine.BackgroundColor3 = RGBColors[1] -- Red
-mine.Position = UDim2.new(0.55, 0, 0.7, 0)
-mine.Size = UDim2.new(0.35, 0, 0, 30)
+mine.BackgroundColor3 = RGBColors[1]
+mine.Position = UDim2.new(0.55, 0, 0.75, 0)
+mine.Size = UDim2.new(0.35, 0, 0, 25)
 mine.Font = Enum.Font.GothamBold
-mine.Text = "📉 GIẢM"
+mine.Text = "GIAM"
 mine.TextColor3 = Color3.fromRGB(255, 255, 255)
 mine.TextSize = 12
 
@@ -125,14 +135,26 @@ local MineCorner = Instance.new("UICorner")
 MineCorner.CornerRadius = UDim.new(0, 6)
 MineCorner.Parent = mine
 
+-- STATUS LABEL
+statusLabel.Name = "statusLabel"
+statusLabel.Parent = Frame
+statusLabel.BackgroundTransparency = 1
+statusLabel.Position = UDim2.new(0.1, 0, 0.9, 0)
+statusLabel.Size = UDim2.new(0.8, 0, 0, 15)
+statusLabel.Font = Enum.Font.Gotham
+statusLabel.Text = "Fly: Tat | F: Bat/Tat"
+statusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+statusLabel.TextSize = 10
+statusLabel.TextXAlignment = Enum.TextXAlignment.Left
+
 -- CLOSE BUTTON
 closebutton.Name = "closebutton"
 closebutton.Parent = Frame
-closebutton.BackgroundColor3 = RGBColors[1] -- Red
+closebutton.BackgroundColor3 = RGBColors[1]
 closebutton.Position = UDim2.new(0.8, 0, 0.05, 0)
 closebutton.Size = UDim2.new(0, 25, 0, 25)
 closebutton.Font = Enum.Font.GothamBold
-closebutton.Text = "×"
+closebutton.Text = "X"
 closebutton.TextColor3 = Color3.fromRGB(255, 255, 255)
 closebutton.TextSize = 16
 
@@ -143,11 +165,11 @@ CloseCorner.Parent = closebutton
 -- MINIMIZE BUTTON
 mini.Name = "mini"
 mini.Parent = Frame
-mini.BackgroundColor3 = RGBColors[3] -- Yellow
+mini.BackgroundColor3 = RGBColors[3]
 mini.Position = UDim2.new(0.65, 0, 0.05, 0)
 mini.Size = UDim2.new(0, 25, 0, 25)
 mini.Font = Enum.Font.GothamBold
-mini.Text = "–"
+mini.Text = "-"
 mini.TextColor3 = Color3.fromRGB(255, 255, 255)
 mini.TextSize = 16
 
@@ -155,38 +177,24 @@ local MiniCorner = Instance.new("UICorner")
 MiniCorner.CornerRadius = UDim.new(1, 0)
 MiniCorner.Parent = mini
 
--- STATUS LABEL
-local statusLabel = Instance.new("TextLabel")
-statusLabel.Name = "statusLabel"
-statusLabel.Parent = Frame
-statusLabel.BackgroundTransparency = 1
-statusLabel.Position = UDim2.new(0.1, 0, 0.85, 0)
-statusLabel.Size = UDim2.new(0.8, 0, 0, 20)
-statusLabel.Font = Enum.Font.Gotham
-statusLabel.Text = "🔴 Đang tắt | F: Bật/Tắt"
-statusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-statusLabel.TextSize = 10
-statusLabel.TextXAlignment = Enum.TextXAlignment.Left
-
 -- =============================================
--- FLY SYSTEM VARIABLES
+-- SYSTEM VARIABLES
 -- =============================================
 local flyEnabled = false
+local noclipEnabled = false
 local bodyVelocity = nil
 local bodyGyro = nil
 local currentSpeed = 50
 local isMinimized = false
+local noclipConnection = nil
 
 -- =============================================
--- RAINBOW ANIMATION FUNCTION
+-- RAINBOW ANIMATION
 -- =============================================
 local currentColorIndex = 1
 local function animateRainbow()
     while true do
-        -- Animate title
         TextLabel.BackgroundColor3 = RGBColors[currentColorIndex]
-        
-        -- Animate border
         UIStroke.Color = RGBColors[currentColorIndex]
         
         currentColorIndex = currentColorIndex + 1
@@ -199,7 +207,59 @@ local function animateRainbow()
 end
 
 -- =============================================
--- FLY SYSTEM FUNCTIONS
+-- NO CLIP SYSTEM
+-- =============================================
+local function enableNoClip()
+    noclipEnabled = true
+    noclipButton.Text = "NO CLIP: BAT"
+    noclipButton.BackgroundColor3 = RGBColors[2] -- Orange when active
+    
+    noclipConnection = game:GetService("RunService").Stepped:Connect(function()
+        if noclipEnabled then
+            local character = game.Players.LocalPlayer.Character
+            if character then
+                for _, part in pairs(character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end
+    end)
+end
+
+local function disableNoClip()
+    noclipEnabled = false
+    noclipButton.Text = "NO CLIP: TAT"
+    noclipButton.BackgroundColor3 = RGBColors[5] -- Blue when inactive
+    
+    if noclipConnection then
+        noclipConnection:Disconnect()
+        noclipConnection = nil
+    end
+    
+    -- Restore collision
+    local character = game.Players.LocalPlayer.Character
+    if character then
+        for _, part in pairs(character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = true
+            end
+        end
+    end
+end
+
+local function toggleNoClip()
+    noclipEnabled = not noclipEnabled
+    if noclipEnabled then
+        enableNoClip()
+    else
+        disableNoClip()
+    end
+end
+
+-- =============================================
+-- FLY SYSTEM
 -- =============================================
 local function startFlying()
     local character = game.Players.LocalPlayer.Character
@@ -259,8 +319,8 @@ local function startFlying()
     end)
     
     -- Update UI
-    statusLabel.Text = "🟢 Đang bật | F: Bật/Tắt"
-    onof.Text = "🛸 TẮT FLY"
+    statusLabel.Text = "Fly: Bat | F: Bat/Tat"
+    onof.Text = "TAT FLY"
     onof.BackgroundColor3 = RGBColors[1] -- Red when active
 end
 
@@ -275,8 +335,8 @@ local function stopFlying()
     end
     
     -- Update UI
-    statusLabel.Text = "🔴 Đang tắt | F: Bật/Tắt"
-    onof.Text = "🛸 BẬT FLY"
+    statusLabel.Text = "Fly: Tat | F: Bat/Tat"
+    onof.Text = "BAT FLY"
     onof.BackgroundColor3 = RGBColors[4] -- Green when inactive
 end
 
@@ -292,18 +352,23 @@ onof.MouseButton1Click:Connect(function()
     end
 end)
 
+noclipButton.MouseButton1Click:Connect(function()
+    toggleNoClip()
+end)
+
 plus.MouseButton1Click:Connect(function()
     currentSpeed = math.min(200, currentSpeed + 10)
-    speed.Text = "🎯 Tốc độ: " .. currentSpeed
+    speed.Text = "Toc do: " .. currentSpeed
 end)
 
 mine.MouseButton1Click:Connect(function()
     currentSpeed = math.max(20, currentSpeed - 10)
-    speed.Text = "🎯 Tốc độ: " .. currentSpeed
+    speed.Text = "Toc do: " .. currentSpeed
 end)
 
 closebutton.MouseButton1Click:Connect(function()
     stopFlying()
+    disableNoClip()
     main:Destroy()
 end)
 
@@ -311,6 +376,7 @@ mini.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
     if isMinimized then
         onof.Visible = false
+        noclipButton.Visible = false
         speed.Visible = false
         plus.Visible = false
         mine.Visible = false
@@ -319,12 +385,13 @@ mini.MouseButton1Click:Connect(function()
         mini.Text = "+"
     else
         onof.Visible = true
+        noclipButton.Visible = true
         speed.Visible = true
         plus.Visible = true
         mine.Visible = true
         statusLabel.Visible = true
-        Frame.Size = UDim2.new(0, 250, 0, 180)
-        mini.Text = "–"
+        Frame.Size = UDim2.new(0, 250, 0, 220)
+        mini.Text = "-"
     end
 end)
 
@@ -341,6 +408,8 @@ game:GetService("UserInputService").InputBegan:Connect(function(input, gameProce
         else
             stopFlying()
         end
+    elseif input.KeyCode == Enum.KeyCode.N then
+        toggleNoClip()
     end
 end)
 
@@ -391,11 +460,11 @@ spawn(animateRainbow)
 
 -- Initial notification
 game:GetService("StarterGui"):SetCore("SendNotification", {
-    Title = "🌈 HIEUDRG FLY HUB",
-    Text = "Fly System Activated!\nPress F to toggle fly",
+    Title = "HIEUDRG FLY HUB",
+    Text = "Fly + No Clip System Activated!",
     Duration = 5
 })
 
-print("🌈 HIEUDRG FLY HUB - Based on FlyGuiV3")
-print("🎮 Controls: W/A/S/D + Space/Shift")
-print("🎯 Press F to toggle fly quickly")
+print("HIEUDRG FLY HUB - With No Clip Feature")
+print("Controls: W/A/S/D + Space/Shift")
+print("F: Toggle Fly | N: Toggle No Clip")

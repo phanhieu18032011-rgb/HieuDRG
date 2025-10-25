@@ -186,141 +186,169 @@ tween.Completed:Connect(function()
     end)
 end)
 
--- MAIN FRUIT FARMING CODE
-local a = game.Players.LocalPlayer
-local b = a.Character or a.CharacterAdded:Wait()
-local c = game.TweenService
+-- Đợi UI load xong rồi mới start farm
+task.wait(2)
 
--- Wait for character if needed
-if not a.Character then
-    a.CharacterAdded:Wait()
-    b = a.Character
+-- MAIN FRUIT FARMING CODE
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- Đảm bảo character tồn tại
+local function waitForCharacter()
+    if not LocalPlayer.Character then
+        LocalPlayer.CharacterAdded:Wait()
+    end
+    return LocalPlayer.Character
 end
 
-local d = Instance.new("BodyVelocity")
-d.MaxForce = Vector3.new(1 / 0, 1 / 0, 1 / 0)
-d.Velocity = Vector3.new()
-d.Name = "bV"
-
-local e = Instance.new("BodyAngularVelocity")
-e.AngularVelocity = Vector3.new()
-e.MaxTorque = Vector3.new(1 / 0, 1 / 0, 1 / 0)
-e.Name = "bAV"
+local Character = waitForCharacter()
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 
 -- Fruit farming function
 local function farmFruits()
-    while screenGui.Parent do
-        for f, fruit in next, workspace:GetChildren() do
-            if fruit.Name:find("Fruit") and (fruit:IsA("Tool") or fruit:IsA("Model")) and fruit:FindFirstChild("Handle") then
-                repeat
-                    local bodyVelocity = d:Clone()
-                    local bodyAngular = e:Clone()
-                    bodyVelocity.Parent = b.HumanoidRootPart
-                    bodyAngular.Parent = b.HumanoidRootPart
-                    
-                    local distance = (b.HumanoidRootPart.Position - fruit.Handle.Position).Magnitude
-                    local tweenTime = math.max(0.5, (distance - 50) / 250)
-                    
-                    local tween = c:Create(
-                        b.HumanoidRootPart,
-                        TweenInfo.new(tweenTime, Enum.EasingStyle.Linear),
-                        {CFrame = fruit.Handle.CFrame + Vector3.new(0, fruit.Handle.Size.Y + 3, 0)}
-                    )
-                    tween:Play()
-                    tween.Completed:Wait()
-                    
-                    bodyVelocity:Destroy()
-                    bodyAngular:Destroy()
-                    wait(0.5)
-                until fruit.Parent ~= workspace or not fruit:FindFirstChild("Handle")
-                
-                wait(1)
-                local foundFruit = b:FindFirstChildOfClass("Tool") 
-                if foundFruit and foundFruit.Name:find("Fruit") then
-                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(
-                        "StoreFruit",
-                        foundFruit:GetAttribute("OriginalName") or foundFruit.Name,
-                        foundFruit
-                    )
-                else
-                    for _, tool in pairs(a.Backpack:GetChildren()) do
-                        if tool.Name:find("Fruit") then
+    while screenGui and screenGui.Parent do
+        pcall(function()
+            for _, obj in pairs(workspace:GetChildren()) do
+                if obj and (obj:IsA("Tool") or obj:IsA("Model")) and obj.Name:find("Fruit") then
+                    local handle = obj:FindFirstChild("Handle")
+                    if handle then
+                        statusLabel.Text = "🟡 STATUS: GOING TO FRUIT"
+                        
+                        -- Di chuyển đến fruit
+                        local tweenInfo = TweenInfo.new(
+                            (HumanoidRootPart.Position - handle.Position).Magnitude / 100, 
+                            Enum.EasingStyle.Linear
+                        )
+                        local tween = TweenService:Create(
+                            HumanoidRootPart,
+                            tweenInfo,
+                            {CFrame = handle.CFrame + Vector3.new(0, 3, 0)}
+                        )
+                        tween:Play()
+                        tween.Completed:Wait()
+                        
+                        -- Chờ pickup fruit
+                        task.wait(1)
+                        
+                        -- Tìm fruit trong backpack hoặc character
+                        local foundFruit
+                        for _, tool in pairs(LocalPlayer.Backpack:GetChildren()) do
+                            if tool.Name:find("Fruit") then
+                                foundFruit = tool
+                                break
+                            end
+                        end
+                        
+                        if not foundFruit then
+                            for _, tool in pairs(Character:GetChildren()) do
+                                if tool:IsA("Tool") and tool.Name:find("Fruit") then
+                                    foundFruit = tool
+                                    break
+                                end
+                            end
+                        end
+                        
+                        -- Store fruit
+                        if foundFruit then
+                            statusLabel.Text = "🔵 STATUS: STORING FRUIT"
+                            local fruitName = foundFruit:GetAttribute("OriginalName") or foundFruit.Name
                             game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(
                                 "StoreFruit",
-                                tool:GetAttribute("OriginalName") or tool.Name,
-                                tool
+                                fruitName,
+                                foundFruit
                             )
-                            break
+                            task.wait(1)
                         end
                     end
                 end
             end
-        end
-        wait(2)
+        end)
+        
+        statusLabel.Text = "🟢 STATUS: SEARCHING FRUITS"
+        task.wait(3) -- Chờ 3 giây trước khi scan lại
     end
 end
 
 -- Start fruit farming
 task.spawn(farmFruits)
 
--- Server hop system (optimized)
-local function serverHop()
+-- Server hop system (đơn giản hóa)
+local function simpleServerHop()
     local placeId = game.PlaceId
-    local servers = {}
-    local cursor = ""
-    local attempted = {}
     
-    while screenGui.Parent do
-        local success, result = pcall(function()
-            local url
-            if cursor == "" then
-                url = "https://games.roblox.com/v1/games/" .. placeId .. "/servers/Public?sortOrder=Asc&limit=100"
-            else
-                url = "https://games.roblox.com/v1/games/" .. placeId .. "/servers/Public?sortOrder=Asc&limit=100&cursor=" .. cursor
-            end
-            
-            local response = game:HttpGet(url)
-            return game:GetService("HttpService"):JSONDecode(response)
-        end)
+    while screenGui and screenGui.Parent do
+        task.wait(1800) -- Chờ 30 phút
         
-        if success and result.data then
-            for _, server in pairs(result.data) do
-                if tonumber(server.playing) < tonumber(server.maxPlayers) and not attempted[tostring(server.id)] then
-                    attempted[tostring(server.id)] = true
-                    pcall(function()
-                        game:GetService("TeleportService"):TeleportToPlaceInstance(placeId, tostring(server.id), a)
-                    end)
-                    wait(5)
+        pcall(function()
+            statusLabel.Text = "🟠 STATUS: SERVER HOPPING"
+            
+            local servers = {}
+            local cursor = ""
+            
+            for i = 1, 3 do -- Thử 3 lần
+                local url
+                if cursor == "" then
+                    url = "https://games.roblox.com/v1/games/" .. placeId .. "/servers/Public?sortOrder=Asc&limit=25"
+                else
+                    url = "https://games.roblox.com/v1/games/" .. placeId .. "/servers/Public?sortOrder=Asc&limit=25&cursor=" .. cursor
                 end
+                
+                local response = game:HttpGet(url)
+                local data = game:GetService("HttpService"):JSONDecode(response)
+                
+                if data and data.data then
+                    for _, server in pairs(data.data) do
+                        if tonumber(server.playing) < tonumber(server.maxPlayers) - 2 then
+                            table.insert(servers, tostring(server.id))
+                        end
+                    end
+                    
+                    if data.nextPageCursor and data.nextPageCursor ~= "null" then
+                        cursor = data.nextPageCursor
+                    else
+                        break
+                    end
+                end
+                
+                task.wait(1)
             end
             
-            if result.nextPageCursor and result.nextPageCursor ~= "null" then
-                cursor = result.nextPageCursor
-            else
-                break
+            -- Thử teleport đến server
+            if #servers > 0 then
+                local randomServer = servers[math.random(1, #servers)]
+                game:GetService("TeleportService"):TeleportToPlaceInstance(placeId, randomServer, LocalPlayer)
             end
-        end
-        wait(10)
+        end)
     end
 end
 
--- Auto server hop every 30 minutes
+-- Start server hop
+task.spawn(simpleServerHop)
+
+-- Character respawn handler
+LocalPlayer.CharacterAdded:Connect(function(character)
+    Character = character
+    HumanoidRootPart = character:WaitForChild("HumanoidRootPart")
+    task.wait(2) -- Wait for character to fully load
+    statusLabel.Text = "🟢 STATUS: CHARACTER RESPAWNED"
+end)
+
+-- Anti AFK
+local VirtualInputManager = game:GetService("VirtualInputManager")
 task.spawn(function()
-    while screenGui.Parent do
-        wait(1800) -- 30 minutes
-        serverHop()
+    while screenGui and screenGui.Parent do
+        VirtualInputManager:SendKeyEvent(true, "Space", false, game)
+        task.wait(0.1)
+        VirtualInputManager:SendKeyEvent(false, "Space", false, game)
+        task.wait(29) -- Mỗi 30 giây
     end
 end)
 
--- Character respawn handler
-a.CharacterAdded:Connect(function(character)
-    b = character
-    wait(2) -- Wait for character to fully load
-end)
-
-statusLabel.Text = "🟢 STATUS: FRUIT FARMING ACTIVE"
-
-print("HieuDRG Hub Kaitun - Fruit Farming Activated!")
+print("========================================")
+print("HIEUDRG HUB KAITUN - ACTIVATED SUCCESS!")
 print("Player: " .. player.Name)
-print("UI Loaded Successfully with RGB Effects")
+print("RGB UI: ENABLED")
+print("Fruit Farm: ENABLED")
+print("Server Hop: ENABLED")
+print("========================================")
 [file content end]

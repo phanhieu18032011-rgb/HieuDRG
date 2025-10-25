@@ -33,11 +33,11 @@ local Window = Fluent:CreateWindow({
 })
 local Tabs = {
         Main0=Window:AddTab({ Title="Thông Tin" }),
-        Main1=Window:AddTab({ Title="Script Farm" }),
-        Main2=Window:AddTab({ Title="Farm Fruit" }),
-        Main3=Window:AddTab({ Title="Farm Chest" }),
-        Main4=Window:AddTab({ Title="Script Hop" }),
-       Main5=Window:AddTab({ Title="lin tinh" }),
+        Main1=Window:AddTab({ Title="Blox Fruit" }),
+        Main2=Window:AddTab({ Title="Grow a Garden" }),
+        Main3=Window:AddTab({ Title="Steal a Brainrot" }),
+        Main4=Window:AddTab({ Title="99 Night In The Forest" }),
+        Main5=Window:AddTab({ Title="Hunte Zombie" }),
 }
     Tabs.Main0:AddButton({
     Title = "Discord",

@@ -1,152 +1,194 @@
--- HIEUDRG FLY - SIMPLE WORKING VERSION
--- COPY & PASTE - CHẠY NGAY LẬP TỨC
+-- =============================================
+-- HIEUDRG FLY HUB - WORKING VERSION
+-- COPY TOÀN BỘ CODE NÀY - KHÔNG SỬA GÌ CẢ
+-- =============================================
 
+-- Kiểm tra xem script có chạy trong Roblox không
+if not game:IsLoaded() then
+    game.Loaded:Wait()
+end
+
+-- Lấy các service cần thiết
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 
+-- Lấy người chơi hiện tại
 local Player = Players.LocalPlayer
 
--- TẠO UI ĐƠN GIẢN NHẤT
+-- Đợi nhân vật spawn
+if not Player.Character then
+    Player.CharacterAdded:Wait()
+end
+
+-- Biến cho hệ thống fly
+local flyEnabled = false
+local bodyVelocity = nil
+local bodyGyro = nil
+local currentSpeed = 50
+
+-- =============================================
+-- BƯỚC 1: TẠO GIAO DIỆN NGƯỜI DÙNG (UI)
+-- =============================================
+
+-- Tạo ScreenGui (cửa sổ giao diện)
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "HieuDRGFlyHub"
-screenGui.Parent = game.CoreGui
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.Parent = game.CoreGui -- Hiển thị lên màn hình
 
+-- Tạo khung chính
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 250, 0, 200)
-mainFrame.Position = UDim2.new(0, 10, 0, 10)
-mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-mainFrame.BorderSizePixel = 0
+mainFrame.Size = UDim2.new(0, 280, 0, 220) -- Rộng 280, cao 220 pixel
+mainFrame.Position = UDim2.new(0, 20, 0, 20) -- Vị trí góc trái
+mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25) -- Màu nền tối
+mainFrame.BorderSizePixel = 0 -- Không viền
 mainFrame.Parent = screenGui
 
+-- Bo góc cho khung
 local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 8)
+corner.CornerRadius = UDim.new(0, 12)
 corner.Parent = mainFrame
 
--- TITLE
+-- Tạo tiêu đề
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0, 40)
-title.BackgroundColor3 = Color3.fromRGB(255, 105, 180)
+title.Size = UDim2.new(1, 0, 0, 45) -- Chiếm full chiều rộng, cao 45
+title.Position = UDim2.new(0, 0, 0, 0)
+title.BackgroundColor3 = Color3.fromRGB(255, 105, 180) -- Màu hồng
 title.Text = "🛸 HIEUDRG FLY HUB"
-title.TextColor3 = Color3.fromRGB(255, 255, 255)
-title.TextSize = 16
-title.Font = Enum.Font.GothamBold
+title.TextColor3 = Color3.fromRGB(255, 255, 255) -- Chữ trắng
+title.TextSize = 18 -- Cỡ chữ
+title.Font = Enum.Font.GothamBold -- Font chữ
 title.Parent = mainFrame
 
+-- Bo góc tiêu đề
 local titleCorner = Instance.new("UICorner")
-titleCorner.CornerRadius = UDim.new(0, 8)
+titleCorner.CornerRadius = UDim.new(0, 12)
 titleCorner.Parent = title
 
--- FLY TOGGLE BUTTON
+-- =============================================
+-- BƯỚC 2: TẠO NÚT BẬT/TẮT FLY
+-- =============================================
+
 local flyButton = Instance.new("TextButton")
-flyButton.Size = UDim2.new(0.8, 0, 0, 40)
-flyButton.Position = UDim2.new(0.1, 0, 0.3, 0)
-flyButton.BackgroundColor3 = Color3.fromRGB(85, 170, 85)
+flyButton.Size = UDim2.new(0.85, 0, 0, 45) -- 85% chiều rộng, cao 45
+flyButton.Position = UDim2.new(0.075, 0, 0.25, 0) -- Cách lề 7.5%
+flyButton.BackgroundColor3 = Color3.fromRGB(65, 105, 225) -- Màu xanh
 flyButton.Text = "🛸 BẬT FLY"
 flyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-flyButton.TextSize = 14
+flyButton.TextSize = 16
 flyButton.Font = Enum.Font.GothamBold
 flyButton.Parent = mainFrame
 
+-- Bo góc nút
 local buttonCorner = Instance.new("UICorner")
-buttonCorner.CornerRadius = UDim.new(0, 6)
+buttonCorner.CornerRadius = UDim.new(0, 8)
 buttonCorner.Parent = flyButton
 
--- SPEED DISPLAY
+-- =============================================
+-- BƯỚC 3: HIỂN THỊ TỐC ĐỘ
+-- =============================================
+
 local speedLabel = Instance.new("TextLabel")
 speedLabel.Size = UDim2.new(0.8, 0, 0, 25)
-speedLabel.Position = UDim2.new(0.1, 0, 0.6, 0)
-speedLabel.BackgroundTransparency = 1
-speedLabel.Text = "Tốc độ: 50"
+speedLabel.Position = UDim2.new(0.1, 0, 0.55, 0)
+speedLabel.BackgroundTransparency = 1 -- Trong suốt
+speedLabel.Text = "🎯 Tốc độ: 50"
 speedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 speedLabel.TextSize = 14
 speedLabel.Font = Enum.Font.Gotham
 speedLabel.Parent = mainFrame
 
--- SPEED CONTROLS
+-- =============================================
+-- BƯỚC 4: NÚT ĐIỀU CHỈNH TỐC ĐỘ
+-- =============================================
+
+-- Nút tăng tốc
 local speedUp = Instance.new("TextButton")
-speedUp.Size = UDim2.new(0.35, 0, 0, 30)
-speedUp.Position = UDim2.new(0.1, 0, 0.75, 0)
-speedUp.BackgroundColor3 = Color3.fromRGB(65, 105, 225)
-speedUp.Text = "TĂNG TỐC"
+speedUp.Size = UDim2.new(0.35, 0, 0, 32)
+speedUp.Position = UDim2.new(0.1, 0, 0.7, 0)
+speedUp.BackgroundColor3 = Color3.fromRGB(85, 170, 85) -- Xanh lá
+speedUp.Text = "📈 TĂNG"
 speedUp.TextColor3 = Color3.fromRGB(255, 255, 255)
 speedUp.TextSize = 12
 speedUp.Parent = mainFrame
 
+-- Nút giảm tốc
 local speedDown = Instance.new("TextButton")
-speedDown.Size = UDim2.new(0.35, 0, 0, 30)
-speedDown.Position = UDim2.new(0.55, 0, 0.75, 0)
-speedDown.BackgroundColor3 = Color3.fromRGB(225, 65, 65)
-speedDown.Text = "GIẢM TỐC"
+speedDown.Size = UDim2.new(0.35, 0, 0, 32)
+speedDown.Position = UDim2.new(0.55, 0, 0.7, 0)
+speedDown.BackgroundColor3 = Color3.fromRGB(220, 80, 80) -- Đỏ
+speedDown.Text = "📉 GIẢM"
 speedDown.TextColor3 = Color3.fromRGB(255, 255, 255)
 speedDown.TextSize = 12
 speedDown.Parent = mainFrame
 
--- FLY SYSTEM
-local flyEnabled = false
-local bodyVelocity
-local bodyGyro
-local currentSpeed = 50
+-- Bo góc cho nút tốc độ
+local speedCorner = Instance.new("UICorner")
+speedCorner.CornerRadius = UDim.new(0, 6)
+speedCorner.Parent = speedUp
+speedCorner:Clone().Parent = speedDown
 
--- BẬT/TẮT FLY
-flyButton.MouseButton1Click:Connect(function()
-    flyEnabled = not flyEnabled
-    
-    if flyEnabled then
-        flyButton.Text = "🛸 TẮT FLY"
-        flyButton.BackgroundColor3 = Color3.fromRGB(170, 85, 85)
-        startFlying()
-    else
-        flyButton.Text = "🛸 BẬT FLY"
-        flyButton.BackgroundColor3 = Color3.fromRGB(85, 170, 85)
-        stopFlying()
-    end
-end)
+-- =============================================
+-- BƯỚC 5: HƯỚNG DẪN ĐIỀU KHIỂN
+-- =============================================
 
--- ĐIỀU CHỈNH TỐC ĐỘ
-speedUp.MouseButton1Click:Connect(function()
-    currentSpeed = currentSpeed + 10
-    if currentSpeed > 200 then currentSpeed = 200 end
-    speedLabel.Text = "Tốc độ: " .. currentSpeed
-end)
+local controlsLabel = Instance.new("TextLabel")
+controlsLabel.Size = UDim2.new(0.9, 0, 0, 40)
+controlsLabel.Position = UDim2.new(0.05, 0, 0.85, 0)
+controlsLabel.BackgroundTransparency = 1
+controlsLabel.Text = "🎮 W/A/S/D + Space/Shift\n🎯 Nhấn F để bật/tắt nhanh"
+controlsLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+controlsLabel.TextSize = 11
+controlsLabel.Font = Enum.Font.Gotham
+controlsLabel.TextWrapped = true -- Tự động xuống dòng
+controlsLabel.Parent = mainFrame
 
-speedDown.MouseButton1Click:Connect(function()
-    currentSpeed = currentSpeed - 10
-    if currentSpeed < 20 then currentSpeed = 20 end
-    speedLabel.Text = "Tốc độ: " .. currentSpeed
-end)
+-- =============================================
+-- BƯỚC 6: HỆ THỐNG FLY
+-- =============================================
 
--- HÀM BẮT ĐẦU BAY
+-- Hàm bật fly
 function startFlying()
     local character = Player.Character
-    if not character then return end
+    if not character then
+        warn("Không tìm thấy nhân vật!")
+        return
+    end
     
     local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-    if not humanoidRootPart then return end
+    if not humanoidRootPart then
+        warn("Không tìm thấy HumanoidRootPart!")
+        return
+    end
     
-    -- Tạo BodyVelocity và BodyGyro
+    -- Tạo BodyVelocity để di chuyển
     bodyVelocity = Instance.new("BodyVelocity")
     bodyVelocity.Velocity = Vector3.new(0, 0, 0)
-    bodyVelocity.MaxForce = Vector3.new(10000, 10000, 10000)
+    bodyVelocity.MaxForce = Vector3.new(10000, 10000, 10000) -- Lực tối đa
     bodyVelocity.Parent = humanoidRootPart
     
+    -- Tạo BodyGyro để ổn định hướng
     bodyGyro = Instance.new("BodyGyro")
     bodyGyro.MaxTorque = Vector3.new(10000, 10000, 10000)
-    bodyGyro.P = 1000
-    bodyGyro.D = 50
+    bodyGyro.P = 1000 -- Độ nhạy
+    bodyGyro.D = 50   -- Giảm dao động
     bodyGyro.Parent = humanoidRootPart
     
-    -- KẾT NỐI VÒNG LẶP BAY
+    -- Kết nối sự kiện bay mỗi khung hình
     RunService.Heartbeat:Connect(function()
-        if not flyEnabled or not bodyVelocity or not bodyGyro then return end
+        if not flyEnabled or not bodyVelocity or not bodyGyro then 
+            return 
+        end
         
-        -- Cập nhật hướng theo camera
+        -- Luôn giữ hướng theo camera
         bodyGyro.CFrame = workspace.CurrentCamera.CFrame
         
-        -- Tính hướng di chuyển
+        -- Tính toán hướng di chuyển
         local direction = Vector3.new(0, 0, 0)
         
-        -- Di chuyển theo phím
+        -- Kiểm tra phím và cộng hướng
         if UserInputService:IsKeyDown(Enum.KeyCode.W) then
             direction = direction + workspace.CurrentCamera.CFrame.LookVector
         end
@@ -166,23 +208,23 @@ function startFlying()
             direction = direction + Vector3.new(0, -1, 0)
         end
         
-        -- Áp dụng tốc độ
+        -- Áp dụng tốc độ nếu đang di chuyển
         if direction.Magnitude > 0 then
             bodyVelocity.Velocity = direction.Unit * currentSpeed
         else
-            bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+            bodyVelocity.Velocity = Vector3.new(0, 0, 0) -- Dừng nếu không bấm phím
         end
     end)
     
-    -- THÔNG BÁO
+    -- Thông báo
     game:GetService("StarterGui"):SetCore("SendNotification", {
-        Title = "HIEUDRG FLY",
+        Title = "🛸 HIEUDRG FLY",
         Text = "Fly đã được BẬT!",
         Duration = 3
     })
 end
 
--- HÀM DỪNG BAY
+-- Hàm tắt fly
 function stopFlying()
     if bodyVelocity then
         bodyVelocity:Destroy()
@@ -193,40 +235,94 @@ function stopFlying()
         bodyGyro = nil
     end
     
-    -- THÔNG BÁO
+    -- Thông báo
     game:GetService("StarterGui"):SetCore("SendNotification", {
-        Title = "HIEUDRG FLY",
+        Title = "🛸 HIEUDRG FLY",
         Text = "Fly đã được TẮT!",
         Duration = 3
     })
 end
 
--- KEYBIND: NHẤN F ĐỂ BẬT/TẮT NHANH
+-- =============================================
+-- BƯỚC 7: KẾT NỐI SỰ KIỆN NÚT
+-- =============================================
+
+-- Sự kiện click nút bật/tắt fly
+flyButton.MouseButton1Click:Connect(function()
+    flyEnabled = not flyEnabled -- Đảo trạng thái
+    
+    if flyEnabled then
+        flyButton.Text = "🛸 TẮT FLY"
+        flyButton.BackgroundColor3 = Color3.fromRGB(220, 80, 80) -- Đổi màu đỏ
+        startFlying()
+    else
+        flyButton.Text = "🛸 BẬT FLY"
+        flyButton.BackgroundColor3 = Color3.fromRGB(65, 105, 225) -- Đổi màu xanh
+        stopFlying()
+    end
+end)
+
+-- Sự kiện tăng tốc độ
+speedUp.MouseButton1Click:Connect(function()
+    currentSpeed = currentSpeed + 10
+    if currentSpeed > 200 then 
+        currentSpeed = 200 -- Giới hạn tối đa
+    end
+    speedLabel.Text = "🎯 Tốc độ: " .. currentSpeed
+end)
+
+-- Sự kiện giảm tốc độ
+speedDown.MouseButton1Click:Connect(function()
+    currentSpeed = currentSpeed - 10
+    if currentSpeed < 20 then 
+        currentSpeed = 20 -- Giới hạn tối thiểu
+    end
+    speedLabel.Text = "🎯 Tốc độ: " .. currentSpeed
+end)
+
+-- =============================================
+-- BƯỚC 8: PHÍM TẮT (KEYBIND)
+-- =============================================
+
+-- Sự kiện nhấn phím
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    -- Bỏ qua nếu đang trong game (chat, menu, etc.)
     if gameProcessed then return end
     
+    -- Kiểm tra nếu nhấn phím F
     if input.KeyCode == Enum.KeyCode.F then
         flyEnabled = not flyEnabled
         
         if flyEnabled then
             flyButton.Text = "🛸 TẮT FLY"
-            flyButton.BackgroundColor3 = Color3.fromRGB(170, 85, 85)
+            flyButton.BackgroundColor3 = Color3.fromRGB(220, 80, 80)
             startFlying()
         else
             flyButton.Text = "🛸 BẬT FLY"
-            flyButton.BackgroundColor3 = Color3.fromRGB(85, 170, 85)
+            flyButton.BackgroundColor3 = Color3.fromRGB(65, 105, 225)
             stopFlying()
         end
     end
 end)
 
--- THÔNG BÁO KHI LOAD XONG
+-- =============================================
+-- BƯỚC 9: THÔNG BÁO HOÀN TẤT
+-- =============================================
+
+-- Thông báo khi load xong
 game:GetService("StarterGui"):SetCore("SendNotification", {
-    Title = "HIEUDRG FLY HUB",
-    Text = "Đã load thành công! Nhấn F để bay",
-    Duration = 5
+    Title = "🎯 HIEUDRG FLY HUB",
+    Text = "Đã load thành công!\nNhấn F hoặc nút để bay",
+    Duration = 6
 })
 
-print("🎯 HIEUDRG FLY HUB LOADED SUCCESSFULLY!")
-print("🛸 Controls: W/A/S/D + Space/Shift")
-print("🎮 Press F to toggle fly quickly")
+-- In ra console
+print("====================================")
+print("🛸 HIEUDRG FLY HUB LOADED SUCCESS!")
+print("🎮 Controls: W/A/S/D + Space/Shift")
+print("🎯 Press F to toggle fly quickly")
+print("📊 Current Speed: " .. currentSpeed)
+print("====================================")
+
+-- Kết thúc script
+return "HieuDRG Fly Hub - Ready to Fly! 🚀"

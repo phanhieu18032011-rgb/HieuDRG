@@ -1,120 +1,232 @@
--- HIEUDRG FLY - SIMPLE VERSION
+-- HIEUDRG FLY - SIMPLE WORKING VERSION
+-- COPY & PASTE - CHẠY NGAY LẬP TỨC
+
 local Players = game:GetService("Players")
-local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 
 local Player = Players.LocalPlayer
-local Mouse = Player:GetMouse()
 
--- TẠO UI ĐƠN GIẢN
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Parent = game.CoreGui
+-- TẠO UI ĐƠN GIẢN NHẤT
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "HieuDRGFlyHub"
+screenGui.Parent = game.CoreGui
 
-local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 300, 0, 400)
-MainFrame.Position = UDim2.new(0, 10, 0, 10)
-MainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-MainFrame.Parent = ScreenGui
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 250, 0, 200)
+mainFrame.Position = UDim2.new(0, 10, 0, 10)
+mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
 
-local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 8)
-UICorner.Parent = MainFrame
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 8)
+corner.Parent = mainFrame
 
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 40)
-Title.BackgroundColor3 = Color3.fromRGB(255, 105, 180)
-Title.Text = "🛸 HIEUDRG FLY HUB"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.TextSize = 18
-Title.Font = Enum.Font.GothamBold
-Title.Parent = MainFrame
+-- TITLE
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 40)
+title.BackgroundColor3 = Color3.fromRGB(255, 105, 180)
+title.Text = "🛸 HIEUDRG FLY HUB"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextSize = 16
+title.Font = Enum.Font.GothamBold
+title.Parent = mainFrame
 
--- NÚT BẬT FLY
-local FlyToggle = Instance.new("TextButton")
-FlyToggle.Size = UDim2.new(0.8, 0, 0, 40)
-FlyToggle.Position = UDim2.new(0.1, 0, 0.1, 40)
-FlyToggle.BackgroundColor3 = Color3.fromRGB(85, 170, 85)
-FlyToggle.Text = "🛸 BẬT FLY"
-FlyToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
-FlyToggle.TextSize = 14
-FlyToggle.Parent = MainFrame
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 8)
+titleCorner.Parent = title
 
-local SpeedLabel = Instance.new("TextLabel")
-SpeedLabel.Size = UDim2.new(0.8, 0, 0, 30)
-SpeedLabel.Position = UDim2.new(0.1, 0, 0.3, 40)
-SpeedLabel.BackgroundTransparency = 1
-SpeedLabel.Text = "Tốc độ: 50"
-SpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-SpeedLabel.Parent = MainFrame
+-- FLY TOGGLE BUTTON
+local flyButton = Instance.new("TextButton")
+flyButton.Size = UDim2.new(0.8, 0, 0, 40)
+flyButton.Position = UDim2.new(0.1, 0, 0.3, 0)
+flyButton.BackgroundColor3 = Color3.fromRGB(85, 170, 85)
+flyButton.Text = "🛸 BẬT FLY"
+flyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+flyButton.TextSize = 14
+flyButton.Font = Enum.Font.GothamBold
+flyButton.Parent = mainFrame
 
-local SpeedSlider = Instance.new("TextButton")
-SpeedSlider.Size = UDim2.new(0.8, 0, 0, 30)
-SpeedSlider.Position = UDim2.new(0.1, 0, 0.4, 40)
-SpeedSlider.BackgroundColor3 = Color3.fromRGB(65, 105, 225)
-SpeedSlider.Text = "TĂNG TỐC ĐỘ"
-SpeedSlider.TextColor3 = Color3.fromRGB(255, 255, 255)
-SpeedSlider.Parent = MainFrame
+local buttonCorner = Instance.new("UICorner")
+buttonCorner.CornerRadius = UDim.new(0, 6)
+buttonCorner.Parent = flyButton
+
+-- SPEED DISPLAY
+local speedLabel = Instance.new("TextLabel")
+speedLabel.Size = UDim2.new(0.8, 0, 0, 25)
+speedLabel.Position = UDim2.new(0.1, 0, 0.6, 0)
+speedLabel.BackgroundTransparency = 1
+speedLabel.Text = "Tốc độ: 50"
+speedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+speedLabel.TextSize = 14
+speedLabel.Font = Enum.Font.Gotham
+speedLabel.Parent = mainFrame
+
+-- SPEED CONTROLS
+local speedUp = Instance.new("TextButton")
+speedUp.Size = UDim2.new(0.35, 0, 0, 30)
+speedUp.Position = UDim2.new(0.1, 0, 0.75, 0)
+speedUp.BackgroundColor3 = Color3.fromRGB(65, 105, 225)
+speedUp.Text = "TĂNG TỐC"
+speedUp.TextColor3 = Color3.fromRGB(255, 255, 255)
+speedUp.TextSize = 12
+speedUp.Parent = mainFrame
+
+local speedDown = Instance.new("TextButton")
+speedDown.Size = UDim2.new(0.35, 0, 0, 30)
+speedDown.Position = UDim2.new(0.55, 0, 0.75, 0)
+speedDown.BackgroundColor3 = Color3.fromRGB(225, 65, 65)
+speedDown.Text = "GIẢM TỐC"
+speedDown.TextColor3 = Color3.fromRGB(255, 255, 255)
+speedDown.TextSize = 12
+speedDown.Parent = mainFrame
 
 -- FLY SYSTEM
-local FlyEnabled = false
-local BodyVelocity, BodyGyro
+local flyEnabled = false
+local bodyVelocity
+local bodyGyro
+local currentSpeed = 50
 
-FlyToggle.MouseButton1Click:Connect(function()
-    FlyEnabled = not FlyEnabled
-    if FlyEnabled then
-        FlyToggle.Text = "🛸 TẮT FLY"
-        FlyToggle.BackgroundColor3 = Color3.fromRGB(170, 85, 85)
-        ActivateFly()
+-- BẬT/TẮT FLY
+flyButton.MouseButton1Click:Connect(function()
+    flyEnabled = not flyEnabled
+    
+    if flyEnabled then
+        flyButton.Text = "🛸 TẮT FLY"
+        flyButton.BackgroundColor3 = Color3.fromRGB(170, 85, 85)
+        startFlying()
     else
-        FlyToggle.Text = "🛸 BẬT FLY"
-        FlyToggle.BackgroundColor3 = Color3.fromRGB(85, 170, 85)
-        DeactivateFly()
+        flyButton.Text = "🛸 BẬT FLY"
+        flyButton.BackgroundColor3 = Color3.fromRGB(85, 170, 85)
+        stopFlying()
     end
 end)
 
-local CurrentSpeed = 50
-SpeedSlider.MouseButton1Click:Connect(function()
-    CurrentSpeed = CurrentSpeed + 10
-    if CurrentSpeed > 100 then CurrentSpeed = 20 end
-    SpeedLabel.Text = "Tốc độ: " .. CurrentSpeed
+-- ĐIỀU CHỈNH TỐC ĐỘ
+speedUp.MouseButton1Click:Connect(function()
+    currentSpeed = currentSpeed + 10
+    if currentSpeed > 200 then currentSpeed = 200 end
+    speedLabel.Text = "Tốc độ: " .. currentSpeed
 end)
 
-function ActivateFly()
+speedDown.MouseButton1Click:Connect(function()
+    currentSpeed = currentSpeed - 10
+    if currentSpeed < 20 then currentSpeed = 20 end
+    speedLabel.Text = "Tốc độ: " .. currentSpeed
+end)
+
+-- HÀM BẮT ĐẦU BAY
+function startFlying()
     local character = Player.Character
     if not character then return end
     
-    BodyVelocity = Instance.new("BodyVelocity")
-    BodyVelocity.MaxForce = Vector3.new(10000, 10000, 10000)
-    BodyVelocity.Parent = character.HumanoidRootPart
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return end
     
-    BodyGyro = Instance.new("BodyGyro")
-    BodyGyro.MaxTorque = Vector3.new(10000, 10000, 10000)
-    BodyGyro.Parent = character.HumanoidRootPart
+    -- Tạo BodyVelocity và BodyGyro
+    bodyVelocity = Instance.new("BodyVelocity")
+    bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    bodyVelocity.MaxForce = Vector3.new(10000, 10000, 10000)
+    bodyVelocity.Parent = humanoidRootPart
     
-    game:GetService("RunService").Heartbeat:Connect(function()
-        if not FlyEnabled then return end
+    bodyGyro = Instance.new("BodyGyro")
+    bodyGyro.MaxTorque = Vector3.new(10000, 10000, 10000)
+    bodyGyro.P = 1000
+    bodyGyro.D = 50
+    bodyGyro.Parent = humanoidRootPart
+    
+    -- KẾT NỐI VÒNG LẶP BAY
+    RunService.Heartbeat:Connect(function()
+        if not flyEnabled or not bodyVelocity or not bodyGyro then return end
         
-        BodyGyro.CFrame = workspace.CurrentCamera.CFrame
+        -- Cập nhật hướng theo camera
+        bodyGyro.CFrame = workspace.CurrentCamera.CFrame
         
-        local direction = Vector3.new()
-        if UIS:IsKeyDown(Enum.KeyCode.W) then direction = direction + Vector3.new(0, 0, -1) end
-        if UIS:IsKeyDown(Enum.KeyCode.S) then direction = direction + Vector3.new(0, 0, 1) end
-        if UIS:IsKeyDown(Enum.KeyCode.A) then direction = direction + Vector3.new(-1, 0, 0) end
-        if UIS:IsKeyDown(Enum.KeyCode.D) then direction = direction + Vector3.new(1, 0, 0) end
-        if UIS:IsKeyDown(Enum.KeyCode.Space) then direction = direction + Vector3.new(0, 1, 0) end
-        if UIS:IsKeyDown(Enum.KeyCode.LeftShift) then direction = direction + Vector3.new(0, -1, 0) end
+        -- Tính hướng di chuyển
+        local direction = Vector3.new(0, 0, 0)
         
-        BodyVelocity.Velocity = direction * CurrentSpeed
+        -- Di chuyển theo phím
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+            direction = direction + workspace.CurrentCamera.CFrame.LookVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+            direction = direction - workspace.CurrentCamera.CFrame.LookVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+            direction = direction - workspace.CurrentCamera.CFrame.RightVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+            direction = direction + workspace.CurrentCamera.CFrame.RightVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+            direction = direction + Vector3.new(0, 1, 0)
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+            direction = direction + Vector3.new(0, -1, 0)
+        end
+        
+        -- Áp dụng tốc độ
+        if direction.Magnitude > 0 then
+            bodyVelocity.Velocity = direction.Unit * currentSpeed
+        else
+            bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+        end
     end)
+    
+    -- THÔNG BÁO
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "HIEUDRG FLY",
+        Text = "Fly đã được BẬT!",
+        Duration = 3
+    })
 end
 
-function DeactivateFly()
-    if BodyVelocity then BodyVelocity:Destroy() end
-    if BodyGyro then BodyGyro:Destroy() end
+-- HÀM DỪNG BAY
+function stopFlying()
+    if bodyVelocity then
+        bodyVelocity:Destroy()
+        bodyVelocity = nil
+    end
+    if bodyGyro then
+        bodyGyro:Destroy()
+        bodyGyro = nil
+    end
+    
+    -- THÔNG BÁO
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "HIEUDRG FLY",
+        Text = "Fly đã được TẮT!",
+        Duration = 3
+    })
 end
 
--- THÔNG BÁO
+-- KEYBIND: NHẤN F ĐỂ BẬT/TẮT NHANH
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    
+    if input.KeyCode == Enum.KeyCode.F then
+        flyEnabled = not flyEnabled
+        
+        if flyEnabled then
+            flyButton.Text = "🛸 TẮT FLY"
+            flyButton.BackgroundColor3 = Color3.fromRGB(170, 85, 85)
+            startFlying()
+        else
+            flyButton.Text = "🛸 BẬT FLY"
+            flyButton.BackgroundColor3 = Color3.fromRGB(85, 170, 85)
+            stopFlying()
+        end
+    end
+end)
+
+-- THÔNG BÁO KHI LOAD XONG
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "HIEUDRG FLY HUB",
-    Text = "Đã load thành công! Nhấn nút để bay",
+    Text = "Đã load thành công! Nhấn F để bay",
     Duration = 5
 })
+
+print("🎯 HIEUDRG FLY HUB LOADED SUCCESSFULLY!")
+print("🛸 Controls: W/A/S/D + Space/Shift")
+print("🎮 Press F to toggle fly quickly")

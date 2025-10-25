@@ -190,7 +190,7 @@ Tabs.Main1:AddButton({
 
 ---- GROW A GADEN-----
 
-Tabs.Main1:AddButton({
+Tabs.Main2:AddButton({
     Title="H4x Hub",
     Description="NO KEY",
     Callback=function()
@@ -198,7 +198,7 @@ Tabs.Main1:AddButton({
   end
 })
 
-Tabs.Main1:AddButton({
+Tabs.Main2:AddButton({
     Title="Kenniel Hub",
     Description="NO KEY",
     Callback=function()
@@ -206,7 +206,7 @@ Tabs.Main1:AddButton({
   end
 })
 
-Tabs.Main1:AddButton({
+Tabs.Main2:AddButton({
     Title="Lunacy Hub",
     Description="NO KEY",
     Callback=function()
@@ -214,7 +214,7 @@ Tabs.Main1:AddButton({
   end
 })
 
-Tabs.Main1:AddButton({
+Tabs.Main2:AddButton({
     Title="Kiwii Hub",
     Description="NO KEY",
     Callback=function()
@@ -222,7 +222,7 @@ Tabs.Main1:AddButton({
   end
 })
 
-Tabs.Main1:AddButton({
+Tabs.Main2:AddButton({
     Title="UB Hub",
     Description="NO KEY",
     Callback=function()
@@ -230,7 +230,7 @@ Tabs.Main1:AddButton({
   end
 })
 
-Tabs.Main1:AddButton({
+Tabs.Main2:AddButton({
     Title="Pet Spawner Hub",
     Description="GET KEY",
     Callback=function()
@@ -238,7 +238,7 @@ Tabs.Main1:AddButton({
   end
 })
 
-Tabs.Main1:AddButton({
+Tabs.Main2:AddButton({
     Title="Mercenaries Hub",
     Description="GET KEY",
     Callback=function()
@@ -246,7 +246,7 @@ Tabs.Main1:AddButton({
   end
 })
 
-Tabs.Main1:AddButton({
+Tabs.Main2:AddButton({
     Title="Bonk Hub",
     Description="GET KEY",
     Callback=function()

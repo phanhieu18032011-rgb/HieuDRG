@@ -1,4 +1,4 @@
--- HieuDRG FLY Hub - Universal Compact Version
+-- HieuDRG FLY Hub - Fixed Universal Version
 -- Supports both Mobile and PC
 
 local Player = game:GetService("Players").LocalPlayer
@@ -6,7 +6,6 @@ local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
-local ContextActionService = game:GetService("ContextActionService")
 
 -- Settings
 getgenv().Fly = false
@@ -45,7 +44,7 @@ local function ApplyRGBEffect(element)
             if currentIndex > #RGBColors then currentIndex = 1 end
             task.wait(0.4)
         end
-    end
+    end)
 end
 
 -- Create Main GUI
@@ -190,13 +189,13 @@ ScrollingFrame.Size = UDim2.new(1, 0, 1, 0)
 ScrollingFrame.Position = UDim2.new(0, 0, 0, 0)
 ScrollingFrame.BackgroundTransparency = 1
 ScrollingFrame.BorderSizePixel = 0
-ScrollingFrame.ScrollBarThickness = IsMobile and 4 : 3
+ScrollingFrame.ScrollBarThickness = IsMobile and 4 or 3
 ScrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 150)
 ScrollingFrame.Parent = ContentFrame
 
 -- UIListLayout
 local UIListLayout = Instance.new("UIListLayout")
-UIListLayout.Padding = UDim.new(0, IsMobile and 8 : 5)
+UIListLayout.Padding = UDim.new(0, IsMobile and 8 or 5)
 UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 UIListLayout.Parent = ScrollingFrame
 

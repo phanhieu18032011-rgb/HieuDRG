@@ -1,289 +1,99 @@
--- HIEUDRG FLY HUB - PREMIUM FLY SCRIPT
--- SHADOW CORE AI POWERED
+-- HIEUDRG FLY HUB - WORKING VERSION
+-- SIMPLE UI WITH FLY SYSTEM
 
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+-- Sử dụng library đơn giản hơn
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bloodball/-back-ups-for-libs/main/0x"))()
 
--- CREATE EPIC WINDOW
-local Window = Rayfield:CreateWindow({
-   Name = "🛸 HIEUDRG FLY HUB",
-   LoadingTitle = "HIEUDRG Premium Fly System",
-   LoadingSubtitle = "Powered by Shadow Core AI",
-   ConfigurationSaving = {
-      Enabled = true,
-      FolderName = "HieuDRGConfig",
-      FileName = "FlySettings"
-   },
-   Theme = {
-      BackgroundColor = Color3.fromRGB(10, 10, 10),
-      HeaderColor = Color3.fromRGB(40, 0, 80),
-      TextColor = Color3.fromRGB(255, 255, 255),
-      IconColor = Color3.fromRGB(255, 105, 180),
-      ElementColor = Color3.fromRGB(20, 20, 20)
-   }
-})
+local Window = Library:CreateWindow("🛸 HIEUDRG FLY HUB", "Premium Fly System")
 
--- FLY SYSTEM VARIABLES
+-- FLY SETTINGS
 local FlySettings = {
-   Enabled = false,
-   Speed = 50,
-   VerticalSpeed = 50,
-   NoClip = false,
-   FlyKey = "F",
-   Style = "Default"
+    Enabled = false,
+    Speed = 50,
+    VerticalSpeed = 50,
+    FlyKey = "F"
 }
 
-local BodyVelocity
-local BodyGyro
-local FlyConnection
+local BodyVelocity, BodyGyro, FlyConnection
 
--- CREATE TABS
-local Tabs = {
-    Main = Window:CreateTab({ 
-        Name = "🛸 FLY CONTROL", 
-        Icon = "rbxassetid://7733716865"
-    }),
-    
-    Settings = Window:CreateTab({ 
-        Name = "⚙️ FLY SETTINGS", 
-        Icon = "rbxassetid://7733716865" 
-    }),
-    
-    Visuals = Window:CreateTab({ 
-        Name = "🎨 VISUALS", 
-        Icon = "rbxassetid://7733716865" 
-    }),
-    
-    Player = Window:CreateTab({ 
-        Name = "👤 PLAYER", 
-        Icon = "rbxassetid://7733716865" 
-    })
-}
+-- TẠO TABS
+local MainTab = Window:CreateTab("🚀 Fly Control")
+local SettingsTab = Window:CreateTab("⚙️ Settings")
+local VisualsTab = Window:CreateTab("🎨 Visuals")
 
--- MAIN FLY CONTROL SECTION
-local FlySection = Tabs.Main:CreateSection("🚀 FLY CONTROL SYSTEM")
+-- MAIN TAB CONTENT
+MainTab:CreateSection("Fly System")
 
-Tabs.Main:AddToggle({
-   Title = "🛸 ACTIVATE FLY",
-   Description = "Bật/Tắt hệ thống bay",
-   Default = false,
-   Callback = function(Value)
-        FlySettings.Enabled = Value
-        if Value then
-            ActivateFly()
-            Rayfield:Notify({
-               Title = "FLY ACTIVATED",
-               Content = "Fly system enabled! Press " .. FlySettings.FlyKey .. " to fly",
-               Duration = 5,
-               Image = "rbxassetid://7733716865"
-            })
-        else
-            DeactivateFly()
-            Rayfield:Notify({
-               Title = "FLY DEACTIVATED",
-               Content = "Fly system disabled",
-               Duration = 3,
-               Image = "rbxassetid://7733716865"
-            })
-        end
-   end
-})
-
-Tabs.Main:AddButton({
-   Title = "🎯 QUICK FLY TOGGLE",
-   Description = "Bật fly nhanh (giữ F)",
-   Callback = function()
-        Rayfield:Notify({
-           Title = "QUICK FLY",
-           Content = "Hold F to fly, release to stop",
-           Duration = 4,
-           Image = "rbxassetid://7733716865"
-        })
-        SetupQuickFly()
-   end
-})
-
-Tabs.Main:AddButton({
-   Title = "🌀 INFINITE FLY",
-   Description = "Fly không giới hạn thời gian",
-   Callback = function()
-        FlySettings.Enabled = true
+MainTab:CreateToggle("🛸 Enable Fly", false, function(State)
+    FlySettings.Enabled = State
+    if State then
         ActivateFly()
-        Rayfield:Notify({
-           Title = "INFINITE FLY",
-           Content = "Unlimited fly activated!",
-           Duration = 4,
-           Image = "rbxassetid://7733716865"
-        })
-   end
-})
+        Library:CreateNotification("Fly", "Fly Activated! Press " .. FlySettings.FlyKey, 5)
+    else
+        DeactivateFly()
+        Library:CreateNotification("Fly", "Fly Deactivated", 3)
+    end
+end)
 
--- FLY STATS SECTION
-local StatsSection = Tabs.Main:CreateSection("📊 FLY STATISTICS")
+MainTab:CreateButton("🎯 Quick Fly Toggle", function()
+    Library:CreateNotification("Quick Fly", "Hold " .. FlySettings.FlyKey .. " to fly", 4)
+    SetupQuickFly()
+end)
 
-local SpeedDisplay = Tabs.Main:AddParagraph("CURRENT SPEED", "Horizontal: " .. FlySettings.Speed .. " | Vertical: " .. FlySettings.VerticalSpeed)
-local StatusDisplay = Tabs.Main:AddParagraph("FLY STATUS", "🛑 DISABLED")
+MainTab:CreateButton("🌀 Infinite Fly", function()
+    FlySettings.Enabled = true
+    ActivateFly()
+    Library:CreateNotification("Infinite Fly", "Unlimited fly activated!", 4)
+end)
 
--- FLY SETTINGS TAB
-local SpeedSection = Tabs.Settings:CreateSection("🎯 SPEED CONTROL")
+-- SETTINGS TAB
+SettingsTab:CreateSection("Speed Control")
 
-Tabs.Settings:AddSlider({
-   Title = "HORIZONTAL SPEED",
-   Description = "Tốc độ bay ngang",
-   Default = 50,
-   Min = 1,
-   Max = 200,
-   Callback = function(Value)
-        FlySettings.Speed = Value
-        UpdateFlySpeed()
-        SpeedDisplay:Set("CURRENT SPEED: Horizontal: " .. FlySettings.Speed .. " | Vertical: " .. FlySettings.VerticalSpeed)
-   end
-})
+SettingsTab:CreateSlider("Horizontal Speed", 1, 200, 50, true, function(Value)
+    FlySettings.Speed = Value
+end)
 
-Tabs.Settings:AddSlider({
-   Title = "VERTICAL SPEED",
-   Description = "Tốc độ bay lên/xuống",
-   Default = 50,
-   Min = 1,
-   Max = 100,
-   Callback = function(Value)
-        FlySettings.VerticalSpeed = Value
-        UpdateFlySpeed()
-        SpeedDisplay:Set("CURRENT SPEED: Horizontal: " .. FlySettings.Speed .. " | Vertical: " .. FlySettings.VerticalSpeed)
-   end
-})
+SettingsTab:CreateSlider("Vertical Speed", 1, 100, 50, true, function(Value)
+    FlySettings.VerticalSpeed = Value
+end)
 
-local ControlSection = Tabs.Settings:CreateSection("🎮 CONTROL SETTINGS")
+SettingsTab:CreateSection("Controls")
 
-Tabs.Settings:AddDropdown({
-   Title = "FLY STYLE",
-   Description = "Chọn kiểu bay",
-   Default = "Default",
-   Options = {"Default", "Smooth", "Boost", "Drift", "Helicopter"},
-   Callback = function(Value)
-        FlySettings.Style = Value
-        Rayfield:Notify({
-           Title = "FLY STYLE CHANGED",
-           Content = "Style: " .. Value,
-           Duration = 3,
-           Image = "rbxassetid://7733716865"
-        })
-   end
-})
+SettingsTab:CreateDropdown("Fly Style", {"Default", "Smooth", "Boost", "Drift"}, "Default", function(Value)
+    FlySettings.Style = Value
+end)
 
-Tabs.Settings:AddKeybind({
-   Title = "FLY TOGGLE KEY",
-   Description = "Phím bật/tắt bay nhanh",
-   Default = "F",
-   Callback = function(Key)
-        FlySettings.FlyKey = Key
-        Rayfield:Notify({
-           Title = "FLY KEY UPDATED",
-           Content = "Press " .. Key .. " to toggle fly",
-           Duration = 3,
-           Image = "rbxassetid://7733716865"
-        })
-   end
-})
+SettingsTab:CreateKeybind("Fly Key", "F", function(Key)
+    FlySettings.FlyKey = Key
+    Library:CreateNotification("Key Updated", "Fly key: " .. Key, 3)
+end)
 
-Tabs.Settings:AddToggle({
-   Title = "AUTO NO-CLIP",
-   Description = "Tự động bật no-clip khi bay",
-   Default = false,
-   Callback = function(Value)
-        FlySettings.NoClip = Value
-        if FlySettings.Enabled then
-            UpdateNoClip()
-        end
-   end
-})
+SettingsTab:CreateToggle("Auto No-Clip", false, function(State)
+    FlySettings.NoClip = State
+end)
 
 -- VISUALS TAB
-local EffectsSection = Tabs.Visuals:CreateSection("✨ VISUAL EFFECTS")
+VisualsTab:CreateSection("Effects")
 
-Tabs.Visuals:AddToggle({
-   Title = "TRAIL EFFECT",
-   Description = "Hiệu ứng vệt đuôi khi bay",
-   Default = false,
-   Callback = function(Value)
-        if Value then
-            CreateFlyTrail()
-        else
-            RemoveFlyTrail()
-        end
-   end
-})
+VisualsTab:CreateToggle("Trail Effect", false, function(State)
+    if State then
+        CreateFlyTrail()
+    else
+        RemoveFlyTrail()
+    end
+end)
 
-Tabs.Visuals:AddToggle({
-   Title = "SPARKLE EFFECT",
-   Description = "Hiệu ứng tia lửa khi bay",
-   Default = false,
-   Callback = function(Value)
-        if Value then
-            CreateSparkleEffect()
-        else
-            RemoveSparkleEffect()
-        end
-   end
-})
+VisualsTab:CreateToggle("Sparkle Effect", false, function(State)
+    if State then
+        CreateSparkleEffect()
+    else
+        RemoveSparkleEffect()
+    end
+end)
 
-Tabs.Visuals:AddColorPicker({
-   Title = "TRAIL COLOR",
-   Description = "Chọn màu cho hiệu ứng bay",
-   Default = Color3.fromRGB(255, 105, 180),
-   Callback = function(Value)
-        UpdateTrailColor(Value)
-   end
-})
-
-local ThemeSection = Tabs.Visuals:CreateSection("🎨 UI THEME")
-
-Tabs.Visuals:AddDropdown({
-   Title = "THEME COLOR",
-   Description = "Chọn màu chủ đề cho UI",
-   Default = "Purple",
-   Options = {"Purple", "Pink", "Blue", "Red", "Green", "Gold"},
-   Callback = function(Value)
-        ChangeThemeColor(Value)
-   end
-})
-
--- PLAYER TAB
-local PlayerSection = Tabs.Player:CreateSection("👤 PLAYER SETTINGS")
-
-Tabs.Player:AddSlider({
-   Title = "WALKSPEED",
-   Description = "Tốc độ chạy bộ",
-   Default = 16,
-   Min = 16,
-   Max = 200,
-   Callback = function(Value)
-        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
-   end
-})
-
-Tabs.Player:AddSlider({
-   Title = "JUMP POWER",
-   Description = "Lực nhảy",
-   Default = 50,
-   Min = 50,
-   Max = 200,
-   Callback = function(Value)
-        game.Players.LocalPlayer.Character.Humanoid.JumpPower = Value
-   end
-})
-
-Tabs.Player:AddToggle({
-   Title = "NO CLIP",
-   Description = "Đi xuyên vật thể",
-   Default = false,
-   Callback = function(Value)
-        if Value then
-            EnableNoClip()
-        else
-            DisableNoClip()
-        end
-   end
-})
+VisualsTab:CreateColorpicker("Trail Color", Color3.fromRGB(255, 105, 180), function(Color)
+    UpdateTrailColor(Color)
+end)
 
 -- FLY SYSTEM FUNCTIONS
 function ActivateFly()
@@ -295,25 +105,25 @@ function ActivateFly()
     
     if not humanoid or not rootPart then return end
     
-    -- Create BodyVelocity for movement
+    -- Tạo BodyVelocity
     BodyVelocity = Instance.new("BodyVelocity")
     BodyVelocity.Velocity = Vector3.new(0, 0, 0)
     BodyVelocity.MaxForce = Vector3.new(10000, 10000, 10000)
     BodyVelocity.Parent = rootPart
     
-    -- Create BodyGyro for stability
+    -- Tạo BodyGyro
     BodyGyro = Instance.new("BodyGyro")
     BodyGyro.MaxTorque = Vector3.new(10000, 10000, 10000)
     BodyGyro.P = 1000
     BodyGyro.D = 50
     BodyGyro.Parent = rootPart
     
-    -- Enable no-clip if setting is on
+    -- Bật no-clip nếu được enable
     if FlySettings.NoClip then
         UpdateNoClip()
     end
     
-    -- Start fly loop
+    -- Vòng lặp bay
     FlyConnection = game:GetService("RunService").Heartbeat:Connect(function()
         if not FlySettings.Enabled or not BodyVelocity or not BodyGyro then return end
         
@@ -321,7 +131,7 @@ function ActivateFly()
         
         local direction = Vector3.new()
         
-        -- Horizontal movement
+        -- Di chuyển ngang
         if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.W) then
             direction = direction + workspace.CurrentCamera.CFrame.LookVector
         end
@@ -335,7 +145,7 @@ function ActivateFly()
             direction = direction + workspace.CurrentCamera.CFrame.RightVector
         end
         
-        -- Vertical movement
+        -- Di chuyển dọc
         if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.Space) then
             direction = direction + Vector3.new(0, 1, 0)
         end
@@ -343,20 +153,9 @@ function ActivateFly()
             direction = direction - Vector3.new(0, 1, 0)
         end
         
-        -- Apply speed based on style
-        local horizontalSpeed = FlySettings.Speed
-        local verticalSpeed = FlySettings.VerticalSpeed
-        
-        if FlySettings.Style == "Boost" then
-            horizontalSpeed = horizontalSpeed * 1.5
-        elseif FlySettings.Style == "Smooth" then
-            horizontalSpeed = horizontalSpeed * 0.7
-        end
-        
-        BodyVelocity.Velocity = direction.Unit * horizontalSpeed + Vector3.new(0, direction.Y * verticalSpeed, 0)
+        -- Áp dụng tốc độ
+        BodyVelocity.Velocity = direction.Unit * FlySettings.Speed + Vector3.new(0, direction.Y * FlySettings.VerticalSpeed, 0)
     end)
-    
-    StatusDisplay:Set("🟢 FLYING - Style: " .. FlySettings.Style)
 end
 
 function DeactivateFly()
@@ -376,12 +175,6 @@ function DeactivateFly()
     DisableNoClip()
     RemoveFlyTrail()
     RemoveSparkleEffect()
-    
-    StatusDisplay:Set("🛑 DISABLED")
-end
-
-function UpdateFlySpeed()
-    -- Speed updates automatically in the fly loop
 end
 
 function UpdateNoClip()
@@ -448,28 +241,15 @@ function RemoveFlyTrail()
 end
 
 function CreateSparkleEffect()
-    -- Sparkle effect implementation
+    -- Thêm hiệu ứng sparkle ở đây
 end
 
 function RemoveSparkleEffect()
-    -- Remove sparkle effect implementation
+    -- Xóa hiệu ứng sparkle ở đây
 end
 
 function UpdateTrailColor(color)
-    -- Update trail color implementation
-end
-
-function ChangeThemeColor(theme)
-    local themeColors = {
-        Purple = Color3.fromRGB(128, 0, 128),
-        Pink = Color3.fromRGB(255, 105, 180),
-        Blue = Color3.fromRGB(0, 120, 255),
-        Red = Color3.fromRGB(255, 0, 0),
-        Green = Color3.fromRGB(0, 255, 0),
-        Gold = Color3.fromRGB(255, 215, 0)
-    }
-    
-    -- Update UI theme colors here
+    -- Cập nhật màu trail ở đây
 end
 
 function SetupQuickFly()
@@ -506,21 +286,8 @@ game:GetService("UserInputService").InputBegan:Connect(function(input, gameProce
     end
 end)
 
--- INITIAL NOTIFICATION
-Rayfield:Notify({
-   Title = "🛸 HIEUDRG FLY HUB LOADED",
-   Content = "Premium Fly System Activated!\nPress " .. FlySettings.FlyKey .. " to toggle fly",
-   Duration = 8,
-   Image = "rbxassetid://7733716865"
-})
+-- Khởi tạo UI
+Library:Init()
 
--- AUTO-UPDATE DISPLAY
-task.spawn(function()
-    while task.wait(1) do
-        if FlySettings.Enabled then
-            StatusDisplay:Set("🟢 FLYING - Style: " .. FlySettings.Style)
-        else
-            StatusDisplay:Set("🛑 DISABLED")
-        end
-    end
-end)
+-- Thông báo khởi động
+Library:CreateNotification("HIEUDRG FLY HUB", "Fly System Loaded! Press " .. FlySettings.FlyKey, 6)

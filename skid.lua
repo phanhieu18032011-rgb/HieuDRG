@@ -1,5 +1,5 @@
 -- =============================================
--- HIEUDRG FLY HUB - WITH MENU TOGGLE
+-- HIEUDRG FLY HUB - MOBILE SUPPORT
 -- COPY TOÀN BỘ CODE NÀY - KHÔNG SỬA GÌ CẢ
 -- =============================================
 
@@ -13,6 +13,7 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
+local GuiService = game:GetService("GuiService")
 
 -- Lấy người chơi hiện tại
 local Player = Players.LocalPlayer
@@ -29,6 +30,10 @@ local bodyGyro = nil
 local currentSpeed = 50
 local menuVisible = true
 
+-- Kiểm tra thiết bị
+local isMobile = (UserInputService.TouchEnabled and not UserInputService.MouseEnabled)
+local isDesktop = UserInputService.MouseEnabled
+
 -- =============================================
 -- BƯỚC 1: TẠO GIAO DIỆN NGƯỜI DÙNG (UI)
 -- =============================================
@@ -37,14 +42,14 @@ local menuVisible = true
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "HieuDRGFlyHub"
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-screenGui.Parent = game.CoreGui -- Hiển thị lên màn hình
+screenGui.Parent = game.CoreGui
 
 -- Tạo khung chính
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 300, 0, 250) -- Rộng 300, cao 250 pixel
-mainFrame.Position = UDim2.new(0, 20, 0, 20) -- Vị trí góc trái
-mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25) -- Màu nền tối
-mainFrame.BorderSizePixel = 0 -- Không viền
+mainFrame.Size = UDim2.new(0, 320, 0, 280)
+mainFrame.Position = UDim2.new(0, 20, 0, 20)
+mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+mainFrame.BorderSizePixel = 0
 mainFrame.Parent = screenGui
 
 -- Bo góc cho khung
@@ -58,9 +63,9 @@ corner.Parent = mainFrame
 
 -- Tạo thanh tiêu đề
 local titleBar = Instance.new("Frame")
-titleBar.Size = UDim2.new(1, 0, 0, 40)
+titleBar.Size = UDim2.new(1, 0, 0, 45)
 titleBar.Position = UDim2.new(0, 0, 0, 0)
-titleBar.BackgroundColor3 = Color3.fromRGB(255, 105, 180) -- Màu hồng
+titleBar.BackgroundColor3 = Color3.fromRGB(255, 105, 180)
 titleBar.BorderSizePixel = 0
 titleBar.Parent = mainFrame
 
@@ -83,12 +88,12 @@ title.Parent = titleBar
 
 -- Nút ẩn/hiện menu
 local toggleMenuButton = Instance.new("TextButton")
-toggleMenuButton.Size = UDim2.new(0, 30, 0, 30)
-toggleMenuButton.Position = UDim2.new(1, -40, 0.5, -15)
+toggleMenuButton.Size = UDim2.new(0, 35, 0, 35)
+toggleMenuButton.Position = UDim2.new(1, -45, 0.5, -17.5)
 toggleMenuButton.BackgroundColor3 = Color3.fromRGB(220, 220, 220)
 toggleMenuButton.Text = "─"
 toggleMenuButton.TextColor3 = Color3.fromRGB(0, 0, 0)
-toggleMenuButton.TextSize = 16
+toggleMenuButton.TextSize = 18
 toggleMenuButton.Font = Enum.Font.GothamBold
 toggleMenuButton.Parent = titleBar
 
@@ -98,13 +103,35 @@ toggleCorner.CornerRadius = UDim.new(0, 6)
 toggleCorner.Parent = toggleMenuButton
 
 -- =============================================
--- BƯỚC 3: TẠO NÚT BẬT/TẮT FLY
+-- BƯỚC 3: NÚT TOGGLE MENU CHO MOBILE
+-- =============================================
+
+-- Nút hiện menu khi đang ẩn (chỉ hiện trên mobile)
+local mobileToggleButton = Instance.new("TextButton")
+mobileToggleButton.Size = UDim2.new(0, 60, 0, 60)
+mobileToggleButton.Position = UDim2.new(1, -70, 0.5, -30)
+mobileToggleButton.BackgroundColor3 = Color3.fromRGB(255, 105, 180)
+mobileToggleButton.Text = "📱"
+mobileToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+mobileToggleButton.TextSize = 20
+mobileToggleButton.Font = Enum.Font.GothamBold
+mobileToggleButton.Visible = false -- Ẩn ban đầu
+mobileToggleButton.ZIndex = 10 -- Luôn trên cùng
+mobileToggleButton.Parent = screenGui
+
+-- Bo góc nút mobile
+local mobileCorner = Instance.new("UICorner")
+mobileCorner.CornerRadius = UDim.new(0, 30)
+mobileCorner.Parent = mobileToggleButton
+
+-- =============================================
+-- BƯỚC 4: TẠO NÚT BẬT/TẮT FLY
 -- =============================================
 
 local flyButton = Instance.new("TextButton")
-flyButton.Size = UDim2.new(0.85, 0, 0, 45)
-flyButton.Position = UDim2.new(0.075, 0, 0.2, 40)
-flyButton.BackgroundColor3 = Color3.fromRGB(65, 105, 225) -- Màu xanh
+flyButton.Size = UDim2.new(0.85, 0, 0, 50)
+flyButton.Position = UDim2.new(0.075, 0, 0.2, 45)
+flyButton.BackgroundColor3 = Color3.fromRGB(65, 105, 225)
 flyButton.Text = "🛸 BẬT FLY"
 flyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 flyButton.TextSize = 16
@@ -117,13 +144,13 @@ buttonCorner.CornerRadius = UDim.new(0, 8)
 buttonCorner.Parent = flyButton
 
 -- =============================================
--- BƯỚC 4: HIỂN THỊ VÀ ĐIỀU CHỈNH TỐC ĐỘ
+-- BƯỚC 5: HIỂN THỊ VÀ ĐIỀU CHỈNH TỐC ĐỘ
 -- =============================================
 
 -- Hiển thị tốc độ
 local speedLabel = Instance.new("TextLabel")
 speedLabel.Size = UDim2.new(0.8, 0, 0, 25)
-speedLabel.Position = UDim2.new(0.1, 0, 0.5, 40)
+speedLabel.Position = UDim2.new(0.1, 0, 0.45, 45)
 speedLabel.BackgroundTransparency = 1
 speedLabel.Text = "🎯 Tốc độ: 50"
 speedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -133,8 +160,8 @@ speedLabel.Parent = mainFrame
 
 -- Nút tăng tốc
 local speedUp = Instance.new("TextButton")
-speedUp.Size = UDim2.new(0.35, 0, 0, 32)
-speedUp.Position = UDim2.new(0.1, 0, 0.65, 40)
+speedUp.Size = UDim2.new(0.35, 0, 0, 35)
+speedUp.Position = UDim2.new(0.1, 0, 0.6, 45)
 speedUp.BackgroundColor3 = Color3.fromRGB(85, 170, 85)
 speedUp.Text = "📈 TĂNG"
 speedUp.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -143,8 +170,8 @@ speedUp.Parent = mainFrame
 
 -- Nút giảm tốc
 local speedDown = Instance.new("TextButton")
-speedDown.Size = UDim2.new(0.35, 0, 0, 32)
-speedDown.Position = UDim2.new(0.55, 0, 0.65, 40)
+speedDown.Size = UDim2.new(0.35, 0, 0, 35)
+speedDown.Position = UDim2.new(0.55, 0, 0.6, 45)
 speedDown.BackgroundColor3 = Color3.fromRGB(220, 80, 80)
 speedDown.Text = "📉 GIẢM"
 speedDown.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -158,14 +185,14 @@ speedCorner.Parent = speedUp
 speedCorner:Clone().Parent = speedDown
 
 -- =============================================
--- BƯỚC 5: HƯỚNG DẪN ĐIỀU KHIỂN
+-- BƯỚC 6: HƯỚNG DẪN ĐIỀU KHIỂN
 -- =============================================
 
 local controlsLabel = Instance.new("TextLabel")
-controlsLabel.Size = UDim2.new(0.9, 0, 0, 45)
-controlsLabel.Position = UDim2.new(0.05, 0, 0.8, 40)
+controlsLabel.Size = UDim2.new(0.9, 0, 0, 60)
+controlsLabel.Position = UDim2.new(0.05, 0, 0.75, 45)
 controlsLabel.BackgroundTransparency = 1
-controlsLabel.Text = "🎮 W/A/S/D + Space/Shift\n🎯 Nhấn F để bật/tắt fly\n🎯 Nhấn H để ẩn/hiện menu"
+controlsLabel.Text = "🎮 W/A/S/D + Space/Shift\n🎯 F: Bật/tắt Fly\n🎯 H: Ẩn/hiện Menu\n📱 Chạm icon để mở menu"
 controlsLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
 controlsLabel.TextSize = 11
 controlsLabel.Font = Enum.Font.Gotham
@@ -173,7 +200,7 @@ controlsLabel.TextWrapped = true
 controlsLabel.Parent = mainFrame
 
 -- =============================================
--- BƯỚC 6: HỆ THỐNG FLY
+-- BƯỚC 7: HỆ THỐNG FLY
 -- =============================================
 
 -- Hàm bật fly
@@ -271,7 +298,7 @@ function stopFlying()
 end
 
 -- =============================================
--- BƯỚC 7: HỆ THỐNG ẨN/HIỆN MENU
+-- BƯỚC 8: HỆ THỐNG ẨN/HIỆN MENU CHO MOBILE
 -- =============================================
 
 -- Hàm ẩn menu
@@ -280,9 +307,14 @@ function hideMenu()
     menuVisible = false
     toggleMenuButton.Text = "＋"
     
+    -- Hiện nút mobile toggle nếu là mobile
+    if isMobile then
+        mobileToggleButton.Visible = true
+    end
+    
     game:GetService("StarterGui"):SetCore("SendNotification", {
         Title = "🎯 HIEUDRG MENU",
-        Text = "Menu đã ẩn - Nhấn H để hiện",
+        Text = isMobile and "Menu đã ẩn - Chạm icon để hiện" or "Menu đã ẩn - Nhấn H để hiện",
         Duration = 3
     })
 end
@@ -293,9 +325,12 @@ function showMenu()
     menuVisible = true
     toggleMenuButton.Text = "─"
     
+    -- Ẩn nút mobile toggle
+    mobileToggleButton.Visible = false
+    
     game:GetService("StarterGui"):SetCore("SendNotification", {
         Title = "🎯 HIEUDRG MENU",
-        Text = "Menu đã hiện - Nhấn H để ẩn",
+        Text = isMobile and "Menu đã hiện - Chạm icon để ẩn" or "Menu đã hiện - Nhấn H để ẩn",
         Duration = 3
     })
 end
@@ -310,7 +345,7 @@ function toggleMenu()
 end
 
 -- =============================================
--- BƯỚC 8: KẾT NỐI SỰ KIỆN NÚT
+-- BƯỚC 9: KẾT NỐI SỰ KIỆN NÚT
 -- =============================================
 
 -- Sự kiện click nút bật/tắt fly
@@ -351,11 +386,16 @@ toggleMenuButton.MouseButton1Click:Connect(function()
     toggleMenu()
 end)
 
+-- Sự kiện nút mobile toggle
+mobileToggleButton.MouseButton1Click:Connect(function()
+    toggleMenu()
+end)
+
 -- =============================================
--- BƯỚC 9: PHÍM TẮT (KEYBIND)
+-- BƯỚC 10: PHÍM TẮT (KEYBIND) VÀ TOUCH
 -- =============================================
 
--- Sự kiện nhấn phím
+-- Sự kiện nhấn phím (cho desktop)
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     -- Bỏ qua nếu đang trong game (chat, menu, etc.)
     if gameProcessed then return end
@@ -385,23 +425,42 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 end)
 
 -- =============================================
--- BƯỚC 10: THÔNG BÁO HOÀN TẤT
+-- BƯỚC 11: TỰ ĐỘNG ĐIỀU CHỈNH CHO MOBILE
+-- =============================================
+
+-- Điều chỉnh kích thước cho mobile
+if isMobile then
+    mainFrame.Size = UDim2.new(0, 280, 0, 320)
+    flyButton.Size = UDim2.new(0.9, 0, 0, 60)
+    speedUp.Size = UDim2.new(0.4, 0, 0, 40)
+    speedDown.Size = UDim2.new(0.4, 0, 0, 40)
+    controlsLabel.Text = "🎮 Dùng nút để điều khiển\n🎯 Fly: Bật/tắt bay\n📱 Chạm icon để ẩn/hiện menu"
+    
+    -- Đặt vị trí nút mobile
+    mobileToggleButton.Position = UDim2.new(0, 20, 0, 20)
+end
+
+-- =============================================
+-- BƯỚC 12: THÔNG BÁO HOÀN TẤT
 -- =============================================
 
 -- Thông báo khi load xong
+local deviceType = isMobile and "Mobile 📱" or "Desktop 🖥️"
 game:GetService("StarterGui"):SetCore("SendNotification", {
-    Title = "🎯 HIEUDRG FLY HUB",
-    Text = "Đã load thành công!\nF: Fly | H: Ẩn menu",
+    Title = "🎯 HIEUDRG FLY HUB - " .. deviceType,
+    Text = isMobile and "Đã load! Chạm icon để điều khiển" or "Đã load! F: Fly | H: Menu",
     Duration = 6
 })
 
 -- In ra console
 print("====================================")
 print("🛸 HIEUDRG FLY HUB LOADED SUCCESS!")
+print("📱 Device: " .. (isMobile and "Mobile" or "Desktop"))
 print("🎮 Controls: W/A/S/D + Space/Shift")
 print("🎯 F: Toggle Fly | H: Toggle Menu")
+print("📱 Mobile: Tap icon to toggle menu")
 print("📊 Current Speed: " .. currentSpeed)
 print("====================================")
 
 -- Kết thúc script
-return "HieuDRG Fly Hub - Ready to Fly! 🚀"
+return "HieuDRG Fly Hub - Mobile Ready! 🚀"

@@ -1,19 +1,6 @@
 -- HieuDRG FLY Hub (User-local script - intended for testing in development/private environments)
--- Features included:
---  • Polished RGB-cycling UI (7-color cycling)
---  • Fly (toggle + speed)
---  • Noclip (toggle)
---  • Speed slider
---  • High jump (jump power slider)
---  • Invincibility (best-effort client-side "godmode")
---  • Display player name + avatar thumbnail + uptime
---  • Locate players (adds a BillboardGui to players showing distance)
---  • Server-hop to another PUBLIC server (random low-pop) — DOES NOT attempt to join someone's private VIP server
---
--- IMPORTANT SAFETY NOTE (read before use):
--- I WILL NOT implement or include any functionality that (a) attempts to evade bans, (b) bypasses moderation or anti-cheat systems, (c) forcibly kicks or resets other players' sessions, or (d) automates joining someone else's PRIVATE/VIP server without an invite. Those requests are declined for ethical and policy reasons.
---
--- Usage: place this as a LocalScript inside StarterPlayerScripts for testing in a dev/local environment. Do NOT use in environments you do not have permission to modify.
+-- Updated: draggable + collapse/expand menu + automatic sizing to fit controls
+-- See previous notes about safety (no antiban/kick/reset other players etc.)
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -22,7 +9,7 @@ local HttpService = game:GetService("HttpService")
 local LocalPlayer = Players.LocalPlayer
 local StarterGui = game:GetService("StarterGui")
 
--- UI creation (simple, modern-ish) -------------------------------------------------
+-- UI creation (modern, draggable, collapsible, autosize) -------------------------
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "HieuDRG_FLY_Hub"
 ScreenGui.ResetOnSpawn = false
@@ -30,57 +17,96 @@ ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "Main"
-mainFrame.Size = UDim2.new(0,360,0,480)
+mainFrame.Size = UDim2.new(0,380,0,60) -- initial compact
 mainFrame.Position = UDim2.new(0,20,0,80)
-mainFrame.AnchorPoint = Vector2.new(0,0)
 mainFrame.BackgroundTransparency = 0.08
 mainFrame.BackgroundColor3 = Color3.fromRGB(24,24,24)
 mainFrame.BorderSizePixel = 0
+mainFrame.AnchorPoint = Vector2.new(0,0)
+mainFrame.Active = true -- needed for dragging
 mainFrame.Parent = ScreenGui
 
 local uiCorner = Instance.new("UICorner") uiCorner.CornerRadius = UDim.new(0,14) uiCorner.Parent = mainFrame
-local uiPadding = Instance.new("UIPadding") uiPadding.PaddingTop = UDim.new(0,12) uiPadding.PaddingLeft = UDim.new(0,12) uiPadding.Parent = mainFrame
+local uiPadding = Instance.new("UIPadding") uiPadding.PaddingTop = UDim.new(0,10) uiPadding.PaddingLeft = UDim.new(0,10) uiPadding.PaddingRight = UDim.new(0,10) uiPadding.PaddingBottom = UDim.new(0,10) uiPadding.Parent = mainFrame
+
+-- Top bar (title + collapse + drag area)
+local topBar = Instance.new("Frame")
+topBar.Name = "TopBar"
+topBar.Size = UDim2.new(1,0,0,36)
+topBar.BackgroundTransparency = 1
+topBar.Parent = mainFrame
 
 local title = Instance.new("TextLabel")
 title.Name = "Title"
-title.Size = UDim2.new(1, -24, 0, 32)
+title.Size = UDim2.new(1,0,1,0)
 title.BackgroundTransparency = 1
-title.Parent = mainFrame
+title.Parent = topBar
 title.Font = Enum.Font.GothamBold
-title.TextSize = 18
+title.TextSize = 16
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Text = "HieuDRG FLY Hub"
 title.TextColor3 = Color3.fromRGB(255,255,255)
 
+local collapseBtn = Instance.new("TextButton")
+collapseBtn.Name = "CollapseBtn"
+collapseBtn.Size = UDim2.new(0,28,0,28)
+collapseBtn.Position = UDim2.new(1,-28,0,4)
+collapseBtn.AnchorPoint = Vector2.new(0,0)
+collapseBtn.BackgroundTransparency = 0.12
+collapseBtn.Font = Enum.Font.GothamBold
+collapseBtn.TextSize = 18
+collapseBtn.Text = "–"
+collapseBtn.TextColor3 = Color3.fromRGB(230,230,230)
+collapseBtn.BorderSizePixel = 0
+collapseBtn.Parent = topBar
+local collapseCorner = Instance.new("UICorner") collapseCorner.CornerRadius = UDim.new(0,6) collapseCorner.Parent = collapseBtn
+
 -- Header gradient (RGB 7-color cycling)
 local headerBar = Instance.new("Frame")
-headerBar.Size = UDim2.new(1, -24, 0, 6)
+headerBar.Size = UDim2.new(1,0,0,6)
 headerBar.Position = UDim2.new(0,0,0,40)
 headerBar.BackgroundColor3 = Color3.fromRGB(255,0,0)
 headerBar.BorderSizePixel = 0
 headerBar.Parent = mainFrame
 local headerCorner = Instance.new("UICorner") headerCorner.CornerRadius = UDim.new(0,6) headerCorner.Parent = headerBar
 
--- Left column controls
-local leftCol = Instance.new("Frame")
-leftCol.Size = UDim2.new(0.5, -12, 1, -64)
-leftCol.Position = UDim2.new(0,0,0,64)
-leftCol.BackgroundTransparency = 1
-leftCol.Parent = mainFrame
+-- Content container (will be shown/hidden by collapse)
+local content = Instance.new("Frame")
+content.Name = "Content"
+content.Size = UDim2.new(1,0,0,320)
+content.Position = UDim2.new(0,0,0,52)
+content.BackgroundTransparency = 1
+content.Parent = mainFrame
 
--- Right column (info + locate)
+local contentPadding = Instance.new("UIPadding") contentPadding.PaddingTop = UDim.new(0,8) contentPadding.PaddingLeft = UDim.new(0,8) contentPadding.PaddingRight = UDim.new(0,8) contentPadding.Parent = content
+
+-- Two-column layout inside content
+local columns = Instance.new("Frame")
+columns.Size = UDim2.new(1,0,1,0)
+columns.BackgroundTransparency = 1
+columns.Parent = content
+
+local leftCol = Instance.new("Frame")
+leftCol.Size = UDim2.new(0.5,-8,1,0)
+leftCol.Position = UDim2.new(0,0,0,0)
+leftCol.BackgroundTransparency = 1
+leftCol.Parent = columns
+
 local rightCol = Instance.new("Frame")
-rightCol.Size = UDim2.new(0.5, -12, 1, -64)
-rightCol.Position = UDim2.new(0.5, 12, 0,64)
+rightCol.Size = UDim2.new(0.5,-8,1,0)
+rightCol.Position = UDim2.new(0.5,8,0,0)
 rightCol.BackgroundTransparency = 1
-rightCol.Parent = mainFrame
+rightCol.Parent = columns
+
+-- Use UIListLayout inside columns so we can auto-size based on children
+local leftLayout = Instance.new("UIListLayout") leftLayout.SortOrder = Enum.SortOrder.LayoutOrder leftLayout.Padding = UDim.new(0,8) leftLayout.Parent = leftCol
+local rightLayout = Instance.new("UIListLayout") rightLayout.SortOrder = Enum.SortOrder.LayoutOrder rightLayout.Padding = UDim.new(0,8) rightLayout.Parent = rightCol
 
 -- helper for element creation
-local function makeToggle(parent, name, text, positionY)
+local function makeToggle(parent, name, text)
 	local btn = Instance.new("TextButton")
 	btn.Name = name
-	btn.Size = UDim2.new(1, 0, 0, 34)
-	btn.Position = UDim2.new(0,0,0, positionY)
+	btn.Size = UDim2.new(1,0,0,36)
 	btn.BackgroundTransparency = 0.12
 	btn.Font = Enum.Font.Gotham
 	btn.TextSize = 14
@@ -92,16 +118,15 @@ local function makeToggle(parent, name, text, positionY)
 	return btn
 end
 
-local function makeSlider(parent, name, labelText, positionY, min, max, default)
+local function makeSlider(parent, name, labelText, min, max, default)
 	local container = Instance.new("Frame")
-	container.Size = UDim2.new(1,0,0,54)
-	container.Position = UDim2.new(0,0,0,positionY)
+	container.Size = UDim2.new(1,0,0,64)
 	container.BackgroundTransparency = 1
 	container.Parent = parent
 
 	local lbl = Instance.new("TextLabel") lbl.Size = UDim2.new(1,0,0,18) lbl.BackgroundTransparency = 1 lbl.Text = labelText lbl.Font = Enum.Font.Gotham lbl.TextSize = 12 lbl.TextColor3 = Color3.fromRGB(220,220,220) lbl.Parent = container
 
-	local sliderBg = Instance.new("Frame") sliderBg.Size = UDim2.new(1,0,0,12) sliderBg.Position = UDim2.new(0,0,0,24) sliderBg.BackgroundTransparency = 0.12 sliderBg.BorderSizePixel = 0 sliderBg.Parent = container local cr = Instance.new("UICorner") cr.CornerRadius = UDim.new(0,6) cr.Parent = sliderBg
+	local sliderBg = Instance.new("Frame") sliderBg.Size = UDim2.new(1,0,0,12) sliderBg.Position = UDim2.new(0,0,0,28) sliderBg.BackgroundTransparency = 0.12 sliderBg.BorderSizePixel = 0 sliderBg.Parent = container local cr = Instance.new("UICorner") cr.CornerRadius = UDim.new(0,6) cr.Parent = sliderBg
 
 	local fill = Instance.new("Frame") fill.Size = UDim2.new((default-min)/(max-min),0,1,0) fill.BackgroundTransparency = 0.0 fill.BorderSizePixel = 0 fill.Parent = sliderBg local cr2 = Instance.new("UICorner") cr2.CornerRadius = UDim.new(0,6) cr2.Parent = fill
 
@@ -111,48 +136,33 @@ local function makeSlider(parent, name, labelText, positionY, min, max, default)
 end
 
 -- Controls
-local flyToggle = makeToggle(leftCol, "FlyToggle", "Toggle Fly (F)", 0)
-local noclipToggle = makeToggle(leftCol, "NoclipToggle", "Toggle Noclip (N)", 44)
-local godToggle = makeToggle(leftCol, "GodToggle", "Toggle Invincibility", 88)
-local serverHopBtn = makeToggle(leftCol, "HopBtn", "Server Hop (Public)", 132)
+local flyToggle = makeToggle(leftCol, "FlyToggle", "Toggle Fly (F)")
+local noclipToggle = makeToggle(leftCol, "NoclipToggle", "Toggle Noclip (N)")
+local godToggle = makeToggle(leftCol, "GodToggle", "Toggle Invincibility")
+local serverHopBtn = makeToggle(leftCol, "HopBtn", "Server Hop (Public)")
 
-local speedSlider = makeSlider(leftCol, "SpeedSlider", "Walk Speed", 176, 8, 200, 16)
-local jumpSlider = makeSlider(leftCol, "JumpSlider", "Jump Power", 240, 0, 300, 50)
+local speedSlider = makeSlider(leftCol, "SpeedSlider", "Walk Speed", 8, 200, 16)
+local jumpSlider = makeSlider(leftCol, "JumpSlider", "Jump Power", 0, 300, 50)
 
--- Info panel
-local infoTitle = Instance.new("TextLabel") infoTitle.Size = UDim2.new(1,0,0,18) infoTitle.BackgroundTransparency = 1 infoTitle.Text = "Player Info" infoTitle.Font = Enum.Font.GothamBold infoTitle.TextSize = 14 infoTitle.TextColor3 = Color3.fromRGB(240,240,240) infoTitle.Parent = rightCol
+-- Info panel (right)
+local infoTitle = Instance.new("TextLabel") infoTitle.Size = UDim2.new(1,0,0,20) infoTitle.BackgroundTransparency = 1 infoTitle.Text = "Player Info" infoTitle.Font = Enum.Font.GothamBold infoTitle.TextSize = 14 infoTitle.TextColor3 = Color3.fromRGB(240,240,240) infoTitle.LayoutOrder = 1 infoTitle.Parent = rightCol
 
-local avatar = Instance.new("ImageLabel") avatar.Size = UDim2.new(0,72,0,72) avatar.Position = UDim2.new(0,0,0,28) avatar.BackgroundTransparency = 1 avatar.Parent = rightCol
-local nameLbl = Instance.new("TextLabel") nameLbl.Size = UDim2.new(1,0,0,20) nameLbl.Position = UDim2.new(0,80,0,28) nameLbl.BackgroundTransparency = 1 nameLbl.Font = Enum.Font.GothamBold nameLbl.TextSize = 14 nameLbl.TextColor3 = Color3.fromRGB(230,230,230) nameLbl.TextXAlignment = Enum.TextXAlignment.Left nameLbl.Parent = rightCol
-local uptimeLbl = Instance.new("TextLabel") uptimeLbl.Size = UDim2.new(1,0,0,18) uptimeLbl.Position = UDim2.new(0,80,0,52) uptimeLbl.BackgroundTransparency = 1 uptimeLbl.Font = Enum.Font.Gotham nameLbl.TextSize = 12 uptimeLbl.TextColor3 = Color3.fromRGB(200,200,200) uptimeLbl.TextXAlignment = Enum.TextXAlignment.Left uptimeLbl.Parent = rightCol
+local avatar = Instance.new("ImageLabel") avatar.Size = UDim2.new(0,72,0,72) avatar.BackgroundTransparency = 1 avatar.LayoutOrder = 2 avatar.Parent = rightCol
+local nameLbl = Instance.new("TextLabel") nameLbl.Size = UDim2.new(1,0,0,20) nameLbl.BackgroundTransparency = 1 nameLbl.Font = Enum.Font.GothamBold nameLbl.TextSize = 14 nameLbl.TextColor3 = Color3.fromRGB(230,230,230) nameLbl.TextXAlignment = Enum.TextXAlignment.Left nameLbl.LayoutOrder = 3 nameLbl.Parent = rightCol
+local uptimeLbl = Instance.new("TextLabel") uptimeLbl.Size = UDim2.new(1,0,0,18) uptimeLbl.BackgroundTransparency = 1 uptimeLbl.Font = Enum.Font.Gotham uptimeLbl.TextSize = 12 uptimeLbl.TextColor3 = Color3.fromRGB(200,200,200) uptimeLbl.TextXAlignment = Enum.TextXAlignment.Left uptimeLbl.LayoutOrder = 4 uptimeLbl.Parent = rightCol
 
--- Players locate area
-local locateTitle = Instance.new("TextLabel") locateTitle.Size = UDim2.new(1,0,0,18) locateTitle.Position = UDim2.new(0,0,0,110) locateTitle.BackgroundTransparency = 1 locateTitle.Text = "Locate Players" locateTitle.Font = Enum.Font.GothamBold locateTitle.TextSize = 14 locateTitle.TextColor3 = Color3.fromRGB(240,240,240) locateTitle.Parent = rightCol
-local playersList = Instance.new("ScrollingFrame") playersList.Size = UDim2.new(1,0,0,200) playersList.Position = UDim2.new(0,0,0,136) playersList.CanvasSize = UDim2.new(0,0,0,0) playersList.BackgroundTransparency = 1 playersList.Parent = rightCol
+-- Locate players area
+local locateTitle = Instance.new("TextLabel") locateTitle.Size = UDim2.new(1,0,0,18) locateTitle.BackgroundTransparency = 1 locateTitle.Text = "Locate Players" locateTitle.Font = Enum.Font.GothamBold locateTitle.TextSize = 14 locateTitle.TextColor3 = Color3.fromRGB(240,240,240) locateTitle.LayoutOrder = 5 locateTitle.Parent = rightCol
+local playersList = Instance.new("ScrollingFrame") playersList.Size = UDim2.new(1,0,0,180) playersList.CanvasSize = UDim2.new(0,0,0,0) playersList.BackgroundTransparency = 1 playersList.LayoutOrder = 6 playersList.Parent = rightCol
 
--- functionality -----------------------------------------------------------------
-local state = {
-	fly = false,
-	noclip = false,
-	god = false,
-	flySpeed = 50,
-	startTime = tick(),
-}
+-- functionality (same as previous, adapted) ------------------------------------
+local state = {fly=false, noclip=false, god=false, startTime = tick()}
 
 -- RGB 7-color cycle helper
-local colors = {
-	Color3.fromRGB(255,0,0), -- red
-	Color3.fromRGB(255,127,0), -- orange
-	Color3.fromRGB(255,255,0), -- yellow
-	Color3.fromRGB(0,255,0), -- green
-	Color3.fromRGB(0,255,255), -- cyan
-	Color3.fromRGB(0,0,255), -- blue
-	Color3.fromRGB(139,0,255) -- violet
-}
+local colors = {Color3.fromRGB(255,0,0), Color3.fromRGB(255,127,0), Color3.fromRGB(255,255,0), Color3.fromRGB(0,255,0), Color3.fromRGB(0,255,255), Color3.fromRGB(0,0,255), Color3.fromRGB(139,0,255)}
 local colorIndex = 1
 coroutine.wrap(function()
 	while true do
-		local from = colors[colorIndex]
 		local to = colors[(colorIndex % #colors) + 1]
 		local tween = TweenService:Create(headerBar, TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {BackgroundColor3 = to})
 		tween:Play()
@@ -165,7 +175,6 @@ end)()
 local function updatePlayerInfo()
 	local p = LocalPlayer
 	nameLbl.Text = p.Name
-	-- try to get headshot thumbnail (best-effort)
 	local success, thumb = pcall(function()
 		return Players:GetUserThumbnailAsync(p.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
 	end)
@@ -189,7 +198,7 @@ spawn(function()
 	end
 end)
 
--- Fly implementation (client-side)
+-- Fly, Noclip, Godmode, Locate (kept same logic) -------------------------------
 local flight = {bv=nil, bg=nil}
 local function startFly()
 	local char = LocalPlayer.Character
@@ -210,7 +219,6 @@ local function stopFly()
 	if flight.bg then flight.bg:Destroy() flight.bg = nil end
 end
 
--- Noclip (client-side) - best effort: turns off CanCollide for character parts
 local function setNoclip(enabled)
 	local char = LocalPlayer.Character
 	if not char then return end
@@ -221,7 +229,6 @@ local function setNoclip(enabled)
 	end
 end
 
--- Godmode (client-side): continuously restore health and disable ragdoll-ish states
 local function setGodMode(enabled)
 	local char = LocalPlayer.Character
 	if not char then return end
@@ -230,7 +237,6 @@ local function setGodMode(enabled)
 	if enabled then
 		humanoid.MaxHealth = math.huge
 		humanoid.Health = math.huge
-		-- keep resetting health if it changes
 		spawn(function()
 			while state.god do
 				if humanoid and humanoid.Health ~= math.huge then
@@ -240,7 +246,6 @@ local function setGodMode(enabled)
 			end
 		end)
 	else
-		-- restore to a reasonable default
 		if humanoid then
 			humanoid.MaxHealth = 100
 			if humanoid.Health == math.huge then humanoid.Health = humanoid.MaxHealth end
@@ -248,18 +253,18 @@ local function setGodMode(enabled)
 	end
 end
 
--- Locate players: add BillboardGui for each player showing name + distance
+-- Locate players UI
 local locateGuis = {}
 local function makeLocateGuiForPlayer(target)
 	if locateGuis[target] then return end
+	if not target.Character or not target.Character:FindFirstChild("Head") then return end
 	local bg = Instance.new("BillboardGui")
 	bg.Name = "HieuLocate"
 	bg.AlwaysOnTop = true
 	bg.Size = UDim2.new(0,140,0,40)
 	bg.StudsOffset = Vector3.new(0,2,0)
 	bg.MaxDistance = 200
-	bg.Parent = target.Character and target.Character:FindFirstChild("Head") or workspace
-	
+	bg.Parent = target.Character.Head
 	local fr = Instance.new("Frame") fr.Size = UDim2.new(1,0,1,0) fr.BackgroundTransparency = 0.2 fr.BorderSizePixel = 0 fr.Parent = bg local cr = Instance.new("UICorner") cr.CornerRadius = UDim.new(0,6) cr.Parent = fr
 	local lbl = Instance.new("TextLabel") lbl.Size = UDim2.new(1,0,1,0) lbl.BackgroundTransparency = 1 lbl.Font = Enum.Font.Gotham lbl.TextSize = 12 lbl.TextColor3 = Color3.new(1,1,1) lbl.Text = target.Name lbl.Parent = fr
 	locateGuis[target] = {gui=bg, label=lbl}
@@ -271,7 +276,6 @@ local function removeLocateGui(target)
 	end
 end
 
--- rebuild players list UI
 local function rebuildPlayersList()
 	for _,v in ipairs(playersList:GetChildren()) do
 		v:Destroy()
@@ -283,7 +287,6 @@ local function rebuildPlayersList()
 			local locBtn = Instance.new("TextButton") locBtn.Size = UDim2.new(0,80,1,0) locBtn.AnchorPoint = Vector2.new(1,0) locBtn.Position = UDim2.new(1,-8,0,0) locBtn.BackgroundTransparency = 0.2 locBtn.Text = "Locate" locBtn.Font = Enum.Font.Gotham locBtn.TextSize = 12 locBtn.Parent = btn
 			local pRef = p
 			locBtn.MouseButton1Click:Connect(function()
-				-- toggle locate for this player
 				if locateGuis[pRef] then removeLocateGui(pRef) else makeLocateGuiForPlayer(pRef) end
 			end)
 			y = y + 32
@@ -296,22 +299,18 @@ Players.PlayerAdded:Connect(function() rebuildPlayersList() end)
 Players.PlayerRemoving:Connect(function(p) removeLocateGui(p) rebuildPlayersList() end)
 rebuildPlayersList()
 
--- simple server hop to another public server (honest, best-effort):
--- This uses Roblox's public servers endpoint to find another server. This does NOT attempt to join someone else's private/vip server.
+-- Server hop (public) - same best-effort
 local function serverHopPublic()
 	local placeId = game.PlaceId
-	-- Using HttpService to query public servers (this call requires HttpEnabled in game settings when executed on Roblox servers.)
 	local success, res = pcall(function()
 		local url = string.format("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Asc&limit=10", placeId)
 		local response = HttpService:GetAsync(url)
 		return HttpService:JSONDecode(response)
 	end)
 	if success and type(res) == 'table' and res.data and #res.data>0 then
-		-- pick a server with available slots
 		for _,entry in ipairs(res.data) do
 			if entry.playing < entry.maxPlayers then
 				local serverId = entry.id
-				-- Teleport to that server
 				local TeleportService = game:GetService("TeleportService")
 				pcall(function() TeleportService:TeleportToPrivateServer(placeId, serverId, {LocalPlayer}) end)
 				return
@@ -321,7 +320,7 @@ local function serverHopPublic()
 	StarterGui:SetCore("SendNotification", {Title="HOP", Text="No suitable public server found or Http disabled.",Duration=3})
 end
 
--- Connections: GUI events and input
+-- GUI events
 flyToggle.MouseButton1Click:Connect(function()
 	state.fly = not state.fly
 	if state.fly then
@@ -345,11 +344,10 @@ godToggle.MouseButton1Click:Connect(function()
 	godToggle.Text = state.god and "Invincible: ON" or "Invincible: OFF"
 end)
 
-serverHopBtn.MouseButton1Click:Connect(function()
-	serverHopPublic()
-end)
+serverHopBtn.MouseButton1Click:Connect(function() serverHopPublic() end)
 
--- slider interactions
+-- slider interactions (same hookup function)
+local UserInputService = game:GetService("UserInputService")
 local function hookupSlider(slider, onChange)
 	slider.container.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -362,13 +360,8 @@ local function hookupSlider(slider, onChange)
 				slider.valueLbl.Text = tostring(value)
 				onChange(value)
 			end
-			local move
-			move = input.Changed:Connect(function()
-				if input.UserInputState == Enum.UserInputState.End then
-					move:Disconnect()
-				end
-			end)
-			local conn = RunService.Heartbeat:Connect(function()
+			local conn
+			conn = RunService.Heartbeat:Connect(function()
 				local mouse = game.Players.LocalPlayer:GetMouse()
 				update(Vector2.new(mouse.X, mouse.Y))
 			end)
@@ -392,17 +385,14 @@ hookupSlider(jumpSlider, function(v)
 end)
 
 -- input handlers for fly control
-local UserInputService = game:GetService("UserInputService")
 local keys = {W=false, A=false, S=false, D=false}
 UserInputService.InputBegan:Connect(function(inp, processed)
 	if processed then return end
 	if inp.KeyCode == Enum.KeyCode.F then
-		flyToggle:CaptureFocus()
 		state.fly = not state.fly
 		if state.fly then startFly() else stopFly() end
 	end
 	if inp.KeyCode == Enum.KeyCode.N then
-		noclipToggle:CaptureFocus()
 		state.noclip = not state.noclip
 		setNoclip(state.noclip)
 	end
@@ -420,7 +410,6 @@ end)
 
 -- flight update loop
 RunService.Heartbeat:Connect(function(dt)
-	-- update locate labels distances
 	for p,entry in pairs(locateGuis) do
 		if p and p.Character and entry.label then
 			local hrp = p.Character:FindFirstChild("HumanoidRootPart")
@@ -431,7 +420,6 @@ RunService.Heartbeat:Connect(function(dt)
 		end
 	end
 
-	-- fly movement
 	if state.fly and flight.bv then
 		local char = LocalPlayer.Character
 		if char and char:FindFirstChild("HumanoidRootPart") then
@@ -442,7 +430,6 @@ RunService.Heartbeat:Connect(function(dt)
 			if keys.S then moveVec = moveVec - (cam.CFrame.LookVector) end
 			if keys.A then moveVec = moveVec - (cam.CFrame.RightVector) end
 			if keys.D then moveVec = moveVec + (cam.CFrame.RightVector) end
-			-- vertical control
 			if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveVec = moveVec + Vector3.new(0,1,0) end
 			if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then moveVec = moveVec - Vector3.new(0,1,0) end
 			local speed = tonumber(speedSlider.valueLbl.Text) or 50
@@ -450,11 +437,10 @@ RunService.Heartbeat:Connect(function(dt)
 			flight.bg.CFrame = workspace.CurrentCamera.CFrame
 		end
 	end
-	-- noclip continuous
 	if state.noclip then setNoclip(true) end
 end)
 
--- initial local character setup handlers
+-- character setup
 local function onCharacterAdded(char)
 	wait(0.5)
 	updatePlayerInfo()
@@ -464,9 +450,89 @@ local function onCharacterAdded(char)
 		hum.JumpPower = tonumber(jumpSlider.valueLbl.Text) or 50
 	end
 end
-
 LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
 if LocalPlayer.Character then onCharacterAdded(LocalPlayer.Character) end
 
--- End of script
--- NOTE: This script intentionally avoids implementing features that would enable ban evasion, forcibly kicking or resetting other players' games, or joining someone's private VIP server without invite. If you need guidance for ethically-run administration tools, consider writing admin commands that require proper permissions and logging, or work with the game's developer to integrate server-side admin systems.
+-- --- New: collapsible behavior & auto-resize -----------------------------------
+local expanded = true
+local function updateAutoSize()
+	-- measure tallest column (using AbsoluteContentSize) then set content size + header
+	local leftSize = leftLayout.AbsoluteContentSize.Y
+	local rightSize = rightLayout.AbsoluteContentSize.Y
+	local contentHeight = math.max(leftSize, rightSize)
+	local total = 52 + contentHeight + 20 -- header + content + padding
+	mainFrame.Size = UDim2.new(0,380,0, math.clamp(total, 56, 800))
+end
+
+-- connect to layout changes
+leftLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateAutoSize)
+rightLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateAutoSize)
+
+collapseBtn.MouseButton1Click:Connect(function()
+	expanded = not expanded
+	if expanded then
+		collapseBtn.Text = "–"
+		content.Visible = true
+		updateAutoSize()
+	else
+		collapseBtn.Text = "+"
+		content.Visible = false
+		mainFrame.Size = UDim2.new(0,380,0,52)
+	end
+end)
+
+-- initial autosize after short wait
+spawn(function() wait(0.2) updateAutoSize() end)
+
+-- --- New: draggable mainFrame -------------------------------------------------
+local dragging = false
+local dragStart = nil
+local startPos = nil
+local function clampPosition(x,y)
+	local screenW = math.max(1, ScreenGui.AbsoluteSize.X)
+	local screenH = math.max(1, ScreenGui.AbsoluteSize.Y)
+	local fw = mainFrame.AbsoluteSize.X
+	local fh = mainFrame.AbsoluteSize.Y
+	local nx = math.clamp(x, 0, screenW - fw)
+	local ny = math.clamp(y, 0, screenH - fh)
+	return nx, ny
+end
+
+topBar.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = true
+		dragStart = input.Position
+		startPos = mainFrame.Position
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+		local delta = input.Position - dragStart
+		local newX = startPos.X.Offset + delta.X
+		local newY = startPos.Y.Offset + delta.Y
+		local nx, ny = clampPosition(newX, newY)
+		mainFrame.Position = UDim2.new(0, nx, 0, ny)
+	end
+end)
+
+-- Also allow double-click topBar to toggle collapse
+local lastClick = 0
+topBar.InputBegan:Connect(function(inp)
+	if inp.UserInputType == Enum.UserInputType.MouseButton1 then
+		local now = tick()
+		if now - lastClick < 0.35 then
+			-- double click
+			collapseBtn.MouseButton1Click:Fire()
+		end
+		lastClick = now
+	end
+end)
+
+-- Done: draggable, collapsible, and auto-resizing UI
+-- Reminder: script is meant for local testing / personal use. Do not use to bypass protections or to attack other players.

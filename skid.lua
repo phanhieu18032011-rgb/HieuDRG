@@ -1,16 +1,12 @@
--- HIEUDRG FLY HUB - ULTIMATE RGB EDITION
--- Advanced Fly System + 15+ Features
+-- HIEUDRG FLY HUB - FIXED UI WITH TOGGLE
+-- Simple & Working Version
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
-local TeleportService = game:GetService("TeleportService")
-local HttpService = game:GetService("HttpService")
-local VirtualInput = game:GetService("VirtualInputManager")
 
 local Player = Players.LocalPlayer
-local Mouse = Player:GetMouse()
 
 -- RGB 7 COLOR PALETTE
 local RGBColors = {
@@ -28,124 +24,89 @@ local Config = {
     FlyEnabled = false,
     NoClipEnabled = false,
     SpeedEnabled = false,
-    AntiBanEnabled = false,
-    HighJumpEnabled = false,
-    GodModeEnabled = false,
-    PlayerESPEnabled = false,
-    
     FlySpeed = 50,
     WalkSpeed = 16,
-    JumpPower = 50,
-    HighJumpPower = 100,
-    
-    StartTime = os.time()
+    JumpPower = 50
 }
 
 -- SYSTEM VARIABLES
 local BodyVelocity, BodyGyro, FlyConnection, NoClipConnection
-local OriginalWalkspeed, OriginalJumpPower
-local ESPFolders = {}
 
 -- CREATE MAIN UI
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "HieuDRG_FlyHub_Ultimate"
-screenGui.Parent = game.CoreGui
+screenGui.Name = "HieuDRG_Hub"
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.ResetOnSpawn = false
 
--- MAIN CONTAINER
+-- TOGGLE BUTTON (Hiện khi menu ẩn)
+local toggleButton = Instance.new("TextButton")
+toggleButton.Name = "ToggleButton"
+toggleButton.Size = UDim2.new(0, 50, 0, 50)
+toggleButton.Position = UDim2.new(0, 10, 0, 10)
+toggleButton.BackgroundColor3 = RGBColors[1]
+toggleButton.Text = "☰"
+toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.TextSize = 20
+toggleButton.Font = Enum.Font.GothamBold
+toggleButton.Visible = true
+toggleButton.Parent = screenGui
+
+local toggleCorner = Instance.new("UICorner")
+toggleCorner.CornerRadius = UDim.new(1, 0)
+toggleCorner.Parent = toggleButton
+
+-- MAIN CONTAINER (Ẩn ban đầu)
 local mainContainer = Instance.new("Frame")
 mainContainer.Name = "MainContainer"
-mainContainer.Size = UDim2.new(0, 450, 0, 600)
-mainContainer.Position = UDim2.new(0.05, 0, 0.1, 0)
-mainContainer.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+mainContainer.Size = UDim2.new(0, 350, 0, 400)
+mainContainer.Position = UDim2.new(0, 10, 0, 70)
+mainContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 mainContainer.BorderSizePixel = 0
-mainContainer.ClipsDescendants = true
+mainContainer.Visible = false
 mainContainer.Parent = screenGui
 
 -- MODERN CORNERS AND BORDER
 local containerCorner = Instance.new("UICorner")
-containerCorner.CornerRadius = UDim.new(0, 15)
+containerCorner.CornerRadius = UDim.new(0, 12)
 containerCorner.Parent = mainContainer
 
 local containerStroke = Instance.new("UIStroke")
 containerStroke.Color = RGBColors[1]
-containerStroke.Thickness = 3
+containerStroke.Thickness = 2
 containerStroke.Parent = mainContainer
 
--- HEADER WITH USER INFO
+-- HEADER
 local headerFrame = Instance.new("Frame")
 headerFrame.Name = "Header"
-headerFrame.Size = UDim2.new(1, 0, 0, 80)
+headerFrame.Size = UDim2.new(1, 0, 0, 40)
 headerFrame.Position = UDim2.new(0, 0, 0, 0)
 headerFrame.BackgroundColor3 = RGBColors[1]
 headerFrame.BorderSizePixel = 0
 headerFrame.Parent = mainContainer
 
 local headerCorner = Instance.new("UICorner")
-headerCorner.CornerRadius = UDim.new(0, 15)
+headerCorner.CornerRadius = UDim.new(0, 12)
 headerCorner.Parent = headerFrame
 
--- USER AVATAR
-local avatarFrame = Instance.new("Frame")
-avatarFrame.Size = UDim2.new(0, 50, 0, 50)
-avatarFrame.Position = UDim2.new(0.05, 0, 0.15, 0)
-avatarFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-avatarFrame.Parent = headerFrame
+-- TITLE
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Name = "Title"
+titleLabel.Size = UDim2.new(0.7, 0, 1, 0)
+titleLabel.Position = UDim2.new(0.05, 0, 0, 0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "HIEUDRG FLY HUB"
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.TextSize = 16
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+titleLabel.Parent = headerFrame
 
-local avatarCorner = Instance.new("UICorner")
-avatarCorner.CornerRadius = UDim.new(1, 0)
-avatarCorner.Parent = avatarFrame
-
-local avatarImage = Instance.new("ImageLabel")
-avatarImage.Size = UDim2.new(1, 0, 1, 0)
-avatarImage.BackgroundTransparency = 1
-avatarImage.Image = "https://www.roblox.com/headshot-thumbnail/image?userId="..Player.UserId.."&width=150&height=150&format=png"
-avatarImage.Parent = avatarFrame
-
--- USER INFO
-local userInfoFrame = Instance.new("Frame")
-userInfoFrame.Size = UDim2.new(0.5, 0, 1, 0)
-userInfoFrame.Position = UDim2.new(0.2, 0, 0, 0)
-userInfoFrame.BackgroundTransparency = 1
-userInfoFrame.Parent = headerFrame
-
-local userName = Instance.new("TextLabel")
-userName.Size = UDim2.new(1, 0, 0.5, 0)
-userName.BackgroundTransparency = 1
-userName.Text = Player.Name
-userName.TextColor3 = Color3.fromRGB(255, 255, 255)
-userName.TextSize = 16
-userName.Font = Enum.Font.GothamBold
-userName.TextXAlignment = Enum.TextXAlignment.Left
-userName.Parent = userInfoFrame
-
-local userDisplayName = Instance.new("TextLabel")
-userDisplayName.Size = UDim2.new(1, 0, 0.5, 0)
-userDisplayName.Position = UDim2.new(0, 0, 0.5, 0)
-userDisplayName.BackgroundTransparency = 1
-userDisplayName.Text = Player.DisplayName
-userDisplayName.TextColor3 = Color3.fromRGB(200, 200, 200)
-userDisplayName.TextSize = 14
-userDisplayName.Font = Enum.Font.Gotham
-userDisplayName.TextXAlignment = Enum.TextXAlignment.Left
-userDisplayName.Parent = userInfoFrame
-
--- UPTIME DISPLAY
-local uptimeLabel = Instance.new("TextLabel")
-uptimeLabel.Size = UDim2.new(0.2, 0, 1, 0)
-uptimeLabel.Position = UDim2.new(0.75, 0, 0, 0)
-uptimeLabel.BackgroundTransparency = 1
-uptimeLabel.Text = "UPTIME: 00:00"
-uptimeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-uptimeLabel.TextSize = 12
-uptimeLabel.Font = Enum.Font.Gotham
-uptimeLabel.Parent = headerFrame
-
--- CONTROL BUTTONS
+-- CLOSE BUTTON
 local closeButton = Instance.new("TextButton")
+closeButton.Name = "CloseButton"
 closeButton.Size = UDim2.new(0, 25, 0, 25)
-closeButton.Position = UDim2.new(0.95, -30, 0.1, 0)
+closeButton.Position = UDim2.new(0.9, 0, 0.2, 0)
 closeButton.BackgroundColor3 = RGBColors[1]
 closeButton.Text = "×"
 closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -153,147 +114,191 @@ closeButton.TextSize = 18
 closeButton.Font = Enum.Font.GothamBold
 closeButton.Parent = headerFrame
 
-local minimizeButton = Instance.new("TextButton")
-minimizeButton.Size = UDim2.new(0, 25, 0, 25)
-minimizeButton.Position = UDim2.new(0.95, -65, 0.1, 0)
-minimizeButton.BackgroundColor3 = RGBColors[3]
-minimizeButton.Text = "–"
-minimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-minimizeButton.TextSize = 18
-minimizeButton.Font = Enum.Font.GothamBold
-minimizeButton.Parent = headerFrame
-
-local buttonCorner = Instance.new("UICorner")
-buttonCorner.CornerRadius = UDim.new(1, 0)
-buttonCorner.Parent = closeButton
-buttonCorner:Clone().Parent = minimizeButton
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(1, 0)
+closeCorner.Parent = closeButton
 
 -- CONTENT FRAME
 local contentFrame = Instance.new("Frame")
-contentFrame.Size = UDim2.new(1, 0, 1, -80)
-contentFrame.Position = UDim2.new(0, 0, 0, 80)
+contentFrame.Name = "ContentFrame"
+contentFrame.Size = UDim2.new(1, 0, 1, -40)
+contentFrame.Position = UDim2.new(0, 0, 0, 40)
 contentFrame.BackgroundTransparency = 1
 contentFrame.Parent = mainContainer
 
--- SCROLLING FRAME FOR FEATURES
-local scrollFrame = Instance.new("ScrollingFrame")
-scrollFrame.Size = UDim2.new(1, 0, 1, 0)
-scrollFrame.Position = UDim2.new(0, 0, 0, 0)
-scrollFrame.BackgroundTransparency = 1
-scrollFrame.ScrollBarThickness = 3
-scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 1200)
-scrollFrame.Parent = contentFrame
+-- FLY SECTION
+local flySection = Instance.new("Frame")
+flySection.Name = "FlySection"
+flySection.Size = UDim2.new(0.9, 0, 0, 100)
+flySection.Position = UDim2.new(0.05, 0, 0.02, 0)
+flySection.BackgroundColor3 = RGBColors[5]
+flySection.Parent = contentFrame
 
--- FLY SYSTEM SECTION
-local flySection = CreateSection("FLY SYSTEM", 0, scrollFrame)
+local flyCorner = Instance.new("UICorner")
+flyCorner.CornerRadius = UDim.new(0, 8)
+flyCorner.Parent = flySection
 
-local flyToggle = CreateToggle("FLY MODE", Config.FlyEnabled, 0, flySection, function(value)
-    Config.FlyEnabled = value
-    if value then
-        ActivateFly()
-    else
-        DeactivateFly()
-    end
-end)
+local flyLabel = Instance.new("TextLabel")
+flyLabel.Size = UDim2.new(1, 0, 0, 25)
+flyLabel.BackgroundTransparency = 1
+flyLabel.Text = "FLY SYSTEM"
+flyLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+flyLabel.TextSize = 14
+flyLabel.Font = Enum.Font.GothamBold
+flyLabel.Parent = flySection
 
-local flySpeedSlider = CreateSlider("FLY SPEED", 20, 200, Config.FlySpeed, 50, flySection, function(value)
-    Config.FlySpeed = value
-end)
+-- FLY TOGGLE BUTTON
+local flyToggle = Instance.new("TextButton")
+flyToggle.Name = "FlyToggle"
+flyToggle.Size = UDim2.new(0.9, 0, 0, 30)
+flyToggle.Position = UDim2.new(0.05, 0, 0.3, 0)
+flyToggle.BackgroundColor3 = RGBColors[1]
+flyToggle.Text = "FLY: TẮT"
+flyToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+flyToggle.TextSize = 14
+flyToggle.Font = Enum.Font.Gotham
+flyToggle.Parent = flySection
+
+local flyToggleCorner = Instance.new("UICorner")
+flyToggleCorner.CornerRadius = UDim.new(0, 6)
+flyToggleCorner.Parent = flyToggle
+
+-- FLY SPEED
+local flySpeedLabel = Instance.new("TextLabel")
+flySpeedLabel.Size = UDim2.new(0.9, 0, 0, 20)
+flySpeedLabel.Position = UDim2.new(0.05, 0, 0.65, 0)
+flySpeedLabel.BackgroundTransparency = 1
+flySpeedLabel.Text = "Tốc độ: 50"
+flySpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+flySpeedLabel.TextSize = 12
+flySpeedLabel.Font = Enum.Font.Gotham
+flySpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
+flySpeedLabel.Parent = flySection
+
+local speedUp = Instance.new("TextButton")
+speedUp.Name = "SpeedUp"
+speedUp.Size = UDim2.new(0.4, 0, 0, 25)
+speedUp.Position = UDim2.new(0.05, 0, 0.85, 0)
+speedUp.BackgroundColor3 = RGBColors[3]
+speedUp.Text = "TĂNG"
+speedUp.TextColor3 = Color3.fromRGB(0, 0, 0)
+speedUp.TextSize = 12
+speedUp.Font = Enum.Font.GothamBold
+speedUp.Parent = flySection
+
+local speedDown = Instance.new("TextButton")
+speedDown.Name = "SpeedDown"
+speedDown.Size = UDim2.new(0.4, 0, 0, 25)
+speedDown.Position = UDim2.new(0.5, 0, 0.85, 0)
+speedDown.BackgroundColor3 = RGBColors[1]
+speedDown.Text = "GIẢM"
+speedDown.TextColor3 = Color3.fromRGB(255, 255, 255)
+speedDown.TextSize = 12
+speedDown.Font = Enum.Font.GothamBold
+speedDown.Parent = flySection
+
+local speedCorner = Instance.new("UICorner")
+speedCorner.CornerRadius = UDim.new(0, 6)
+speedCorner.Parent = speedUp
+speedCorner:Clone().Parent = speedDown
 
 -- MOVEMENT SECTION
-local movementSection = CreateSection("MOVEMENT", 100, scrollFrame)
+local movementSection = Instance.new("Frame")
+movementSection.Name = "MovementSection"
+movementSection.Size = UDim2.new(0.9, 0, 0, 120)
+movementSection.Position = UDim2.new(0.05, 0, 0.3, 0)
+movementSection.BackgroundColor3 = RGBColors[4]
+movementSection.Parent = contentFrame
 
-local speedToggle = CreateToggle("SPEED HACK", Config.SpeedEnabled, 0, movementSection, function(value)
-    Config.SpeedEnabled = value
-    if value then
-        Player.Character.Humanoid.WalkSpeed = Config.WalkSpeed
-    else
-        Player.Character.Humanoid.WalkSpeed = 16
-    end
-end)
+local movementCorner = Instance.new("UICorner")
+movementCorner.CornerRadius = UDim.new(0, 8)
+movementCorner.Parent = movementSection
 
-local speedSlider = CreateSlider("WALK SPEED", 16, 200, Config.WalkSpeed, 50, movementSection, function(value)
-    Config.WalkSpeed = value
-    if Config.SpeedEnabled then
-        Player.Character.Humanoid.WalkSpeed = value
-    end
-end)
+local movementLabel = Instance.new("TextLabel")
+movementLabel.Size = UDim2.new(1, 0, 0, 25)
+movementLabel.BackgroundTransparency = 1
+movementLabel.Text = "MOVEMENT"
+movementLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+movementLabel.TextSize = 14
+movementLabel.Font = Enum.Font.GothamBold
+movementLabel.Parent = movementSection
 
-local jumpToggle = CreateToggle("HIGH JUMP", Config.HighJumpEnabled, 100, movementSection, function(value)
-    Config.HighJumpEnabled = value
-    if value then
-        Player.Character.Humanoid.JumpPower = Config.HighJumpPower
-    else
-        Player.Character.Humanoid.JumpPower = 50
-    end
-end)
+-- SPEED HACK
+local speedToggle = Instance.new("TextButton")
+speedToggle.Name = "SpeedToggle"
+speedToggle.Size = UDim2.new(0.9, 0, 0, 25)
+speedToggle.Position = UDim2.new(0.05, 0, 0.25, 0)
+speedToggle.BackgroundColor3 = RGBColors[1]
+speedToggle.Text = "SPEED HACK: TẮT"
+speedToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+speedToggle.TextSize = 12
+speedToggle.Font = Enum.Font.Gotham
+speedToggle.Parent = movementSection
 
-local jumpSlider = CreateSlider("JUMP POWER", 50, 500, Config.HighJumpPower, 150, movementSection, function(value)
-    Config.HighJumpPower = value
-    if Config.HighJumpEnabled then
-        Player.Character.Humanoid.JumpPower = value
-    end
-end)
+-- NO CLIP
+local noclipToggle = Instance.new("TextButton")
+noclipToggle.Name = "NoClipToggle"
+noclipToggle.Size = UDim2.new(0.9, 0, 0, 25)
+noclipToggle.Position = UDim2.new(0.05, 0, 0.55, 0)
+noclipToggle.BackgroundColor3 = RGBColors[1]
+noclipToggle.Text = "NO CLIP: TẮT"
+noclipToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+noclipToggle.TextSize = 12
+noclipToggle.Font = Enum.Font.Gotham
+noclipToggle.Parent = movementSection
 
--- PROTECTION SECTION
-local protectionSection = CreateSection("PROTECTION", 250, scrollFrame)
-
-local noclipToggle = CreateToggle("NO CLIP", Config.NoClipEnabled, 0, protectionSection, function(value)
-    Config.NoClipEnabled = value
-    if value then
-        EnableNoClip()
-    else
-        DisableNoClip()
-    end
-end)
-
-local godmodeToggle = CreateToggle("GOD MODE", Config.GodModeEnabled, 50, protectionSection, function(value)
-    Config.GodModeEnabled = value
-    if value then
-        EnableGodMode()
-    else
-        DisableGodMode()
-    end
-end)
-
-local antibanToggle = CreateToggle("ANTI BAN/KICK", Config.AntiBanEnabled, 100, protectionSection, function(value)
-    Config.AntiBanEnabled = value
-    if value then
-        EnableAntiBan()
-    else
-        DisableAntiBan()
-    end
-end)
-
--- VISUAL SECTION
-local visualSection = CreateSection("VISUAL", 400, scrollFrame)
-
-local espToggle = CreateToggle("PLAYER ESP", Config.PlayerESPEnabled, 0, visualSection, function(value)
-    Config.PlayerESPEnabled = value
-    if value then
-        EnablePlayerESP()
-    else
-        DisablePlayerESP()
-    end
-end)
+local toggleCorner = Instance.new("UICorner")
+toggleCorner.CornerRadius = UDim.new(0, 6)
+toggleCorner.Parent = speedToggle
+toggleCorner:Clone().Parent = noclipToggle
 
 -- SERVER SECTION
-local serverSection = CreateSection("SERVER", 500, scrollFrame)
+local serverSection = Instance.new("Frame")
+serverSection.Name = "ServerSection"
+serverSection.Size = UDim2.new(0.9, 0, 0, 80)
+serverSection.Position = UDim2.new(0.05, 0, 0.65, 0)
+serverSection.BackgroundColor3 = RGBColors[6]
+serverSection.Parent = contentFrame
 
-local hopButton = CreateButton("HOP VIP SERVER", 0, serverSection, function()
-    HopToVipServer()
-end)
+local serverCorner = Instance.new("UICorner")
+serverCorner.CornerRadius = UDim.new(0, 8)
+serverCorner.Parent = serverSection
 
-local rejoinButton = CreateButton("REJOIN SERVER", 50, serverSection, function()
-    TeleportService:Teleport(game.PlaceId, Player)
-end)
+local serverLabel = Instance.new("TextLabel")
+serverLabel.Size = UDim2.new(1, 0, 0, 25)
+serverLabel.BackgroundTransparency = 1
+serverLabel.Text = "SERVER"
+serverLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+serverLabel.TextSize = 14
+serverLabel.Font = Enum.Font.GothamBold
+serverLabel.Parent = serverSection
 
-local resetButton = CreateButton("RESET CHARACTER", 100, serverSection, function()
-    Player.Character:BreakJoints()
-end)
+local hopButton = Instance.new("TextButton")
+hopButton.Name = "HopButton"
+hopButton.Size = UDim2.new(0.9, 0, 0, 25)
+hopButton.Position = UDim2.new(0.05, 0, 0.4, 0)
+hopButton.BackgroundColor3 = RGBColors[2]
+hopButton.Text = "HOP SERVER"
+hopButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+hopButton.TextSize = 12
+hopButton.Font = Enum.Font.GothamBold
+hopButton.Parent = serverSection
 
--- PLAYER LIST SECTION
-local playerSection = CreateSection("ONLINE PLAYERS", 600, scrollFrame)
+local resetButton = Instance.new("TextButton")
+resetButton.Name = "ResetButton"
+resetButton.Size = UDim2.new(0.9, 0, 0, 25)
+resetButton.Position = UDim2.new(0.05, 0, 0.75, 0)
+resetButton.BackgroundColor3 = RGBColors[1]
+resetButton.Text = "RESET CHARACTER"
+resetButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+resetButton.TextSize = 12
+resetButton.Font = Enum.Font.GothamBold
+resetButton.Parent = serverSection
+
+local serverButtonCorner = Instance.new("UICorner")
+serverButtonCorner.CornerRadius = UDim.new(0, 6)
+serverButtonCorner.Parent = hopButton
+serverButtonCorner:Clone().Parent = resetButton
 
 -- FLY SYSTEM FUNCTIONS
 function ActivateFly()
@@ -346,12 +351,18 @@ function ActivateFly()
             BodyVelocity.Velocity = Vector3.new(0, 0, 0)
         end
     end)
+    
+    flyToggle.Text = "FLY: BẬT"
+    flyToggle.BackgroundColor3 = RGBColors[4]
 end
 
 function DeactivateFly()
     if BodyVelocity then BodyVelocity:Destroy() end
     if BodyGyro then BodyGyro:Destroy() end
     if FlyConnection then FlyConnection:Disconnect() end
+    
+    flyToggle.Text = "FLY: TẮT"
+    flyToggle.BackgroundColor3 = RGBColors[1]
 end
 
 -- NO CLIP SYSTEM
@@ -365,12 +376,16 @@ function EnableNoClip()
             end
         end
     end)
+    
+    noclipToggle.Text = "NO CLIP: BẬT"
+    noclipToggle.BackgroundColor3 = RGBColors[4]
 end
 
 function DisableNoClip()
     if NoClipConnection then
         NoClipConnection:Disconnect()
     end
+    
     if Player.Character then
         for _, part in pairs(Player.Character:GetDescendants()) do
             if part:IsA("BasePart") then
@@ -378,289 +393,69 @@ function DisableNoClip()
             end
         end
     end
+    
+    noclipToggle.Text = "NO CLIP: TẮT"
+    noclipToggle.BackgroundColor3 = RGBColors[1]
 end
 
--- GOD MODE SYSTEM
-function EnableGodMode()
-    if Player.Character then
-        Player.Character.Humanoid.MaxHealth = math.huge
-        Player.Character.Humanoid.Health = math.huge
-    end
-end
-
-function DisableGodMode()
-    if Player.Character then
-        Player.Character.Humanoid.MaxHealth = 100
-        Player.Character.Humanoid.Health = 100
-    end
-end
-
--- ANTI BAN SYSTEM
-function EnableAntiBan()
-    -- Anti-kick protection
-    local mt = getrawmetatable(game)
-    setreadonly(mt, false)
-    
-    local oldNamecall = mt.__namecall
-    mt.__namecall = newcclosure(function(self, ...)
-        local method = getnamecallmethod()
-        if method == "Kick" or method == "kick" then
-            return nil
-        end
-        return oldNamecall(self, ...)
-    end)
-end
-
-function DisableAntiBan()
-    -- Restore original metatable (simplified)
-    print("Anti-Ban disabled")
-end
-
--- PLAYER ESP SYSTEM
-function EnablePlayerESP()
-    for _, player in pairs(Players:GetPlayers()) do
-        if player ~= Player and player.Character then
-            CreateESP(player.Character)
-        end
-    end
-    
-    Players.PlayerAdded:Connect(function(player)
-        player.CharacterAdded:Connect(function(character)
-            if Config.PlayerESPEnabled then
-                CreateESP(character)
-            end
-        end)
-    end)
-end
-
-function DisablePlayerESP()
-    for _, folder in pairs(ESPFolders) do
-        folder:Destroy()
-    end
-    ESPFolders = {}
-end
-
-function CreateESP(character)
-    local espFolder = Instance.new("Folder")
-    espFolder.Name = "ESP_" .. character.Name
-    espFolder.Parent = screenGui
-    
-    local highlight = Instance.new("Highlight")
-    highlight.FillColor = Color3.fromRGB(255, 0, 0)
-    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-    highlight.FillTransparency = 0.5
-    highlight.OutlineTransparency = 0
-    highlight.Parent = espFolder
-    highlight.Adornee = character
-    
-    table.insert(ESPFolders, espFolder)
-end
-
--- SERVER HOP SYSTEM
-function HopToVipServer()
-    local servers = {}
-    local success, result = pcall(function()
-        return HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Desc&limit=100"))
-    end)
-    
-    if success and result.data then
-        for _, server in pairs(result.data) do
-            if server.playing < server.maxPlayers and server.id ~= game.JobId then
-                if string.find(server.name:lower(), "vip") or string.find(server.name:lower(), "private") then
-                    table.insert(servers, server.id)
-                end
-            end
-        end
-        
-        if #servers > 0 then
-            TeleportService:TeleportToPlaceInstance(game.PlaceId, servers[1])
-        else
-            -- Hop to any available server
-            for _, server in pairs(result.data) do
-                if server.playing < server.maxPlayers and server.id ~= game.JobId then
-                    TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id)
-                    break
-                end
-            end
-        end
-    end
-end
-
--- UI CREATION FUNCTIONS
-function CreateSection(title, yPosition, parent)
-    local section = Instance.new("Frame")
-    section.Size = UDim2.new(0.9, 0, 0, 40)
-    section.Position = UDim2.new(0.05, 0, 0, yPosition)
-    section.BackgroundColor3 = RGBColors[5]
-    section.Parent = parent
-    
-    local sectionCorner = Instance.new("UICorner")
-    sectionCorner.CornerRadius = UDim.new(0, 8)
-    sectionCorner.Parent = section
-    
-    local sectionLabel = Instance.new("TextLabel")
-    sectionLabel.Size = UDim2.new(1, 0, 1, 0)
-    sectionLabel.BackgroundTransparency = 1
-    sectionLabel.Text = title
-    sectionLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    sectionLabel.TextSize = 16
-    sectionLabel.Font = Enum.Font.GothamBold
-    sectionLabel.Parent = section
-    
-    return section
-end
-
-function CreateToggle(name, default, yPosition, parent, callback)
-    local toggleFrame = Instance.new("Frame")
-    toggleFrame.Size = UDim2.new(1, 0, 0, 30)
-    toggleFrame.Position = UDim2.new(0, 0, 0, yPosition + 45)
-    toggleFrame.BackgroundTransparency = 1
-    toggleFrame.Parent = parent
-    
-    local toggleButton = Instance.new("TextButton")
-    toggleButton.Size = UDim2.new(0.7, 0, 1, 0)
-    toggleButton.Position = UDim2.new(0, 0, 0, 0)
-    toggleButton.BackgroundColor3 = default and RGBColors[4] or RGBColors[1]
-    toggleButton.Text = name .. ": " .. (default and "BẬT" or "TẮT")
-    toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    toggleButton.TextSize = 14
-    toggleButton.Font = Enum.Font.Gotham
-    toggleButton.Parent = toggleFrame
-    
-    local toggleCorner = Instance.new("UICorner")
-    toggleCorner.CornerRadius = UDim.new(0, 6)
-    toggleCorner.Parent = toggleButton
-    
-    toggleButton.MouseButton1Click:Connect(function()
-        local newValue = not default
-        default = newValue
-        toggleButton.Text = name .. ": " .. (newValue and "BẬT" or "TẮT")
-        toggleButton.BackgroundColor3 = newValue and RGBColors[4] or RGBColors[1]
-        callback(newValue)
-    end)
-    
-    return toggleButton
-end
-
-function CreateSlider(name, min, max, default, yPosition, parent, callback)
-    local sliderFrame = Instance.new("Frame")
-    sliderFrame.Size = UDim2.new(1, 0, 0, 50)
-    sliderFrame.Position = UDim2.new(0, 0, 0, yPosition + 45)
-    sliderFrame.BackgroundTransparency = 1
-    sliderFrame.Parent = parent
-    
-    local sliderLabel = Instance.new("TextLabel")
-    sliderLabel.Size = UDim2.new(1, 0, 0, 20)
-    sliderLabel.BackgroundTransparency = 1
-    sliderLabel.Text = name .. ": " .. default
-    sliderLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    sliderLabel.TextSize = 12
-    sliderLabel.Font = Enum.Font.Gotham
-    sliderLabel.TextXAlignment = Enum.TextXAlignment.Left
-    sliderLabel.Parent = sliderFrame
-    
-    local sliderTrack = Instance.new("Frame")
-    sliderTrack.Size = UDim2.new(1, 0, 0, 10)
-    sliderTrack.Position = UDim2.new(0, 0, 0, 25)
-    sliderTrack.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    sliderTrack.Parent = sliderFrame
-    
-    local trackCorner = Instance.new("UICorner")
-    trackCorner.CornerRadius = UDim.new(1, 0)
-    trackCorner.Parent = sliderTrack
-    
-    local sliderFill = Instance.new("Frame")
-    sliderFill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
-    sliderFill.BackgroundColor3 = RGBColors[3]
-    sliderFill.Parent = sliderTrack
-    
-    local fillCorner = Instance.new("UICorner")
-    fillCorner.CornerRadius = UDim.new(1, 0)
-    fillCorner.Parent = sliderFill
-    
-    local sliderButton = Instance.new("TextButton")
-    sliderButton.Size = UDim2.new(1, 0, 1, 0)
-    sliderButton.BackgroundTransparency = 1
-    sliderButton.Text = ""
-    sliderButton.Parent = sliderTrack
-    
-    sliderButton.MouseButton1Down:Connect(function()
-        local connection
-        connection = RunService.Heartbeat:Connect(function()
-            local mousePos = UserInputService:GetMouseLocation()
-            local trackPos = sliderTrack.AbsolutePosition
-            local trackSize = sliderTrack.AbsoluteSize
-            
-            local relativeX = math.clamp((mousePos.X - trackPos.X) / trackSize.X, 0, 1)
-            local value = math.floor(min + (max - min) * relativeX)
-            
-            sliderFill.Size = UDim2.new(relativeX, 0, 1, 0)
-            sliderLabel.Text = name .. ": " .. value
-            callback(value)
-        end)
-        
-        UserInputService.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                connection:Disconnect()
-            end
-        end)
-    end)
-    
-    return sliderFrame
-end
-
-function CreateButton(name, yPosition, parent, callback)
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(1, 0, 0, 40)
-    button.Position = UDim2.new(0, 0, 0, yPosition + 45)
-    button.BackgroundColor3 = RGBColors[2]
-    button.Text = name
-    button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    button.TextSize = 14
-    button.Font = Enum.Font.GothamBold
-    button.Parent = parent
-    
-    local buttonCorner = Instance.new("UICorner")
-    buttonCorner.CornerRadius = UDim.new(0, 8)
-    buttonCorner.Parent = button
-    
-    button.MouseButton1Click:Connect(callback)
-    
-    return button
-end
-
--- RAINBOW ANIMATION
-local currentColorIndex = 1
-spawn(function()
-    while true do
-        containerStroke.Color = RGBColors[currentColorIndex]
-        headerFrame.BackgroundColor3 = RGBColors[currentColorIndex]
-        
-        currentColorIndex = currentColorIndex + 1
-        if currentColorIndex > #RGBColors then
-            currentColorIndex = 1
-        end
-        
-        wait(0.8)
+-- BUTTON EVENT HANDLERS
+flyToggle.MouseButton1Click:Connect(function()
+    Config.FlyEnabled = not Config.FlyEnabled
+    if Config.FlyEnabled then
+        ActivateFly()
+    else
+        DeactivateFly()
     end
 end)
 
--- UPTIME UPDATER
-spawn(function()
-    while true do
-        local currentTime = os.time() - Config.StartTime
-        local minutes = math.floor(currentTime / 60)
-        local seconds = currentTime % 60
-        uptimeLabel.Text = string.format("UPTIME: %02d:%02d", minutes, seconds)
-        wait(1)
+speedToggle.MouseButton1Click:Connect(function()
+    Config.SpeedEnabled = not Config.SpeedEnabled
+    if Config.SpeedEnabled then
+        Player.Character.Humanoid.WalkSpeed = Config.WalkSpeed
+        speedToggle.Text = "SPEED HACK: BẬT"
+        speedToggle.BackgroundColor3 = RGBColors[4]
+    else
+        Player.Character.Humanoid.WalkSpeed = 16
+        speedToggle.Text = "SPEED HACK: TẮT"
+        speedToggle.BackgroundColor3 = RGBColors[1]
     end
 end)
 
--- PLAYER LIST UPDATER
-function UpdatePlayerList()
-    -- This would be implemented to show all players in the server
-    -- with teleport and track options
-end
+noclipToggle.MouseButton1Click:Connect(function()
+    Config.NoClipEnabled = not Config.NoClipEnabled
+    if Config.NoClipEnabled then
+        EnableNoClip()
+    else
+        DisableNoClip()
+    end
+end)
+
+speedUp.MouseButton1Click:Connect(function()
+    Config.FlySpeed = math.min(200, Config.FlySpeed + 10)
+    flySpeedLabel.Text = "Tốc độ: " .. Config.FlySpeed
+end)
+
+speedDown.MouseButton1Click:Connect(function()
+    Config.FlySpeed = math.max(20, Config.FlySpeed - 10)
+    flySpeedLabel.Text = "Tốc độ: " .. Config.FlySpeed
+end)
+
+hopButton.MouseButton1Click:Connect(function()
+    game:GetService("TeleportService"):Teleport(game.PlaceId)
+end)
+
+resetButton.MouseButton1Click:Connect(function()
+    Player.Character:BreakJoints()
+end)
+
+-- TOGGLE MENU FUNCTION
+toggleButton.MouseButton1Click:Connect(function()
+    mainContainer.Visible = not mainContainer.Visible
+end)
+
+closeButton.MouseButton1Click:Connect(function()
+    mainContainer.Visible = false
+end)
 
 -- DRAGGABLE UI
 local dragging = false
@@ -692,34 +487,29 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- BUTTON EVENTS
-closeButton.MouseButton1Click:Connect(function()
-    DeactivateFly()
-    DisableNoClip()
-    DisablePlayerESP()
-    screenGui:Destroy()
-    blurEffect:Destroy()
-end)
-
-minimizeButton.MouseButton1Click:Connect(function()
-    local isMinimized = contentFrame.Visible
-    contentFrame.Visible = not isMinimized
-    if isMinimized then
-        mainContainer.Size = UDim2.new(0, 450, 0, 80)
-        minimizeButton.Text = "+"
-    else
-        mainContainer.Size = UDim2.new(0, 450, 0, 600)
-        minimizeButton.Text = "–"
+-- RAINBOW ANIMATION
+local currentColorIndex = 1
+spawn(function()
+    while true do
+        containerStroke.Color = RGBColors[currentColorIndex]
+        headerFrame.BackgroundColor3 = RGBColors[currentColorIndex]
+        toggleButton.BackgroundColor3 = RGBColors[currentColorIndex]
+        
+        currentColorIndex = currentColorIndex + 1
+        if currentColorIndex > #RGBColors then
+            currentColorIndex = 1
+        end
+        
+        wait(0.8)
     end
 end)
 
 -- INITIAL NOTIFICATION
 game:GetService("StarterGui"):SetCore("SendNotification", {
-    Title = "🌈 HIEUDRG FLY HUB",
-    Text = "Ultimate Edition Loaded!\n15+ Features Activated",
-    Duration = 6
+    Title = "HIEUDRG FLY HUB",
+    Text = "Menu đã load! Nhấn nút ☰ để mở",
+    Duration = 5
 })
 
-print("🌈 HIEUDRG FLY HUB - Ultimate Edition")
-print("🎮 Features: Fly, NoClip, Speed, ESP, GodMode, AntiBan")
-print("🎯 Server: VIP Hop, Player Tracking, Auto Farm")
+print("HIEUDRG FLY HUB - Fixed Version Loaded!")
+print("Nhấn nút ☰ góc trái để mở menu")

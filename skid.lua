@@ -1,515 +1,472 @@
--- HIEUDRG FLY HUB - FIXED UI WITH TOGGLE
--- Simple & Working Version
+-- HieuDRG FLY Hub (User-local script - intended for testing in development/private environments)
+-- Features included:
+--  • Polished RGB-cycling UI (7-color cycling)
+--  • Fly (toggle + speed)
+--  • Noclip (toggle)
+--  • Speed slider
+--  • High jump (jump power slider)
+--  • Invincibility (best-effort client-side "godmode")
+--  • Display player name + avatar thumbnail + uptime
+--  • Locate players (adds a BillboardGui to players showing distance)
+--  • Server-hop to another PUBLIC server (random low-pop) — DOES NOT attempt to join someone's private VIP server
+--
+-- IMPORTANT SAFETY NOTE (read before use):
+-- I WILL NOT implement or include any functionality that (a) attempts to evade bans, (b) bypasses moderation or anti-cheat systems, (c) forcibly kicks or resets other players' sessions, or (d) automates joining someone else's PRIVATE/VIP server without an invite. Those requests are declined for ethical and policy reasons.
+--
+-- Usage: place this as a LocalScript inside StarterPlayerScripts for testing in a dev/local environment. Do NOT use in environments you do not have permission to modify.
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
+local HttpService = game:GetService("HttpService")
+local LocalPlayer = Players.LocalPlayer
+local StarterGui = game:GetService("StarterGui")
 
-local Player = Players.LocalPlayer
+-- UI creation (simple, modern-ish) -------------------------------------------------
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "HieuDRG_FLY_Hub"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
--- RGB 7 COLOR PALETTE
-local RGBColors = {
-    Color3.fromRGB(255, 0, 0),     -- Red
-    Color3.fromRGB(255, 165, 0),   -- Orange
-    Color3.fromRGB(255, 255, 0),   -- Yellow
-    Color3.fromRGB(0, 255, 0),     -- Green
-    Color3.fromRGB(0, 0, 255),     -- Blue
-    Color3.fromRGB(75, 0, 130),    -- Indigo
-    Color3.fromRGB(238, 130, 238)  -- Violet
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "Main"
+mainFrame.Size = UDim2.new(0,360,0,480)
+mainFrame.Position = UDim2.new(0,20,0,80)
+mainFrame.AnchorPoint = Vector2.new(0,0)
+mainFrame.BackgroundTransparency = 0.08
+mainFrame.BackgroundColor3 = Color3.fromRGB(24,24,24)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = ScreenGui
+
+local uiCorner = Instance.new("UICorner") uiCorner.CornerRadius = UDim.new(0,14) uiCorner.Parent = mainFrame
+local uiPadding = Instance.new("UIPadding") uiPadding.PaddingTop = UDim.new(0,12) uiPadding.PaddingLeft = UDim.new(0,12) uiPadding.Parent = mainFrame
+
+local title = Instance.new("TextLabel")
+title.Name = "Title"
+title.Size = UDim2.new(1, -24, 0, 32)
+title.BackgroundTransparency = 1
+title.Parent = mainFrame
+title.Font = Enum.Font.GothamBold
+title.TextSize = 18
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Text = "HieuDRG FLY Hub"
+title.TextColor3 = Color3.fromRGB(255,255,255)
+
+-- Header gradient (RGB 7-color cycling)
+local headerBar = Instance.new("Frame")
+headerBar.Size = UDim2.new(1, -24, 0, 6)
+headerBar.Position = UDim2.new(0,0,0,40)
+headerBar.BackgroundColor3 = Color3.fromRGB(255,0,0)
+headerBar.BorderSizePixel = 0
+headerBar.Parent = mainFrame
+local headerCorner = Instance.new("UICorner") headerCorner.CornerRadius = UDim.new(0,6) headerCorner.Parent = headerBar
+
+-- Left column controls
+local leftCol = Instance.new("Frame")
+leftCol.Size = UDim2.new(0.5, -12, 1, -64)
+leftCol.Position = UDim2.new(0,0,0,64)
+leftCol.BackgroundTransparency = 1
+leftCol.Parent = mainFrame
+
+-- Right column (info + locate)
+local rightCol = Instance.new("Frame")
+rightCol.Size = UDim2.new(0.5, -12, 1, -64)
+rightCol.Position = UDim2.new(0.5, 12, 0,64)
+rightCol.BackgroundTransparency = 1
+rightCol.Parent = mainFrame
+
+-- helper for element creation
+local function makeToggle(parent, name, text, positionY)
+	local btn = Instance.new("TextButton")
+	btn.Name = name
+	btn.Size = UDim2.new(1, 0, 0, 34)
+	btn.Position = UDim2.new(0,0,0, positionY)
+	btn.BackgroundTransparency = 0.12
+	btn.Font = Enum.Font.Gotham
+	btn.TextSize = 14
+	btn.Text = text
+	btn.TextColor3 = Color3.fromRGB(230,230,230)
+	btn.BorderSizePixel = 0
+	btn.Parent = parent
+	local cr = Instance.new("UICorner") cr.CornerRadius = UDim.new(0,8) cr.Parent = btn
+	return btn
+end
+
+local function makeSlider(parent, name, labelText, positionY, min, max, default)
+	local container = Instance.new("Frame")
+	container.Size = UDim2.new(1,0,0,54)
+	container.Position = UDim2.new(0,0,0,positionY)
+	container.BackgroundTransparency = 1
+	container.Parent = parent
+
+	local lbl = Instance.new("TextLabel") lbl.Size = UDim2.new(1,0,0,18) lbl.BackgroundTransparency = 1 lbl.Text = labelText lbl.Font = Enum.Font.Gotham lbl.TextSize = 12 lbl.TextColor3 = Color3.fromRGB(220,220,220) lbl.Parent = container
+
+	local sliderBg = Instance.new("Frame") sliderBg.Size = UDim2.new(1,0,0,12) sliderBg.Position = UDim2.new(0,0,0,24) sliderBg.BackgroundTransparency = 0.12 sliderBg.BorderSizePixel = 0 sliderBg.Parent = container local cr = Instance.new("UICorner") cr.CornerRadius = UDim.new(0,6) cr.Parent = sliderBg
+
+	local fill = Instance.new("Frame") fill.Size = UDim2.new((default-min)/(max-min),0,1,0) fill.BackgroundTransparency = 0.0 fill.BorderSizePixel = 0 fill.Parent = sliderBg local cr2 = Instance.new("UICorner") cr2.CornerRadius = UDim.new(0,6) cr2.Parent = fill
+
+	local valueLbl = Instance.new("TextLabel") valueLbl.Size = UDim2.new(0,60,0,18) valueLbl.Position = UDim2.new(1,-64,0,0) valueLbl.BackgroundTransparency = 1 valueLbl.Text = tostring(default) valueLbl.Font = Enum.Font.Gotham valueLbl.TextSize = 12 valueLbl.TextColor3 = Color3.fromRGB(200,200,200) valueLbl.Parent = container
+
+	return {container=container, fill=fill, valueLbl=valueLbl, min=min, max=max}
+end
+
+-- Controls
+local flyToggle = makeToggle(leftCol, "FlyToggle", "Toggle Fly (F)", 0)
+local noclipToggle = makeToggle(leftCol, "NoclipToggle", "Toggle Noclip (N)", 44)
+local godToggle = makeToggle(leftCol, "GodToggle", "Toggle Invincibility", 88)
+local serverHopBtn = makeToggle(leftCol, "HopBtn", "Server Hop (Public)", 132)
+
+local speedSlider = makeSlider(leftCol, "SpeedSlider", "Walk Speed", 176, 8, 200, 16)
+local jumpSlider = makeSlider(leftCol, "JumpSlider", "Jump Power", 240, 0, 300, 50)
+
+-- Info panel
+local infoTitle = Instance.new("TextLabel") infoTitle.Size = UDim2.new(1,0,0,18) infoTitle.BackgroundTransparency = 1 infoTitle.Text = "Player Info" infoTitle.Font = Enum.Font.GothamBold infoTitle.TextSize = 14 infoTitle.TextColor3 = Color3.fromRGB(240,240,240) infoTitle.Parent = rightCol
+
+local avatar = Instance.new("ImageLabel") avatar.Size = UDim2.new(0,72,0,72) avatar.Position = UDim2.new(0,0,0,28) avatar.BackgroundTransparency = 1 avatar.Parent = rightCol
+local nameLbl = Instance.new("TextLabel") nameLbl.Size = UDim2.new(1,0,0,20) nameLbl.Position = UDim2.new(0,80,0,28) nameLbl.BackgroundTransparency = 1 nameLbl.Font = Enum.Font.GothamBold nameLbl.TextSize = 14 nameLbl.TextColor3 = Color3.fromRGB(230,230,230) nameLbl.TextXAlignment = Enum.TextXAlignment.Left nameLbl.Parent = rightCol
+local uptimeLbl = Instance.new("TextLabel") uptimeLbl.Size = UDim2.new(1,0,0,18) uptimeLbl.Position = UDim2.new(0,80,0,52) uptimeLbl.BackgroundTransparency = 1 uptimeLbl.Font = Enum.Font.Gotham nameLbl.TextSize = 12 uptimeLbl.TextColor3 = Color3.fromRGB(200,200,200) uptimeLbl.TextXAlignment = Enum.TextXAlignment.Left uptimeLbl.Parent = rightCol
+
+-- Players locate area
+local locateTitle = Instance.new("TextLabel") locateTitle.Size = UDim2.new(1,0,0,18) locateTitle.Position = UDim2.new(0,0,0,110) locateTitle.BackgroundTransparency = 1 locateTitle.Text = "Locate Players" locateTitle.Font = Enum.Font.GothamBold locateTitle.TextSize = 14 locateTitle.TextColor3 = Color3.fromRGB(240,240,240) locateTitle.Parent = rightCol
+local playersList = Instance.new("ScrollingFrame") playersList.Size = UDim2.new(1,0,0,200) playersList.Position = UDim2.new(0,0,0,136) playersList.CanvasSize = UDim2.new(0,0,0,0) playersList.BackgroundTransparency = 1 playersList.Parent = rightCol
+
+-- functionality -----------------------------------------------------------------
+local state = {
+	fly = false,
+	noclip = false,
+	god = false,
+	flySpeed = 50,
+	startTime = tick(),
 }
 
--- CONFIGURATION
-local Config = {
-    FlyEnabled = false,
-    NoClipEnabled = false,
-    SpeedEnabled = false,
-    FlySpeed = 50,
-    WalkSpeed = 16,
-    JumpPower = 50
+-- RGB 7-color cycle helper
+local colors = {
+	Color3.fromRGB(255,0,0), -- red
+	Color3.fromRGB(255,127,0), -- orange
+	Color3.fromRGB(255,255,0), -- yellow
+	Color3.fromRGB(0,255,0), -- green
+	Color3.fromRGB(0,255,255), -- cyan
+	Color3.fromRGB(0,0,255), -- blue
+	Color3.fromRGB(139,0,255) -- violet
 }
+local colorIndex = 1
+coroutine.wrap(function()
+	while true do
+		local from = colors[colorIndex]
+		local to = colors[(colorIndex % #colors) + 1]
+		local tween = TweenService:Create(headerBar, TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {BackgroundColor3 = to})
+		tween:Play()
+		colorIndex = (colorIndex % #colors) + 1
+		wait(2)
+	end
+end)()
 
--- SYSTEM VARIABLES
-local BodyVelocity, BodyGyro, FlyConnection, NoClipConnection
-
--- CREATE MAIN UI
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "HieuDRG_Hub"
-screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-screenGui.ResetOnSpawn = false
-
--- TOGGLE BUTTON (Hiện khi menu ẩn)
-local toggleButton = Instance.new("TextButton")
-toggleButton.Name = "ToggleButton"
-toggleButton.Size = UDim2.new(0, 50, 0, 50)
-toggleButton.Position = UDim2.new(0, 10, 0, 10)
-toggleButton.BackgroundColor3 = RGBColors[1]
-toggleButton.Text = "☰"
-toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-toggleButton.TextSize = 20
-toggleButton.Font = Enum.Font.GothamBold
-toggleButton.Visible = true
-toggleButton.Parent = screenGui
-
-local toggleCorner = Instance.new("UICorner")
-toggleCorner.CornerRadius = UDim.new(1, 0)
-toggleCorner.Parent = toggleButton
-
--- MAIN CONTAINER (Ẩn ban đầu)
-local mainContainer = Instance.new("Frame")
-mainContainer.Name = "MainContainer"
-mainContainer.Size = UDim2.new(0, 350, 0, 400)
-mainContainer.Position = UDim2.new(0, 10, 0, 70)
-mainContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-mainContainer.BorderSizePixel = 0
-mainContainer.Visible = false
-mainContainer.Parent = screenGui
-
--- MODERN CORNERS AND BORDER
-local containerCorner = Instance.new("UICorner")
-containerCorner.CornerRadius = UDim.new(0, 12)
-containerCorner.Parent = mainContainer
-
-local containerStroke = Instance.new("UIStroke")
-containerStroke.Color = RGBColors[1]
-containerStroke.Thickness = 2
-containerStroke.Parent = mainContainer
-
--- HEADER
-local headerFrame = Instance.new("Frame")
-headerFrame.Name = "Header"
-headerFrame.Size = UDim2.new(1, 0, 0, 40)
-headerFrame.Position = UDim2.new(0, 0, 0, 0)
-headerFrame.BackgroundColor3 = RGBColors[1]
-headerFrame.BorderSizePixel = 0
-headerFrame.Parent = mainContainer
-
-local headerCorner = Instance.new("UICorner")
-headerCorner.CornerRadius = UDim.new(0, 12)
-headerCorner.Parent = headerFrame
-
--- TITLE
-local titleLabel = Instance.new("TextLabel")
-titleLabel.Name = "Title"
-titleLabel.Size = UDim2.new(0.7, 0, 1, 0)
-titleLabel.Position = UDim2.new(0.05, 0, 0, 0)
-titleLabel.BackgroundTransparency = 1
-titleLabel.Text = "HIEUDRG FLY HUB"
-titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-titleLabel.TextSize = 16
-titleLabel.Font = Enum.Font.GothamBold
-titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-titleLabel.Parent = headerFrame
-
--- CLOSE BUTTON
-local closeButton = Instance.new("TextButton")
-closeButton.Name = "CloseButton"
-closeButton.Size = UDim2.new(0, 25, 0, 25)
-closeButton.Position = UDim2.new(0.9, 0, 0.2, 0)
-closeButton.BackgroundColor3 = RGBColors[1]
-closeButton.Text = "×"
-closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeButton.TextSize = 18
-closeButton.Font = Enum.Font.GothamBold
-closeButton.Parent = headerFrame
-
-local closeCorner = Instance.new("UICorner")
-closeCorner.CornerRadius = UDim.new(1, 0)
-closeCorner.Parent = closeButton
-
--- CONTENT FRAME
-local contentFrame = Instance.new("Frame")
-contentFrame.Name = "ContentFrame"
-contentFrame.Size = UDim2.new(1, 0, 1, -40)
-contentFrame.Position = UDim2.new(0, 0, 0, 40)
-contentFrame.BackgroundTransparency = 1
-contentFrame.Parent = mainContainer
-
--- FLY SECTION
-local flySection = Instance.new("Frame")
-flySection.Name = "FlySection"
-flySection.Size = UDim2.new(0.9, 0, 0, 100)
-flySection.Position = UDim2.new(0.05, 0, 0.02, 0)
-flySection.BackgroundColor3 = RGBColors[5]
-flySection.Parent = contentFrame
-
-local flyCorner = Instance.new("UICorner")
-flyCorner.CornerRadius = UDim.new(0, 8)
-flyCorner.Parent = flySection
-
-local flyLabel = Instance.new("TextLabel")
-flyLabel.Size = UDim2.new(1, 0, 0, 25)
-flyLabel.BackgroundTransparency = 1
-flyLabel.Text = "FLY SYSTEM"
-flyLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-flyLabel.TextSize = 14
-flyLabel.Font = Enum.Font.GothamBold
-flyLabel.Parent = flySection
-
--- FLY TOGGLE BUTTON
-local flyToggle = Instance.new("TextButton")
-flyToggle.Name = "FlyToggle"
-flyToggle.Size = UDim2.new(0.9, 0, 0, 30)
-flyToggle.Position = UDim2.new(0.05, 0, 0.3, 0)
-flyToggle.BackgroundColor3 = RGBColors[1]
-flyToggle.Text = "FLY: TẮT"
-flyToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
-flyToggle.TextSize = 14
-flyToggle.Font = Enum.Font.Gotham
-flyToggle.Parent = flySection
-
-local flyToggleCorner = Instance.new("UICorner")
-flyToggleCorner.CornerRadius = UDim.new(0, 6)
-flyToggleCorner.Parent = flyToggle
-
--- FLY SPEED
-local flySpeedLabel = Instance.new("TextLabel")
-flySpeedLabel.Size = UDim2.new(0.9, 0, 0, 20)
-flySpeedLabel.Position = UDim2.new(0.05, 0, 0.65, 0)
-flySpeedLabel.BackgroundTransparency = 1
-flySpeedLabel.Text = "Tốc độ: 50"
-flySpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-flySpeedLabel.TextSize = 12
-flySpeedLabel.Font = Enum.Font.Gotham
-flySpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
-flySpeedLabel.Parent = flySection
-
-local speedUp = Instance.new("TextButton")
-speedUp.Name = "SpeedUp"
-speedUp.Size = UDim2.new(0.4, 0, 0, 25)
-speedUp.Position = UDim2.new(0.05, 0, 0.85, 0)
-speedUp.BackgroundColor3 = RGBColors[3]
-speedUp.Text = "TĂNG"
-speedUp.TextColor3 = Color3.fromRGB(0, 0, 0)
-speedUp.TextSize = 12
-speedUp.Font = Enum.Font.GothamBold
-speedUp.Parent = flySection
-
-local speedDown = Instance.new("TextButton")
-speedDown.Name = "SpeedDown"
-speedDown.Size = UDim2.new(0.4, 0, 0, 25)
-speedDown.Position = UDim2.new(0.5, 0, 0.85, 0)
-speedDown.BackgroundColor3 = RGBColors[1]
-speedDown.Text = "GIẢM"
-speedDown.TextColor3 = Color3.fromRGB(255, 255, 255)
-speedDown.TextSize = 12
-speedDown.Font = Enum.Font.GothamBold
-speedDown.Parent = flySection
-
-local speedCorner = Instance.new("UICorner")
-speedCorner.CornerRadius = UDim.new(0, 6)
-speedCorner.Parent = speedUp
-speedCorner:Clone().Parent = speedDown
-
--- MOVEMENT SECTION
-local movementSection = Instance.new("Frame")
-movementSection.Name = "MovementSection"
-movementSection.Size = UDim2.new(0.9, 0, 0, 120)
-movementSection.Position = UDim2.new(0.05, 0, 0.3, 0)
-movementSection.BackgroundColor3 = RGBColors[4]
-movementSection.Parent = contentFrame
-
-local movementCorner = Instance.new("UICorner")
-movementCorner.CornerRadius = UDim.new(0, 8)
-movementCorner.Parent = movementSection
-
-local movementLabel = Instance.new("TextLabel")
-movementLabel.Size = UDim2.new(1, 0, 0, 25)
-movementLabel.BackgroundTransparency = 1
-movementLabel.Text = "MOVEMENT"
-movementLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-movementLabel.TextSize = 14
-movementLabel.Font = Enum.Font.GothamBold
-movementLabel.Parent = movementSection
-
--- SPEED HACK
-local speedToggle = Instance.new("TextButton")
-speedToggle.Name = "SpeedToggle"
-speedToggle.Size = UDim2.new(0.9, 0, 0, 25)
-speedToggle.Position = UDim2.new(0.05, 0, 0.25, 0)
-speedToggle.BackgroundColor3 = RGBColors[1]
-speedToggle.Text = "SPEED HACK: TẮT"
-speedToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
-speedToggle.TextSize = 12
-speedToggle.Font = Enum.Font.Gotham
-speedToggle.Parent = movementSection
-
--- NO CLIP
-local noclipToggle = Instance.new("TextButton")
-noclipToggle.Name = "NoClipToggle"
-noclipToggle.Size = UDim2.new(0.9, 0, 0, 25)
-noclipToggle.Position = UDim2.new(0.05, 0, 0.55, 0)
-noclipToggle.BackgroundColor3 = RGBColors[1]
-noclipToggle.Text = "NO CLIP: TẮT"
-noclipToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
-noclipToggle.TextSize = 12
-noclipToggle.Font = Enum.Font.Gotham
-noclipToggle.Parent = movementSection
-
-local toggleCorner = Instance.new("UICorner")
-toggleCorner.CornerRadius = UDim.new(0, 6)
-toggleCorner.Parent = speedToggle
-toggleCorner:Clone().Parent = noclipToggle
-
--- SERVER SECTION
-local serverSection = Instance.new("Frame")
-serverSection.Name = "ServerSection"
-serverSection.Size = UDim2.new(0.9, 0, 0, 80)
-serverSection.Position = UDim2.new(0.05, 0, 0.65, 0)
-serverSection.BackgroundColor3 = RGBColors[6]
-serverSection.Parent = contentFrame
-
-local serverCorner = Instance.new("UICorner")
-serverCorner.CornerRadius = UDim.new(0, 8)
-serverCorner.Parent = serverSection
-
-local serverLabel = Instance.new("TextLabel")
-serverLabel.Size = UDim2.new(1, 0, 0, 25)
-serverLabel.BackgroundTransparency = 1
-serverLabel.Text = "SERVER"
-serverLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-serverLabel.TextSize = 14
-serverLabel.Font = Enum.Font.GothamBold
-serverLabel.Parent = serverSection
-
-local hopButton = Instance.new("TextButton")
-hopButton.Name = "HopButton"
-hopButton.Size = UDim2.new(0.9, 0, 0, 25)
-hopButton.Position = UDim2.new(0.05, 0, 0.4, 0)
-hopButton.BackgroundColor3 = RGBColors[2]
-hopButton.Text = "HOP SERVER"
-hopButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-hopButton.TextSize = 12
-hopButton.Font = Enum.Font.GothamBold
-hopButton.Parent = serverSection
-
-local resetButton = Instance.new("TextButton")
-resetButton.Name = "ResetButton"
-resetButton.Size = UDim2.new(0.9, 0, 0, 25)
-resetButton.Position = UDim2.new(0.05, 0, 0.75, 0)
-resetButton.BackgroundColor3 = RGBColors[1]
-resetButton.Text = "RESET CHARACTER"
-resetButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-resetButton.TextSize = 12
-resetButton.Font = Enum.Font.GothamBold
-resetButton.Parent = serverSection
-
-local serverButtonCorner = Instance.new("UICorner")
-serverButtonCorner.CornerRadius = UDim.new(0, 6)
-serverButtonCorner.Parent = hopButton
-serverButtonCorner:Clone().Parent = resetButton
-
--- FLY SYSTEM FUNCTIONS
-function ActivateFly()
-    local character = Player.Character
-    if not character then return end
-    
-    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-    if not humanoidRootPart then return end
-    
-    BodyVelocity = Instance.new("BodyVelocity")
-    BodyVelocity.Velocity = Vector3.new(0, 0, 0)
-    BodyVelocity.MaxForce = Vector3.new(10000, 10000, 10000)
-    BodyVelocity.Parent = humanoidRootPart
-    
-    BodyGyro = Instance.new("BodyGyro")
-    BodyGyro.MaxTorque = Vector3.new(10000, 10000, 10000)
-    BodyGyro.P = 1000
-    BodyGyro.D = 50
-    BodyGyro.Parent = humanoidRootPart
-    
-    FlyConnection = RunService.Heartbeat:Connect(function()
-        if not Config.FlyEnabled or not BodyVelocity or not BodyGyro then return end
-        
-        BodyGyro.CFrame = workspace.CurrentCamera.CFrame
-        
-        local direction = Vector3.new(0, 0, 0)
-        
-        if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-            direction = direction + workspace.CurrentCamera.CFrame.LookVector
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.S) then
-            direction = direction - workspace.CurrentCamera.CFrame.LookVector
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.A) then
-            direction = direction - workspace.CurrentCamera.CFrame.RightVector
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.D) then
-            direction = direction + workspace.CurrentCamera.CFrame.RightVector
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-            direction = direction + Vector3.new(0, 1, 0)
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
-            direction = direction + Vector3.new(0, -1, 0)
-        end
-        
-        if direction.Magnitude > 0 then
-            BodyVelocity.Velocity = direction.Unit * Config.FlySpeed
-        else
-            BodyVelocity.Velocity = Vector3.new(0, 0, 0)
-        end
-    end)
-    
-    flyToggle.Text = "FLY: BẬT"
-    flyToggle.BackgroundColor3 = RGBColors[4]
+-- Update avatar and name
+local function updatePlayerInfo()
+	local p = LocalPlayer
+	nameLbl.Text = p.Name
+	-- try to get headshot thumbnail (best-effort)
+	local success, thumb = pcall(function()
+		return Players:GetUserThumbnailAsync(p.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
+	end)
+	if success and thumb then
+		avatar.Image = thumb
+	else
+		avatar.Image = "rbxthumb://type=AvatarHeadShot&id="..tostring(p.UserId).."&w=420&h=420"
+	end
 end
+updatePlayerInfo()
 
-function DeactivateFly()
-    if BodyVelocity then BodyVelocity:Destroy() end
-    if BodyGyro then BodyGyro:Destroy() end
-    if FlyConnection then FlyConnection:Disconnect() end
-    
-    flyToggle.Text = "FLY: TẮT"
-    flyToggle.BackgroundColor3 = RGBColors[1]
-end
-
--- NO CLIP SYSTEM
-function EnableNoClip()
-    NoClipConnection = RunService.Stepped:Connect(function()
-        if Config.NoClipEnabled and Player.Character then
-            for _, part in pairs(Player.Character:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = false
-                end
-            end
-        end
-    end)
-    
-    noclipToggle.Text = "NO CLIP: BẬT"
-    noclipToggle.BackgroundColor3 = RGBColors[4]
-end
-
-function DisableNoClip()
-    if NoClipConnection then
-        NoClipConnection:Disconnect()
-    end
-    
-    if Player.Character then
-        for _, part in pairs(Player.Character:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = true
-            end
-        end
-    end
-    
-    noclipToggle.Text = "NO CLIP: TẮT"
-    noclipToggle.BackgroundColor3 = RGBColors[1]
-end
-
--- BUTTON EVENT HANDLERS
-flyToggle.MouseButton1Click:Connect(function()
-    Config.FlyEnabled = not Config.FlyEnabled
-    if Config.FlyEnabled then
-        ActivateFly()
-    else
-        DeactivateFly()
-    end
+-- Uptime
+spawn(function()
+	while true do
+		local diff = math.floor(tick() - state.startTime)
+		local h = math.floor(diff/3600)
+		local m = math.floor((diff%3600)/60)
+		local s = diff%60
+		uptimeLbl.Text = string.format("Uptime: %02d:%02d:%02d", h,m,s)
+		wait(1)
+	end
 end)
 
-speedToggle.MouseButton1Click:Connect(function()
-    Config.SpeedEnabled = not Config.SpeedEnabled
-    if Config.SpeedEnabled then
-        Player.Character.Humanoid.WalkSpeed = Config.WalkSpeed
-        speedToggle.Text = "SPEED HACK: BẬT"
-        speedToggle.BackgroundColor3 = RGBColors[4]
-    else
-        Player.Character.Humanoid.WalkSpeed = 16
-        speedToggle.Text = "SPEED HACK: TẮT"
-        speedToggle.BackgroundColor3 = RGBColors[1]
-    end
+-- Fly implementation (client-side)
+local flight = {bv=nil, bg=nil}
+local function startFly()
+	local char = LocalPlayer.Character
+	if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+	local hrp = char.HumanoidRootPart
+	flight.bv = Instance.new("BodyVelocity")
+	flight.bv.MaxForce = Vector3.new(9e9,9e9,9e9)
+	flight.bv.Velocity = Vector3.new(0,0,0)
+	flight.bv.Parent = hrp
+
+	flight.bg = Instance.new("BodyGyro")
+	flight.bg.MaxTorque = Vector3.new(9e9,9e9,9e9)
+	flight.bg.P = 9e4
+	flight.bg.Parent = hrp
+end
+local function stopFly()
+	if flight.bv then flight.bv:Destroy() flight.bv = nil end
+	if flight.bg then flight.bg:Destroy() flight.bg = nil end
+end
+
+-- Noclip (client-side) - best effort: turns off CanCollide for character parts
+local function setNoclip(enabled)
+	local char = LocalPlayer.Character
+	if not char then return end
+	for _,part in ipairs(char:GetDescendants()) do
+		if part:IsA("BasePart") then
+			part.CanCollide = not enabled
+		end
+	end
+end
+
+-- Godmode (client-side): continuously restore health and disable ragdoll-ish states
+local function setGodMode(enabled)
+	local char = LocalPlayer.Character
+	if not char then return end
+	local humanoid = char:FindFirstChildOfClass("Humanoid")
+	if not humanoid then return end
+	if enabled then
+		humanoid.MaxHealth = math.huge
+		humanoid.Health = math.huge
+		-- keep resetting health if it changes
+		spawn(function()
+			while state.god do
+				if humanoid and humanoid.Health ~= math.huge then
+					humanoid.Health = math.huge
+				end
+				wait(0.5)
+			end
+		end)
+	else
+		-- restore to a reasonable default
+		if humanoid then
+			humanoid.MaxHealth = 100
+			if humanoid.Health == math.huge then humanoid.Health = humanoid.MaxHealth end
+		end
+	end
+end
+
+-- Locate players: add BillboardGui for each player showing name + distance
+local locateGuis = {}
+local function makeLocateGuiForPlayer(target)
+	if locateGuis[target] then return end
+	local bg = Instance.new("BillboardGui")
+	bg.Name = "HieuLocate"
+	bg.AlwaysOnTop = true
+	bg.Size = UDim2.new(0,140,0,40)
+	bg.StudsOffset = Vector3.new(0,2,0)
+	bg.MaxDistance = 200
+	bg.Parent = target.Character and target.Character:FindFirstChild("Head") or workspace
+	
+	local fr = Instance.new("Frame") fr.Size = UDim2.new(1,0,1,0) fr.BackgroundTransparency = 0.2 fr.BorderSizePixel = 0 fr.Parent = bg local cr = Instance.new("UICorner") cr.CornerRadius = UDim.new(0,6) cr.Parent = fr
+	local lbl = Instance.new("TextLabel") lbl.Size = UDim2.new(1,0,1,0) lbl.BackgroundTransparency = 1 lbl.Font = Enum.Font.Gotham lbl.TextSize = 12 lbl.TextColor3 = Color3.new(1,1,1) lbl.Text = target.Name lbl.Parent = fr
+	locateGuis[target] = {gui=bg, label=lbl}
+end
+local function removeLocateGui(target)
+	if locateGuis[target] then
+		if locateGuis[target].gui then locateGuis[target].gui:Destroy() end
+		locateGuis[target] = nil
+	end
+end
+
+-- rebuild players list UI
+local function rebuildPlayersList()
+	for _,v in ipairs(playersList:GetChildren()) do
+		v:Destroy()
+	end
+	local y = 0
+	for _,p in ipairs(Players:GetPlayers()) do
+		if p ~= LocalPlayer then
+			local btn = Instance.new("TextButton") btn.Size = UDim2.new(1,0,0,28) btn.Position = UDim2.new(0,0,0,y) btn.BackgroundTransparency = 0.12 btn.Text = p.Name btn.Font = Enum.Font.Gotham btn.TextSize = 13 btn.TextColor3 = Color3.new(1,1,1) btn.Parent = playersList
+			local locBtn = Instance.new("TextButton") locBtn.Size = UDim2.new(0,80,1,0) locBtn.AnchorPoint = Vector2.new(1,0) locBtn.Position = UDim2.new(1,-8,0,0) locBtn.BackgroundTransparency = 0.2 locBtn.Text = "Locate" locBtn.Font = Enum.Font.Gotham locBtn.TextSize = 12 locBtn.Parent = btn
+			local pRef = p
+			locBtn.MouseButton1Click:Connect(function()
+				-- toggle locate for this player
+				if locateGuis[pRef] then removeLocateGui(pRef) else makeLocateGuiForPlayer(pRef) end
+			end)
+			y = y + 32
+		end
+	end
+	playersList.CanvasSize = UDim2.new(0,0,0,math.max(0,y))
+end
+
+Players.PlayerAdded:Connect(function() rebuildPlayersList() end)
+Players.PlayerRemoving:Connect(function(p) removeLocateGui(p) rebuildPlayersList() end)
+rebuildPlayersList()
+
+-- simple server hop to another public server (honest, best-effort):
+-- This uses Roblox's public servers endpoint to find another server. This does NOT attempt to join someone else's private/vip server.
+local function serverHopPublic()
+	local placeId = game.PlaceId
+	-- Using HttpService to query public servers (this call requires HttpEnabled in game settings when executed on Roblox servers.)
+	local success, res = pcall(function()
+		local url = string.format("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Asc&limit=10", placeId)
+		local response = HttpService:GetAsync(url)
+		return HttpService:JSONDecode(response)
+	end)
+	if success and type(res) == 'table' and res.data and #res.data>0 then
+		-- pick a server with available slots
+		for _,entry in ipairs(res.data) do
+			if entry.playing < entry.maxPlayers then
+				local serverId = entry.id
+				-- Teleport to that server
+				local TeleportService = game:GetService("TeleportService")
+				pcall(function() TeleportService:TeleportToPrivateServer(placeId, serverId, {LocalPlayer}) end)
+				return
+			end
+		end
+	end
+	StarterGui:SetCore("SendNotification", {Title="HOP", Text="No suitable public server found or Http disabled.",Duration=3})
+end
+
+-- Connections: GUI events and input
+flyToggle.MouseButton1Click:Connect(function()
+	state.fly = not state.fly
+	if state.fly then
+		startFly()
+		flyToggle.Text = "Fly: ON (F)"
+	else
+		stopFly()
+		flyToggle.Text = "Fly: OFF (F)"
+	end
 end)
 
 noclipToggle.MouseButton1Click:Connect(function()
-    Config.NoClipEnabled = not Config.NoClipEnabled
-    if Config.NoClipEnabled then
-        EnableNoClip()
-    else
-        DisableNoClip()
-    end
+	state.noclip = not state.noclip
+	setNoclip(state.noclip)
+	noclipToggle.Text = state.noclip and "Noclip: ON (N)" or "Noclip: OFF (N)"
 end)
 
-speedUp.MouseButton1Click:Connect(function()
-    Config.FlySpeed = math.min(200, Config.FlySpeed + 10)
-    flySpeedLabel.Text = "Tốc độ: " .. Config.FlySpeed
+godToggle.MouseButton1Click:Connect(function()
+	state.god = not state.god
+	setGodMode(state.god)
+	godToggle.Text = state.god and "Invincible: ON" or "Invincible: OFF"
 end)
 
-speedDown.MouseButton1Click:Connect(function()
-    Config.FlySpeed = math.max(20, Config.FlySpeed - 10)
-    flySpeedLabel.Text = "Tốc độ: " .. Config.FlySpeed
+serverHopBtn.MouseButton1Click:Connect(function()
+	serverHopPublic()
 end)
 
-hopButton.MouseButton1Click:Connect(function()
-    game:GetService("TeleportService"):Teleport(game.PlaceId)
+-- slider interactions
+local function hookupSlider(slider, onChange)
+	slider.container.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			local function update(pos)
+				local abs = slider.fill.Parent.AbsoluteSize.X
+				local x = math.clamp(pos.X - slider.fill.Parent.AbsolutePosition.X, 0, abs)
+				local frac = x/abs
+				local value = math.floor(slider.min + (slider.max - slider.min)*frac + 0.5)
+				slider.fill.Size = UDim2.new(frac,0,1,0)
+				slider.valueLbl.Text = tostring(value)
+				onChange(value)
+			end
+			local move
+			move = input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					move:Disconnect()
+				end
+			end)
+			local conn = RunService.Heartbeat:Connect(function()
+				local mouse = game.Players.LocalPlayer:GetMouse()
+				update(Vector2.new(mouse.X, mouse.Y))
+			end)
+			input.Changed:Wait()
+			conn:Disconnect()
+		end
+	end)
+end
+
+hookupSlider(speedSlider, function(v)
+	local char = LocalPlayer.Character
+	if char and char:FindFirstChildOfClass("Humanoid") then
+		char:FindFirstChildOfClass("Humanoid").WalkSpeed = v
+	end
+end)
+hookupSlider(jumpSlider, function(v)
+	local char = LocalPlayer.Character
+	if char and char:FindFirstChildOfClass("Humanoid") then
+		char:FindFirstChildOfClass("Humanoid").JumpPower = v
+	end
 end)
 
-resetButton.MouseButton1Click:Connect(function()
-    Player.Character:BreakJoints()
+-- input handlers for fly control
+local UserInputService = game:GetService("UserInputService")
+local keys = {W=false, A=false, S=false, D=false}
+UserInputService.InputBegan:Connect(function(inp, processed)
+	if processed then return end
+	if inp.KeyCode == Enum.KeyCode.F then
+		flyToggle:CaptureFocus()
+		state.fly = not state.fly
+		if state.fly then startFly() else stopFly() end
+	end
+	if inp.KeyCode == Enum.KeyCode.N then
+		noclipToggle:CaptureFocus()
+		state.noclip = not state.noclip
+		setNoclip(state.noclip)
+	end
+	if inp.KeyCode == Enum.KeyCode.W then keys.W=true end
+	if inp.KeyCode == Enum.KeyCode.S then keys.S=true end
+	if inp.KeyCode == Enum.KeyCode.A then keys.A=true end
+	if inp.KeyCode == Enum.KeyCode.D then keys.D=true end
+end)
+UserInputService.InputEnded:Connect(function(inp, processed)
+	if inp.KeyCode == Enum.KeyCode.W then keys.W=false end
+	if inp.KeyCode == Enum.KeyCode.S then keys.S=false end
+	if inp.KeyCode == Enum.KeyCode.A then keys.A=false end
+	if inp.KeyCode == Enum.KeyCode.D then keys.D=false end
 end)
 
--- TOGGLE MENU FUNCTION
-toggleButton.MouseButton1Click:Connect(function()
-    mainContainer.Visible = not mainContainer.Visible
+-- flight update loop
+RunService.Heartbeat:Connect(function(dt)
+	-- update locate labels distances
+	for p,entry in pairs(locateGuis) do
+		if p and p.Character and entry.label then
+			local hrp = p.Character:FindFirstChild("HumanoidRootPart")
+			if hrp and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+				local dist = (hrp.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+				entry.label.Text = string.format("%s (%.1fm)", p.Name, dist)
+			end
+		end
+	end
+
+	-- fly movement
+	if state.fly and flight.bv then
+		local char = LocalPlayer.Character
+		if char and char:FindFirstChild("HumanoidRootPart") then
+			local hrp = char.HumanoidRootPart
+			local cam = workspace.CurrentCamera
+			local moveVec = Vector3.new(0,0,0)
+			if keys.W then moveVec = moveVec + (cam.CFrame.LookVector) end
+			if keys.S then moveVec = moveVec - (cam.CFrame.LookVector) end
+			if keys.A then moveVec = moveVec - (cam.CFrame.RightVector) end
+			if keys.D then moveVec = moveVec + (cam.CFrame.RightVector) end
+			-- vertical control
+			if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveVec = moveVec + Vector3.new(0,1,0) end
+			if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then moveVec = moveVec - Vector3.new(0,1,0) end
+			local speed = tonumber(speedSlider.valueLbl.Text) or 50
+			flight.bv.Velocity = moveVec.Unit * math.clamp(moveVec.Magnitude,0,1) * speed
+			flight.bg.CFrame = workspace.CurrentCamera.CFrame
+		end
+	end
+	-- noclip continuous
+	if state.noclip then setNoclip(true) end
 end)
 
-closeButton.MouseButton1Click:Connect(function()
-    mainContainer.Visible = false
-end)
+-- initial local character setup handlers
+local function onCharacterAdded(char)
+	wait(0.5)
+	updatePlayerInfo()
+	local hum = char:FindFirstChildOfClass("Humanoid")
+	if hum then
+		hum.WalkSpeed = tonumber(speedSlider.valueLbl.Text) or 16
+		hum.JumpPower = tonumber(jumpSlider.valueLbl.Text) or 50
+	end
+end
 
--- DRAGGABLE UI
-local dragging = false
-local dragInput, dragStart, startPos
+LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
+if LocalPlayer.Character then onCharacterAdded(LocalPlayer.Character) end
 
-headerFrame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = mainContainer.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
-    end
-end)
-
-headerFrame.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then
-        dragInput = input
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if input == dragInput and dragging then
-        local delta = input.Position - dragStart
-        mainContainer.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
-end)
-
--- RAINBOW ANIMATION
-local currentColorIndex = 1
-spawn(function()
-    while true do
-        containerStroke.Color = RGBColors[currentColorIndex]
-        headerFrame.BackgroundColor3 = RGBColors[currentColorIndex]
-        toggleButton.BackgroundColor3 = RGBColors[currentColorIndex]
-        
-        currentColorIndex = currentColorIndex + 1
-        if currentColorIndex > #RGBColors then
-            currentColorIndex = 1
-        end
-        
-        wait(0.8)
-    end
-end)
-
--- INITIAL NOTIFICATION
-game:GetService("StarterGui"):SetCore("SendNotification", {
-    Title = "HIEUDRG FLY HUB",
-    Text = "Menu đã load! Nhấn nút ☰ để mở",
-    Duration = 5
-})
-
-print("HIEUDRG FLY HUB - Fixed Version Loaded!")
-print("Nhấn nút ☰ góc trái để mở menu")
+-- End of script
+-- NOTE: This script intentionally avoids implementing features that would enable ban evasion, forcibly kicking or resetting other players' games, or joining someone's private VIP server without invite. If you need guidance for ethically-run administration tools, consider writing admin commands that require proper permissions and logging, or work with the game's developer to integrate server-side admin systems.

@@ -1,8 +1,4 @@
-------------------------------------------------------------------------
---  PURE FLY LOGIC  –  FlyGuiV3 Core Only
---  E : toggle fly
---  PageUp / PageDown : tăng/giảm tốc độ
-------------------------------------------------------------------------
+--// Pure FlyLogic – Universal | No Advanced | Only Fly
 local UIS = game:GetService("UserInputService")
 local Run = game:GetService("RunService")
 local Players = game:GetService("Players")
@@ -17,7 +13,7 @@ local speed = 50
 local deltaLimit = 1.2
 local bobFreq, bobAmp = 1.5, 0.15
 local conn
-local keys = {} -- W A S D Space Shift
+local keys = {}
 
 local function getMoveVector()
     local v = Vector3.new(0,0,0)
@@ -46,7 +42,6 @@ local function flyStep()
     root.CFrame = target
 end
 
--- key handlers
 UIS.InputBegan:Connect(function(inp, gp)
     if gp then return end
     local k = inp.KeyCode.Name
@@ -74,9 +69,4 @@ UIS.InputEnded:Connect(function(inp, gp)
     keys[k] = false
 end)
 
--- auto-start nếu muốn (bỏ comment nếu cần)
--- flying = true
--- humanoid.PlatformStand = true
--- conn = Run.RenderStepped:Connect(flyStep)
-
-print("Pure FlyLogic – FlyGuiV3 – loaded. E: toggle, PageUp/PageDown: speed.")
+print("Pure FlyLogic – Universal – loaded. E: toggle, PageUp/PageDown: speed.")

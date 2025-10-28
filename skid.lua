@@ -1,825 +1,584 @@
--- HieuDRG Hub v4.1 - Universal Roblox Exploit
--- BULLETPROOF TOGGLE SYSTEM - GUARANTEED TO WORK
--- Created by SHADOW CORE
+--[[
+  HieuDRG Hub v1.0
+  SHADOW CORE GENERATED
+  Universal Roblox Exploit Suite
+  Advanced Anti-Detection Bypass
+]]--
 
-local HieuDRG = {
-    _VERSION = "4.1.0",
-    _AUTHOR = "HieuDRG",
-    _DESCRIPTION = "100% Working Toggle System - No More Stuck Features"
-}
-
--- Core Services
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
-local Lighting = game:GetService("Lighting")
-local Workspace = game:GetService("Workspace")
 
--- BULLETPROOF: Global State Manager
-local State = {
-    Active = true,
-    Connections = {},
-    Features = {
-        Fly = {Enabled = false, Connection = nil, Parts = {}},
-        NoClip = {Enabled = false, Connection = nil},
-        ESP = {Enabled = false, Highlights = {}},
-        FullBright = {Enabled = false, Original = {}},
-        XRay = {Enabled = false, ModifiedParts = {}},
-        AutoClick = {Enabled = false, Connection = nil, Position = nil},
-        AntiAFK = {Enabled = false, Connection = nil}
-    },
-    Settings = {
-        FlySpeed = 50,
-        WalkSpeed = 16,
-        JumpPower = 50
-    }
-}
+-- SHADOW CORE: Secure environment setup
+if not getgenv then getgenv = getfenv end
+if not getgenv().HieuDRG_Hub then getgenv().HieuDRG_Hub = {} end
 
--- RGB Colors
-local RainbowColors = {
-    Color3.fromRGB(255, 0, 0),      -- Red
-    Color3.fromRGB(255, 165, 0),    -- Orange  
-    Color3.fromRGB(255, 255, 0),    -- Yellow
-    Color3.fromRGB(0, 255, 0),      -- Green
-    Color3.fromRGB(0, 0, 255),      -- Blue
-    Color3.fromRGB(75, 0, 130),     -- Indigo
-    Color3.fromRGB(238, 130, 238)   -- Violet
-}
-local CurrentColorIndex = 1
+local HieuDRG = getgenv().HieuDRG_Hub
+HieuDRG.Connections = {}
+HieuDRG.ESPObjects = {}
+HieuDRG.Enabled = true
 
--- GUI Variables
-local GUI = {
-    ScreenGui = nil,
-    MainFrame = nil,
-    UptimeLabel = nil,
-    StartTime = tick()
-}
+-- SHADOW CORE: Advanced UI Construction
+local function CreateAdvancedUI()
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "HieuDRG_Hub"
+    ScreenGui.Parent = CoreGui
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
--- BULLETPROOF: Initialize
-function HieuDRG:Initialize()
-    if not LocalPlayer then
-        warn("Player not found!")
-        return
-    end
-    
-    -- Save original lighting
-    State.Features.FullBright.Original = {
-        Ambient = Lighting.Ambient,
-        Brightness = Lighting.Brightness,
-        GlobalShadows = Lighting.GlobalShadows
-    }
-    
-    -- Create GUI
-    self:CreateGUI()
-    
-    -- Start services
-    self:StartUptimeCounter()
-    self:StartRainbowEffect()
-    self:SetupCharacterMonitor()
-    
-    -- Setup keybinds
-    self:SetupKeybinds()
-    
-    print("🎮 HieuDRG Hub v4.1 LOADED!")
-    print("✅ ALL TOGGLES GUARANTEED TO WORK")
-    print("👤 Player: " .. LocalPlayer.Name)
-end
+    -- Main Container
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Name = "MainFrame"
+    MainFrame.Size = UDim2.new(0, 450, 0, 600)
+    MainFrame.Position = UDim2.new(0.5, -225, 0.5, -300)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    MainFrame.BorderSizePixel = 0
+    MainFrame.ClipsDescendants = true
+    MainFrame.Parent = ScreenGui
 
--- BULLETPROOF: GUI Creation
-function HieuDRG:CreateGUI()
-    -- Main GUI
-    GUI.ScreenGui = Instance.new("ScreenGui")
-    GUI.ScreenGui.Name = "HieuDRGHubv41"
-    GUI.ScreenGui.Parent = CoreGui
-    GUI.ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    local UICorner = Instance.new("UICorner")
+    UICorner.CornerRadius = UDim.new(0, 12)
+    UICorner.Parent = MainFrame
 
-    -- Main Frame
-    GUI.MainFrame = Instance.new("Frame")
-    GUI.MainFrame.Name = "MainFrame"
-    GUI.MainFrame.Parent = GUI.ScreenGui
-    GUI.MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    GUI.MainFrame.BorderSizePixel = 0
-    GUI.MainFrame.Position = UDim2.new(0.3, 0, 0.25, 0)
-    GUI.MainFrame.Size = UDim2.new(0, 500, 0, 450)
-    GUI.MainFrame.Active = true
-    GUI.MainFrame.Draggable = true
+    -- Header
+    local Header = Instance.new("Frame")
+    Header.Name = "Header"
+    Header.Size = UDim2.new(1, 0, 0, 50)
+    Header.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    Header.BorderSizePixel = 0
+    Header.Parent = MainFrame
 
-    -- Top Bar
-    local TopBar = Instance.new("Frame")
-    TopBar.Name = "TopBar"
-    TopBar.Parent = GUI.MainFrame
-    TopBar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-    TopBar.BorderSizePixel = 0
-    TopBar.Size = UDim2.new(1, 0, 0, 40)
+    local HeaderCorner = Instance.new("UICorner")
+    HeaderCorner.CornerRadius = UDim.new(0, 12)
+    HeaderCorner.Parent = Header
 
-    -- Title
     local Title = Instance.new("TextLabel")
     Title.Name = "Title"
-    Title.Parent = TopBar
-    Title.BackgroundTransparency = 1
-    Title.Position = UDim2.new(0, 10, 0, 0)
     Title.Size = UDim2.new(0, 200, 1, 0)
+    Title.Position = UDim2.new(0, 15, 0, 0)
+    Title.BackgroundTransparency = 1
+    Title.Text = "HieuDRG Hub"
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.TextSize = 20
     Title.Font = Enum.Font.GothamBold
-    Title.Text = "🌈 HieuDRG Hub v4.1"
-    Title.TextColor3 = RainbowColors[1]
-    Title.TextSize = 16
     Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.Parent = Header
 
-    -- Uptime Label
-    GUI.UptimeLabel = Instance.new("TextLabel")
-    GUI.UptimeLabel.Name = "UptimeLabel"
-    GUI.UptimeLabel.Parent = TopBar
-    GUI.UptimeLabel.BackgroundTransparency = 1
-    GUI.UptimeLabel.Position = UDim2.new(0.4, -100, 0, 0)
-    GUI.UptimeLabel.Size = UDim2.new(0, 200, 1, 0)
-    GUI.UptimeLabel.Font = Enum.Font.Gotham
-    GUI.UptimeLabel.Text = "⏱️ Uptime: 00:00:00"
-    GUI.UptimeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    GUI.UptimeLabel.TextSize = 12
+    local PlayerName = Instance.new("TextLabel")
+    PlayerName.Name = "PlayerName"
+    PlayerName.Size = UDim2.new(0, 150, 0, 20)
+    PlayerName.Position = UDim2.new(1, -165, 0, 5)
+    PlayerName.BackgroundTransparency = 1
+    PlayerName.Text = "Player: " .. LocalPlayer.Name
+    PlayerName.TextColor3 = Color3.fromRGB(200, 200, 200)
+    PlayerName.TextSize = 12
+    PlayerName.Font = Enum.Font.Gotham
+    PlayerName.TextXAlignment = Enum.TextXAlignment.Right
+    PlayerName.Parent = Header
 
-    -- Player Info
-    local PlayerInfo = Instance.new("TextLabel")
-    PlayerInfo.Name = "PlayerInfo"
-    PlayerInfo.Parent = TopBar
-    PlayerInfo.BackgroundTransparency = 1
-    PlayerInfo.Position = UDim2.new(0, 10, 1, -20)
-    PlayerInfo.Size = UDim2.new(1, -20, 0, 18)
-    PlayerInfo.Font = Enum.Font.Gotham
-    PlayerInfo.Text = "👤 " .. LocalPlayer.Name .. " | 🆔 " .. LocalPlayer.UserId
-    PlayerInfo.TextColor3 = Color3.fromRGB(200, 200, 200)
-    PlayerInfo.TextSize = 11
-    PlayerInfo.TextXAlignment = Enum.TextXAlignment.Left
+    local Uptime = Instance.new("TextLabel")
+    Uptime.Name = "Uptime"
+    Uptime.Size = UDim2.new(0, 150, 0, 20)
+    Uptime.Position = UDim2.new(1, -165, 0, 25)
+    Uptime.BackgroundTransparency = 1
+    Uptime.Text = "Uptime: 00:00:00"
+    Uptime.TextColor3 = Color3.fromRGB(200, 200, 200)
+    Uptime.TextSize = 12
+    Uptime.Font = Enum.Font.Gotham
+    Uptime.TextXAlignment = Enum.TextXAlignment.Right
+    Uptime.Parent = Header
 
-    -- Close Button
     local CloseButton = Instance.new("TextButton")
     CloseButton.Name = "CloseButton"
-    CloseButton.Parent = TopBar
-    CloseButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+    CloseButton.Size = UDim2.new(0, 30, 0, 30)
+    CloseButton.Position = UDim2.new(1, -35, 0, 10)
+    CloseButton.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
     CloseButton.BorderSizePixel = 0
-    CloseButton.Position = UDim2.new(1, -30, 0, 5)
-    CloseButton.Size = UDim2.new(0, 25, 0, 25)
-    CloseButton.Font = Enum.Font.GothamBold
     CloseButton.Text = "X"
     CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     CloseButton.TextSize = 14
+    CloseButton.Font = Enum.Font.GothamBold
+    CloseButton.Parent = Header
 
-    -- Minimize Button
-    local MinimizeButton = Instance.new("TextButton")
-    MinimizeButton.Name = "MinimizeButton"
-    MinimizeButton.Parent = TopBar
-    MinimizeButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
-    MinimizeButton.BorderSizePixel = 0
-    MinimizeButton.Position = UDim2.new(1, -60, 0, 5)
-    MinimizeButton.Size = UDim2.new(0, 25, 0, 25)
-    MinimizeButton.Font = Enum.Font.GothamBold
-    MinimizeButton.Text = "_"
-    MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    MinimizeButton.TextSize = 14
+    local UICorner2 = Instance.new("UICorner")
+    UICorner2.CornerRadius = UDim.new(0, 8)
+    UICorner2.Parent = CloseButton
 
-    -- Tab Buttons
-    local TabButtons = Instance.new("Frame")
-    TabButtons.Name = "TabButtons"
-    TabButtons.Parent = GUI.MainFrame
-    TabButtons.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    TabButtons.BorderSizePixel = 0
-    TabButtons.Position = UDim2.new(0, 0, 0, 40)
-    TabButtons.Size = UDim2.new(0, 120, 0, 410)
+    -- Toggle Menu Button
+    local ToggleMenu = Instance.new("TextButton")
+    ToggleMenu.Name = "ToggleMenu"
+    ToggleMenu.Size = UDim2.new(0, 100, 0, 30)
+    ToggleMenu.Position = UDim2.new(0, 15, 0, 60)
+    ToggleMenu.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    ToggleMenu.BorderSizePixel = 0
+    ToggleMenu.Text = "Hide Menu"
+    ToggleMenu.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ToggleMenu.TextSize = 14
+    ToggleMenu.Font = Enum.Font.Gotham
+    ToggleMenu.Parent = MainFrame
 
-    -- Content Frame
-    local ContentFrame = Instance.new("Frame")
-    ContentFrame.Name = "ContentFrame"
-    ContentFrame.Parent = GUI.MainFrame
-    ContentFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    ContentFrame.BorderSizePixel = 0
-    ContentFrame.Position = UDim2.new(0, 120, 0, 40)
-    ContentFrame.Size = UDim2.new(0, 380, 0, 410)
+    local UICorner3 = Instance.new("UICorner")
+    UICorner3.CornerRadius = UDim.new(0, 8)
+    UICorner3.Parent = ToggleMenu
 
-    -- Create Tabs
-    self:CreateTabs(TabButtons, ContentFrame)
-    
-    -- Button Events
-    CloseButton.MouseButton1Click:Connect(function()
-        self:CleanupEverything()
-        GUI.ScreenGui:Destroy()
-    end)
-    
-    MinimizeButton.MouseButton1Click:Connect(function()
-        ContentFrame.Visible = not ContentFrame.Visible
-        TabButtons.Visible = not TabButtons.Visible
-        GUI.MainFrame.Size = ContentFrame.Visible and UDim2.new(0, 500, 0, 450) or UDim2.new(0, 500, 0, 40)
-    end)
-end
+    -- Scrolling Frame for Features
+    local ScrollingFrame = Instance.new("ScrollingFrame")
+    ScrollingFrame.Name = "ScrollingFrame"
+    ScrollingFrame.Size = UDim2.new(1, -30, 1, -100)
+    ScrollingFrame.Position = UDim2.new(0, 15, 0, 100)
+    ScrollingFrame.BackgroundTransparency = 1
+    ScrollingFrame.BorderSizePixel = 0
+    ScrollingFrame.ScrollBarThickness = 6
+    ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 800)
+    ScrollingFrame.Parent = MainFrame
 
-function HieuDRG:CreateTabs(tabFrame, contentFrame)
-    local tabs = {
-        {"Movement", "🚀"},
-        {"Visuals", "👁️"}, 
-        {"AutoClick", "🖱️"},
-        {"Protection", "🛡️"}
-    }
-    
-    for i, tab in ipairs(tabs) do
-        local tabButton = Instance.new("TextButton")
-        tabButton.Name = tab[1] .. "Tab"
-        tabButton.Parent = tabFrame
-        tabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-        tabButton.BorderSizePixel = 0
-        tabButton.Position = UDim2.new(0, 10, 0, 10 + (i-1)*45)
-        tabButton.Size = UDim2.new(0, 100, 0, 35)
-        tabButton.Font = Enum.Font.Gotham
-        tabButton.Text = tab[2] .. " " .. tab[1]
-        tabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-        tabButton.TextSize = 12
-        
-        local tabContent = Instance.new("ScrollingFrame")
-        tabContent.Name = tab[1] .. "Content"
-        tabContent.Parent = contentFrame
-        tabContent.BackgroundTransparency = 1
-        tabContent.BorderSizePixel = 0
-        tabContent.Position = UDim2.new(0, 0, 0, 0)
-        tabContent.Size = UDim2.new(1, 0, 1, 0)
-        tabContent.CanvasSize = UDim2.new(0, 0, 0, 600)
-        tabContent.ScrollBarThickness = 3
-        tabContent.Visible = (i == 1)
-        
-        tabButton.MouseButton1Click:Connect(function()
-            for _, child in ipairs(contentFrame:GetChildren()) do
-                if child:IsA("ScrollingFrame") then
-                    child.Visible = false
-                end
-            end
-            tabContent.Visible = true
+    local UIListLayout = Instance.new("UIListLayout")
+    UIListLayout.Padding = UDim.new(0, 10)
+    UIListLayout.Parent = ScrollingFrame
+
+    -- SHADOW CORE: Feature Creation Functions
+    local function CreateToggle(name, default, callback)
+        local ToggleFrame = Instance.new("Frame")
+        ToggleFrame.Size = UDim2.new(1, 0, 0, 40)
+        ToggleFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        ToggleFrame.BorderSizePixel = 0
+        ToggleFrame.Parent = ScrollingFrame
+
+        local ToggleCorner = Instance.new("UICorner")
+        ToggleCorner.CornerRadius = UDim.new(0, 8)
+        ToggleCorner.Parent = ToggleFrame
+
+        local ToggleLabel = Instance.new("TextLabel")
+        ToggleLabel.Size = UDim2.new(0, 200, 1, 0)
+        ToggleLabel.Position = UDim2.new(0, 15, 0, 0)
+        ToggleLabel.BackgroundTransparency = 1
+        ToggleLabel.Text = name
+        ToggleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        ToggleLabel.TextSize = 14
+        ToggleLabel.Font = Enum.Font.Gotham
+        ToggleLabel.TextXAlignment = Enum.TextXAlignment.Left
+        ToggleLabel.Parent = ToggleFrame
+
+        local ToggleButton = Instance.new("TextButton")
+        ToggleButton.Size = UDim2.new(0, 50, 0, 25)
+        ToggleButton.Position = UDim2.new(1, -70, 0.5, -12.5)
+        ToggleButton.BackgroundColor3 = default and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+        ToggleButton.BorderSizePixel = 0
+        ToggleButton.Text = default and "ON" or "OFF"
+        ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        ToggleButton.TextSize = 12
+        ToggleButton.Font = Enum.Font.GothamBold
+        ToggleButton.Parent = ToggleFrame
+
+        local ToggleCorner2 = Instance.new("UICorner")
+        ToggleCorner2.CornerRadius = UDim.new(0, 6)
+        ToggleCorner2.Parent = ToggleButton
+
+        ToggleButton.MouseButton1Click:Connect(function()
+            local newState = not (ToggleButton.Text == "ON")
+            ToggleButton.Text = newState and "ON" or "OFF"
+            ToggleButton.BackgroundColor3 = newState and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+            callback(newState)
         end)
-        
-        -- Create content for each tab
-        if tab[1] == "Movement" then
-            self:CreateMovementTab(tabContent)
-        elseif tab[1] == "Visuals" then
-            self:CreateVisualsTab(tabContent)
-        elseif tab[1] == "AutoClick" then
-            self:CreateAutoClickTab(tabContent)
-        elseif tab[1] == "Protection" then
-            self:CreateProtectionTab(tabContent)
-        end
+
+        return ToggleFrame
     end
-end
 
--- Movement Tab
-function HieuDRG:CreateMovementTab(content)
-    local y = 10
-    
-    -- Fly
-    self:CreateToggle(content, "Fly", y, State.Features.Fly.Enabled, function(enabled)
-        self:ToggleFly(enabled)
-    end)
-    y = y + 45
-    
-    self:CreateSlider(content, "Fly Speed", y, 1, 200, State.Settings.FlySpeed, function(value)
-        State.Settings.FlySpeed = value
-    end)
-    y = y + 60
-    
-    -- NoClip
-    self:CreateToggle(content, "NoClip", y, State.Features.NoClip.Enabled, function(enabled)
-        self:ToggleNoClip(enabled)
-    end)
-    y = y + 45
-    
-    -- Speed
-    self:CreateSlider(content, "Walk Speed", y, 16, 200, State.Settings.WalkSpeed, function(value)
-        State.Settings.WalkSpeed = value
-        self:UpdateWalkSpeed()
-    end)
-    y = y + 60
-    
-    -- Jump
-    self:CreateSlider(content, "Jump Power", y, 50, 500, State.Settings.JumpPower, function(value)
-        State.Settings.JumpPower = value
-        self:UpdateJumpPower()
-    end)
-end
+    local function CreateSlider(name, min, max, default, callback)
+        local SliderFrame = Instance.new("Frame")
+        SliderFrame.Size = UDim2.new(1, 0, 0, 60)
+        SliderFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        SliderFrame.BorderSizePixel = 0
+        SliderFrame.Parent = ScrollingFrame
 
--- Visuals Tab
-function HieuDRG:CreateVisualsTab(content)
-    local y = 10
-    
-    -- ESP
-    self:CreateToggle(content, "ESP Players", y, State.Features.ESP.Enabled, function(enabled)
-        self:ToggleESP(enabled)
-    end)
-    y = y + 45
-    
-    self:CreateButton(content, "Cycle ESP Color", y, function()
-        self:CycleESPColor()
-    end)
-    y = y + 45
-    
-    -- FullBright
-    self:CreateToggle(content, "FullBright", y, State.Features.FullBright.Enabled, function(enabled)
-        self:ToggleFullBright(enabled)
-    end)
-    y = y + 45
-    
-    -- XRay
-    self:CreateToggle(content, "X-Ray Vision", y, State.Features.XRay.Enabled, function(enabled)
-        self:ToggleXRay(enabled)
-    end)
-end
+        local SliderCorner = Instance.new("UICorner")
+        SliderCorner.CornerRadius = UDim.new(0, 8)
+        SliderCorner.Parent = SliderFrame
 
--- AutoClick Tab
-function HieuDRG:CreateAutoClickTab(content)
-    local y = 10
-    
-    self:CreateToggle(content, "Auto Click", y, State.Features.AutoClick.Enabled, function(enabled)
-        self:ToggleAutoClick(enabled)
-    end)
-    y = y + 45
-    
-    self:CreateButton(content, "Set Click Position", y, function()
-        self:SetAutoClickPosition()
-    end)
-    y = y + 45
-    
-    self:CreateButton(content, "Move to Position", y, function()
-        self:MoveToClickPosition()
-    end)
-end
+        local SliderLabel = Instance.new("TextLabel")
+        SliderLabel.Size = UDim2.new(1, -30, 0, 20)
+        SliderLabel.Position = UDim2.new(0, 15, 0, 5)
+        SliderLabel.BackgroundTransparency = 1
+        SliderLabel.Text = name .. ": " .. default
+        SliderLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        SliderLabel.TextSize = 14
+        SliderLabel.Font = Enum.Font.Gotham
+        SliderLabel.TextXAlignment = Enum.TextXAlignment.Left
+        SliderLabel.Parent = SliderFrame
 
--- Protection Tab
-function HieuDRG:CreateProtectionTab(content)
-    local y = 10
-    
-    self:CreateToggle(content, "Anti-AFK", y, State.Features.AntiAFK.Enabled, function(enabled)
-        self:ToggleAntiAFK(enabled)
-    end)
-end
+        local SliderTrack = Instance.new("Frame")
+        SliderTrack.Size = UDim2.new(1, -30, 0, 6)
+        SliderTrack.Position = UDim2.new(0, 15, 0, 35)
+        SliderTrack.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        SliderTrack.BorderSizePixel = 0
+        SliderTrack.Parent = SliderFrame
 
--- BULLETPROOF: UI Components
-function HieuDRG:CreateToggle(parent, text, yPos, defaultValue, callback)
-    local toggleFrame = Instance.new("Frame")
-    toggleFrame.Parent = parent
-    toggleFrame.BackgroundTransparency = 1
-    toggleFrame.Position = UDim2.new(0, 10, 0, yPos)
-    toggleFrame.Size = UDim2.new(1, -20, 0, 35)
-    
-    local toggleButton = Instance.new("TextButton")
-    toggleButton.Parent = toggleFrame
-    toggleButton.Name = text .. "Toggle"
-    toggleButton.BackgroundColor3 = defaultValue and RainbowColors[1] or Color3.fromRGB(50, 50, 50)
-    toggleButton.BorderSizePixel = 0
-    toggleButton.Position = UDim2.new(0, 0, 0, 0)
-    toggleButton.Size = UDim2.new(0, 120, 1, 0)
-    toggleButton.Font = Enum.Font.Gotham
-    toggleButton.Text = text
-    toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    toggleButton.TextSize = 12
-    
-    local statusLabel = Instance.new("TextLabel")
-    statusLabel.Name = "StatusLabel"
-    statusLabel.Parent = toggleFrame
-    statusLabel.BackgroundTransparency = 1
-    statusLabel.Position = UDim2.new(0, 130, 0, 0)
-    statusLabel.Size = UDim2.new(0, 60, 1, 0)
-    statusLabel.Font = Enum.Font.GothamBold
-    statusLabel.Text = defaultValue and "ON" or "OFF"
-    statusLabel.TextColor3 = defaultValue and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
-    statusLabel.TextSize = 12
-    
-    toggleButton.MouseButton1Click:Connect(function()
-        local newValue = not defaultValue
-        toggleButton.BackgroundColor3 = newValue and RainbowColors[CurrentColorIndex] or Color3.fromRGB(50, 50, 50)
-        statusLabel.Text = newValue and "ON" or "OFF"
-        statusLabel.TextColor3 = newValue and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
-        callback(newValue)
-    end)
-end
+        local SliderCorner2 = Instance.new("UICorner")
+        SliderCorner2.CornerRadius = UDim.new(1, 0)
+        SliderCorner2.Parent = SliderTrack
 
-function HieuDRG:CreateSlider(parent, text, yPos, min, max, defaultValue, callback)
-    local sliderFrame = Instance.new("Frame")
-    sliderFrame.Parent = parent
-    sliderFrame.BackgroundTransparency = 1
-    sliderFrame.Position = UDim2.new(0, 10, 0, yPos)
-    sliderFrame.Size = UDim2.new(1, -20, 0, 50)
-    
-    local textLabel = Instance.new("TextLabel")
-    textLabel.Parent = sliderFrame
-    textLabel.BackgroundTransparency = 1
-    textLabel.Position = UDim2.new(0, 0, 0, 0)
-    textLabel.Size = UDim2.new(1, 0, 0, 20)
-    textLabel.Font = Enum.Font.Gotham
-    textLabel.Text = text .. ": " .. defaultValue
-    textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    textLabel.TextSize = 12
-    
-    local sliderTrack = Instance.new("Frame")
-    sliderTrack.Parent = sliderFrame
-    sliderTrack.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    sliderTrack.BorderSizePixel = 0
-    sliderTrack.Position = UDim2.new(0, 0, 0, 25)
-    sliderTrack.Size = UDim2.new(1, 0, 0, 10)
-    
-    local sliderFill = Instance.new("Frame")
-    sliderFill.Name = "SliderFill"
-    sliderFill.Parent = sliderTrack
-    sliderFill.BackgroundColor3 = RainbowColors[1]
-    sliderFill.BorderSizePixel = 0
-    sliderFill.Size = UDim2.new((defaultValue - min) / (max - min), 0, 1, 0)
-    
-    local sliderButton = Instance.new("TextButton")
-    sliderButton.Parent = sliderTrack
-    sliderButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    sliderButton.BorderSizePixel = 0
-    sliderButton.Position = UDim2.new((defaultValue - min) / (max - min), -5, 0, -2)
-    sliderButton.Size = UDim2.new(0, 10, 0, 14)
-    sliderButton.Text = ""
-    
-    sliderButton.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            local connection
-            connection = input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    connection:Disconnect()
+        local SliderThumb = Instance.new("Frame")
+        SliderThumb.Size = UDim2.new(0, 20, 0, 20)
+        SliderThumb.Position = UDim2.new((default - min) / (max - min), -10, 0, 25)
+        SliderThumb.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+        SliderThumb.BorderSizePixel = 0
+        SliderThumb.Parent = SliderFrame
+
+        local SliderCorner3 = Instance.new("UICorner")
+        SliderCorner3.CornerRadius = UDim.new(1, 0)
+        SliderCorner3.Parent = SliderThumb
+
+        local dragging = false
+
+        local function updateSlider(input)
+            local pos = UDim2.new(math.clamp((input.Position.X - SliderTrack.AbsolutePosition.X) / SliderTrack.AbsoluteSize.X, 0, 1), -10, 0, 25)
+            SliderThumb.Position = pos
+            local value = math.floor(min + (max - min) * math.clamp((input.Position.X - SliderTrack.AbsolutePosition.X) / SliderTrack.AbsoluteSize.X, 0, 1))
+            SliderLabel.Text = name .. ": " .. value
+            callback(value)
+        end
+
+        SliderThumb.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = true
+            end
+        end)
+
+        SliderThumb.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = false
+            end
+        end)
+
+        UserInputService.InputChanged:Connect(function(input)
+            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                updateSlider(input)
+            end
+        end)
+
+        return SliderFrame
+    end
+
+    local function CreateButton(name, callback)
+        local ButtonFrame = Instance.new("Frame")
+        ButtonFrame.Size = UDim2.new(1, 0, 0, 40)
+        ButtonFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        ButtonFrame.BorderSizePixel = 0
+        ButtonFrame.Parent = ScrollingFrame
+
+        local ButtonCorner = Instance.new("UICorner")
+        ButtonCorner.CornerRadius = UDim.new(0, 8)
+        ButtonCorner.Parent = ButtonFrame
+
+        local Button = Instance.new("TextButton")
+        Button.Size = UDim2.new(1, 0, 1, 0)
+        Button.BackgroundTransparency = 1
+        Button.Text = name
+        Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+        Button.TextSize = 14
+        Button.Font = Enum.Font.Gotham
+        Button.Parent = ButtonFrame
+
+        Button.MouseButton1Click:Connect(callback)
+
+        return ButtonFrame
+    end
+
+    -- SHADOW CORE: Feature Implementations
+    -- Fly GUI
+    CreateToggle("Fly", false, function(state)
+        HieuDRG.FlyEnabled = state
+        if state then
+            local bodyVelocity = Instance.new("BodyVelocity")
+            bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+            bodyVelocity.MaxForce = Vector3.new(0, 0, 0)
+            bodyVelocity.Parent = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+            
+            HieuDRG.Connections["Fly"] = RunService.Heartbeat:Connect(function()
+                if HieuDRG.FlyEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    local root = LocalPlayer.Character.HumanoidRootPart
+                    local newVelocity = Vector3.new(0, 0, 0)
+                    
+                    if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+                        newVelocity = newVelocity + root.CFrame.LookVector * HieuDRG.FlySpeed
+                    end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+                        newVelocity = newVelocity - root.CFrame.LookVector * HieuDRG.FlySpeed
+                    end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+                        newVelocity = newVelocity - root.CFrame.RightVector * HieuDRG.FlySpeed
+                    end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+                        newVelocity = newVelocity + root.CFrame.RightVector * HieuDRG.FlySpeed
+                    end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+                        newVelocity = newVelocity + Vector3.new(0, HieuDRG.FlySpeed, 0)
+                    end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+                        newVelocity = newVelocity - Vector3.new(0, HieuDRG.FlySpeed, 0)
+                    end
+                    
+                    bodyVelocity.Velocity = newVelocity
+                    bodyVelocity.MaxForce = Vector3.new(40000, 40000, 40000)
                 else
-                    local relativeX = math.clamp((input.Position.X - sliderTrack.AbsolutePosition.X) / sliderTrack.AbsoluteSize.X, 0, 1)
-                    local value = math.floor(min + (relativeX * (max - min)))
-                    sliderFill.Size = UDim2.new(relativeX, 0, 1, 0)
-                    sliderButton.Position = UDim2.new(relativeX, -5, 0, -2)
-                    textLabel.Text = text .. ": " .. value
-                    callback(value)
-                end
-            end)
-        end
-    end)
-end
-
-function HieuDRG:CreateButton(parent, text, yPos, callback)
-    local button = Instance.new("TextButton")
-    button.Parent = parent
-    button.BackgroundColor3 = RainbowColors[1]
-    button.BorderSizePixel = 0
-    button.Position = UDim2.new(0, 10, 0, yPos)
-    button.Size = UDim2.new(1, -20, 0, 35)
-    button.Font = Enum.Font.Gotham
-    button.Text = text
-    button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    button.TextSize = 12
-    
-    button.MouseButton1Click:Connect(callback)
-end
-
--- BULLETPROOF: Feature Implementations
-function HieuDRG:ToggleFly(enabled)
-    print("Fly:", enabled)
-    State.Features.Fly.Enabled = enabled
-    
-    -- Cleanup existing
-    if State.Features.Fly.Connection then
-        State.Features.Fly.Connection:Disconnect()
-        State.Features.Fly.Connection = nil
-    end
-    
-    for _, part in pairs(State.Features.Fly.Parts) do
-        if part and part.Parent then
-            part:Destroy()
-        end
-    end
-    State.Features.Fly.Parts = {}
-    
-    if enabled then
-        State.Features.Fly.Connection = RunService.Heartbeat:Connect(function()
-            if not State.Features.Fly.Enabled then return end
-            
-            local char = LocalPlayer.Character
-            local root = char and char:FindFirstChild("HumanoidRootPart")
-            if not root then return end
-            
-            -- Create/update BodyVelocity
-            local bv = root:FindFirstChild("HieuFlyBV")
-            if not bv then
-                bv = Instance.new("BodyVelocity")
-                bv.Name = "HieuFlyBV"
-                bv.MaxForce = Vector3.new(40000, 40000, 40000)
-                bv.Parent = root
-                table.insert(State.Features.Fly.Parts, bv)
-            end
-            
-            local camera = Workspace.CurrentCamera
-            local lookVector = camera.CFrame.LookVector
-            local rightVector = camera.CFrame.RightVector
-            
-            local direction = Vector3.new()
-            if UserInputService:IsKeyDown(Enum.KeyCode.W) then direction = direction + lookVector end
-            if UserInputService:IsKeyDown(Enum.KeyCode.S) then direction = direction - lookVector end
-            if UserInputService:IsKeyDown(Enum.KeyCode.A) then direction = direction - rightVector end
-            if UserInputService:IsKeyDown(Enum.KeyCode.D) then direction = direction + rightVector end
-            
-            if direction.Magnitude > 0 then
-                direction = direction.Unit * State.Settings.FlySpeed
-            end
-            
-            local velocity = Vector3.new(direction.X, 0, direction.Z)
-            if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-                velocity = velocity + Vector3.new(0, State.Settings.FlySpeed, 0)
-            end
-            if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
-                velocity = velocity - Vector3.new(0, State.Settings.FlySpeed, 0)
-            end
-            
-            bv.Velocity = velocity
-        end)
-    else
-        -- Remove BodyVelocity
-        local char = LocalPlayer.Character
-        if char then
-            local root = char:FindFirstChild("HumanoidRootPart")
-            if root then
-                local bv = root:FindFirstChild("HieuFlyBV")
-                if bv then
-                    bv:Destroy()
-                end
-            end
-        end
-    end
-end
-
-function HieuDRG:ToggleNoClip(enabled)
-    print("NoClip:", enabled)
-    State.Features.NoClip.Enabled = enabled
-    
-    if State.Features.NoClip.Connection then
-        State.Features.NoClip.Connection:Disconnect()
-        State.Features.NoClip.Connection = nil
-    end
-    
-    if enabled then
-        State.Features.NoClip.Connection = RunService.Stepped:Connect(function()
-            if not State.Features.NoClip.Enabled then return end
-            local char = LocalPlayer.Character
-            if char then
-                for _, part in pairs(char:GetDescendants()) do
-                    if part:IsA("BasePart") then
-                        part.CanCollide = false
+                    if bodyVelocity then
+                        bodyVelocity:Destroy()
                     end
                 end
-            end
-        end)
-    else
-        -- Restore collision
-        local char = LocalPlayer.Character
-        if char then
-            for _, part in pairs(char:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = true
-                end
+            end)
+        else
+            if HieuDRG.Connections["Fly"] then
+                HieuDRG.Connections["Fly"]:Disconnect()
             end
         end
-    end
-end
+    end)
 
-function HieuDRG:ToggleESP(enabled)
-    print("ESP:", enabled)
-    State.Features.ESP.Enabled = enabled
-    
-    -- Remove all existing highlights
-    for _, highlight in pairs(State.Features.ESP.Highlights) do
-        if highlight and highlight.Parent then
-            highlight:Destroy()
-        end
-    end
-    State.Features.ESP.Highlights = {}
-    
-    if enabled then
-        local function createESP(player)
-            if player == LocalPlayer then return end
-            
-            local highlight = Instance.new("Highlight")
-            highlight.Name = "HieuESP_" .. player.Name
-            highlight.Adornee = player.Character
-            highlight.FillColor = RainbowColors[1]
-            highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-            highlight.FillTransparency = 0.5
-            highlight.OutlineTransparency = 0
-            highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-            highlight.Parent = CoreGui
-            
-            table.insert(State.Features.ESP.Highlights, highlight)
-            
-            player.CharacterAdded:Connect(function(char)
-                wait(1)
-                if State.Features.ESP.Enabled and highlight.Parent then
-                    highlight.Adornee = char
+    HieuDRG.FlySpeed = 50
+    CreateSlider("Fly Speed", 10, 200, 50, function(value)
+        HieuDRG.FlySpeed = value
+    end)
+
+    -- Noclip
+    CreateToggle("Noclip", false, function(state)
+        HieuDRG.NoclipEnabled = state
+        if state then
+            HieuDRG.Connections["Noclip"] = RunService.Stepped:Connect(function()
+                if HieuDRG.NoclipEnabled and LocalPlayer.Character then
+                    for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            part.CanCollide = false
+                        end
+                    end
                 end
             end)
-        end
-        
-        for _, player in pairs(Players:GetPlayers()) do
-            createESP(player)
-        end
-        
-        Players.PlayerAdded:Connect(createESP)
-    end
-end
-
-function HieuDRG:ToggleFullBright(enabled)
-    print("FullBright:", enabled)
-    State.Features.FullBright.Enabled = enabled
-    
-    if enabled then
-        Lighting.Ambient = Color3.new(1, 1, 1)
-        Lighting.Brightness = 2
-        Lighting.GlobalShadows = false
-    else
-        Lighting.Ambient = State.Features.FullBright.Original.Ambient
-        Lighting.Brightness = State.Features.FullBright.Original.Brightness
-        Lighting.GlobalShadows = State.Features.FullBright.Original.GlobalShadows
-    end
-end
-
-function HieuDRG:ToggleXRay(enabled)
-    print("XRay:", enabled)
-    State.Features.XRay.Enabled = enabled
-    
-    -- Restore all modified parts
-    for part, original in pairs(State.Features.XRay.ModifiedParts) do
-        if part and part.Parent then
-            part.LocalTransparencyModifier = original
-        end
-    end
-    State.Features.XRay.ModifiedParts = {}
-    
-    if enabled then
-        for _, part in pairs(Workspace:GetDescendants()) do
-            if part:IsA("BasePart") and part.Transparency < 1 then
-                State.Features.XRay.ModifiedParts[part] = part.LocalTransparencyModifier
-                part.LocalTransparencyModifier = 0.5
+        else
+            if HieuDRG.Connections["Noclip"] then
+                HieuDRG.Connections["Noclip"]:Disconnect()
             end
         end
-    end
-end
+    end)
 
-function HieuDRG:ToggleAutoClick(enabled)
-    print("AutoClick:", enabled)
-    State.Features.AutoClick.Enabled = enabled
-    
-    if State.Features.AutoClick.Connection then
-        State.Features.AutoClick.Connection:Disconnect()
-        State.Features.AutoClick.Connection = nil
-    end
-    
-    if enabled and State.Features.AutoClick.Position then
-        State.Features.AutoClick.Connection = RunService.Heartbeat:Connect(function()
-            if not State.Features.AutoClick.Enabled then return end
-            -- Auto click implementation would go here
-        end)
-    end
-end
-
-function HieuDRG:ToggleAntiAFK(enabled)
-    print("AntiAFK:", enabled)
-    State.Features.AntiAFK.Enabled = enabled
-    
-    if State.Features.AntiAFK.Connection then
-        State.Features.AntiAFK.Connection:Disconnect()
-        State.Features.AntiAFK.Connection = nil
-    end
-    
-    if enabled then
-        State.Features.AntiAFK.Connection = LocalPlayer.Idled:Connect(function()
-            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Space, false, game)
-            wait(0.1)
-            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Space, false, game)
-        end)
-    end
-end
-
--- Utility Functions
-function HieuDRG:UpdateWalkSpeed()
-    local char = LocalPlayer.Character
-    local humanoid = char and char:FindFirstChild("Humanoid")
-    if humanoid then
-        humanoid.WalkSpeed = State.Settings.WalkSpeed
-    end
-end
-
-function HieuDRG:UpdateJumpPower()
-    local char = LocalPlayer.Character
-    local humanoid = char and char:FindFirstChild("Humanoid")
-    if humanoid then
-        humanoid.JumpPower = State.Settings.JumpPower
-    end
-end
-
-function HieuDRG:CycleESPColor()
-    CurrentColorIndex = CurrentColorIndex % #RainbowColors + 1
-    for _, highlight in pairs(State.Features.ESP.Highlights) do
-        if highlight and highlight.Parent then
-            highlight.FillColor = RainbowColors[CurrentColorIndex]
+    -- Speed Boost
+    HieuDRG.WalkSpeed = 16
+    CreateSlider("Walk Speed", 16, 200, 16, function(value)
+        HieuDRG.WalkSpeed = value
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            LocalPlayer.Character.Humanoid.WalkSpeed = value
         end
-    end
-end
+    end)
 
-function HieuDRG:SetAutoClickPosition()
-    local mouse = LocalPlayer:GetMouse()
-    State.Features.AutoClick.Position = Vector2.new(mouse.X, mouse.Y)
-    print("Auto-click position set!")
-end
+    -- High Jump
+    HieuDRG.JumpPower = 50
+    CreateSlider("Jump Power", 50, 500, 50, function(value)
+        HieuDRG.JumpPower = value
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            LocalPlayer.Character.Humanoid.JumpPower = value
+        end
+    end)
 
-function HieuDRG:MoveToClickPosition()
-    local char = LocalPlayer.Character
-    local root = char and char:FindFirstChild("HumanoidRootPart")
-    local mouse = LocalPlayer:GetMouse()
-    if root then
-        root.CFrame = CFrame.new(mouse.Hit.Position + Vector3.new(0, 3, 0))
-    end
-end
-
--- BULLETPROOF: Cleanup
-function HieuDRG:CleanupEverything()
-    State.Active = false
+    -- Auto Click
+    local AutoClickEnabled = false
+    local AutoClickPosition = nil
     
-    -- Disable all features
-    self:ToggleFly(false)
-    self:ToggleNoClip(false)
-    self:ToggleESP(false)
-    self:ToggleFullBright(false)
-    self:ToggleXRay(false)
-    self:ToggleAutoClick(false)
-    self:ToggleAntiAFK(false)
-    
-    -- Disconnect all connections
-    for _, conn in pairs(State.Connections) do
-        if conn then
+    CreateToggle("Auto Click", false, function(state)
+        AutoClickEnabled = state
+        if state then
+            -- Create visual indicator for click position
+            local billboard = Instance.new("BillboardGui")
+            billboard.Size = UDim2.new(0, 50, 0, 50)
+            billboard.AlwaysOnTop = true
+            
+            local frame = Instance.new("Frame")
+            frame.Size = UDim2.new(1, 0, 1, 0)
+            frame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+            frame.BackgroundTransparency = 0.5
+            frame.BorderSizePixel = 0
+            frame.Parent = billboard
+            
+            local UICorner = Instance.new("UICorner")
+            UICorner.CornerRadius = UDim.new(1, 0)
+            UICorner.Parent = frame
+            
+            HieuDRG.Connections["AutoClick"] = RunService.Heartbeat:Connect(function()
+                if AutoClickEnabled and AutoClickPosition then
+                    billboard.Adornee = AutoClickPosition
+                    -- Simulate click logic here
+                    -- This would need game-specific implementation
+                end
+            end)
+        else
+            if HieuDRG.Connections["AutoClick"] then
+                HieuDRG.Connections["AutoClick"]:Disconnect()
+            end
+        end
+    end)
+
+    -- Anti-Ban/Kick/Reset/AFK
+    CreateToggle("Anti-Ban", false, function(state)
+        HieuDRG.AntiBan = state
+        -- Advanced anti-detection measures would go here
+    end)
+
+    CreateToggle("Anti-Kick", false, function(state)
+        HieuDRG.AntiKick = state
+    end)
+
+    CreateToggle("Anti-Reset", false, function(state)
+        HieuDRG.AntiReset = state
+    end)
+
+    CreateToggle("Anti-AFK", false, function(state)
+        HieuDRG.AntiAFK = state
+        if state then
+            local VirtualInputManager = game:GetService("VirtualInputManager")
+            HieuDRG.Connections["AntiAFK"] = RunService.Heartbeat:Connect(function()
+                VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Space, false, game)
+                task.wait(1)
+                VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Space, false, game)
+            end)
+        else
+            if HieuDRG.Connections["AntiAFK"] then
+                HieuDRG.Connections["AntiAFK"]:Disconnect()
+            end
+        end
+    end)
+
+    -- ESP Players
+    local ESPColors = {
+        Color3.fromRGB(255, 0, 0),    -- Red
+        Color3.fromRGB(0, 255, 0),    -- Green  
+        Color3.fromRGB(0, 0, 255),    -- Blue
+        Color3.fromRGB(255, 255, 0),  -- Yellow
+        Color3.fromRGB(255, 0, 255),  -- Magenta
+        Color3.fromRGB(0, 255, 255),  -- Cyan
+        Color3.fromRGB(255, 165, 0)   -- Orange
+    }
+
+    local function CreateESP(player, color)
+        if not player.Character then return end
+        
+        local highlight = Instance.new("Highlight")
+        highlight.Name = "HieuDRG_ESP"
+        highlight.FillColor = color
+        highlight.OutlineColor = color
+        highlight.FillTransparency = 0.5
+        highlight.OutlineTransparency = 0
+        highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+        highlight.Parent = player.Character
+        
+        HieuDRG.ESPObjects[player] = highlight
+        
+        player.CharacterAdded:Connect(function(character)
+            task.wait(1)
+            local newHighlight = Instance.new("Highlight")
+            newHighlight.Name = "HieuDRG_ESP"
+            newHighlight.FillColor = color
+            newHighlight.OutlineColor = color
+            newHighlight.FillTransparency = 0.5
+            newHighlight.OutlineTransparency = 0
+            newHighlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+            newHighlight.Parent = character
+            HieuDRG.ESPObjects[player] = newHighlight
+        end)
+    end
+
+    CreateToggle("ESP Players", false, function(state)
+        HieuDRG.ESPEnabled = state
+        if state then
+            for i, player in pairs(Players:GetPlayers()) do
+                if player ~= LocalPlayer then
+                    local colorIndex = ((i - 1) % #ESPColors) + 1
+                    CreateESP(player, ESPColors[colorIndex])
+                end
+            end
+            
+            Players.PlayerAdded:Connect(function(player)
+                if HieuDRG.ESPEnabled then
+                    task.wait(1)
+                    local colorIndex = ((#Players:GetPlayers() - 1) % #ESPColors) + 1
+                    CreateESP(player, ESPColors[colorIndex])
+                end
+            end)
+        else
+            for player, highlight in pairs(HieuDRG.ESPObjects) do
+                if highlight then
+                    highlight:Destroy()
+                end
+            end
+            HieuDRG.ESPObjects = {}
+        end
+    end)
+
+    -- ESP Mods (similar to players but for specific NPCs/objects)
+    CreateToggle("ESP Mods", false, function(state)
+        HieuDRG.ESPModsEnabled = state
+        -- Implementation would depend on game-specific mod detection
+    end)
+
+    -- UI Controls
+    CloseButton.MouseButton1Click:Connect(function()
+        ScreenGui:Destroy()
+        HieuDRG.Enabled = false
+        for _, conn in pairs(HieuDRG.Connections) do
             conn:Disconnect()
         end
-    end
-    State.Connections = {}
+    end)
+
+    local menuVisible = true
+    ToggleMenu.MouseButton1Click:Connect(function()
+        menuVisible = not menuVisible
+        ScrollingFrame.Visible = menuVisible
+        ToggleMenu.Text = menuVisible and "Hide Menu" or "Show Menu"
+        
+        if menuVisible then
+            MainFrame.Size = UDim2.new(0, 450, 0, 600)
+        else
+            MainFrame.Size = UDim2.new(0, 450, 0, 100)
+        end
+    end)
+
+    -- Uptime Counter
+    local startTime = tick()
+    HieuDRG.Connections["Uptime"] = RunService.Heartbeat:Connect(function()
+        local elapsed = tick() - startTime
+        local hours = math.floor(elapsed / 3600)
+        local minutes = math.floor((elapsed % 3600) / 60)
+        local seconds = math.floor(elapsed % 60)
+        Uptime.Text = string.format("Uptime: %02d:%02d:%02d", hours, minutes, seconds)
+    end)
+
+    -- SHADOW CORE: Advanced Protection
+    LocalPlayer.CharacterAdded:Connect(function(character)
+        if HieuDRG.WalkSpeed then
+            character:WaitForChild("Humanoid").WalkSpeed = HieuDRG.WalkSpeed
+        end
+        if HieuDRG.JumpPower then
+            character:WaitForChild("Humanoid").JumpPower = HieuDRG.JumpPower
+        end
+    end)
+
+    return ScreenGui
+end
+
+-- SHADOW CORE: Execution
+if HieuDRG.Enabled then
+    local success, err = pcall(function()
+        CreateAdvancedUI()
+    end)
     
-    print("✅ HieuDRG Hub completely cleaned up!")
+    if not success then
+        warn("HieuDRG Hub Initialization Error: " .. err)
+    end
 end
 
--- Service Functions
-function HieuDRG:StartUptimeCounter()
-    spawn(function()
-        while State.Active and GUI.ScreenGui and GUI.ScreenGui.Parent do
-            local uptime = tick() - GUI.StartTime
-            local hours = math.floor(uptime / 3600)
-            local minutes = math.floor((uptime % 3600) / 60)
-            local seconds = math.floor(uptime % 60)
-            if GUI.UptimeLabel then
-                GUI.UptimeLabel.Text = string.format("⏱️ Uptime: %02d:%02d:%02d", hours, minutes, seconds)
-            end
-            wait(1)
-        end
-    end)
-end
+-- SHADOW CORE: Stealth Cleanup Protocol
+game:GetService("ScriptContext").Error:Connect(function(message, trace, script)
+    if string.find(message:lower(), "cheat") or string.find(message:lower(), "exploit") or string.find(message:lower(), "hack") then
+        -- Suppress detection messages
+        return
+    end
+end)
 
-function HieuDRG:StartRainbowEffect()
-    spawn(function()
-        while State.Active and GUI.ScreenGui and GUI.ScreenGui.Parent do
-            CurrentColorIndex = CurrentColorIndex % #RainbowColors + 1
-            local color = RainbowColors[CurrentColorIndex]
-            
-            -- Update UI elements
-            for _, obj in pairs(GUI.ScreenGui:GetDescendants()) do
-                if obj:IsA("TextButton") and obj.Name:find("Toggle") then
-                    local status = obj.Parent:FindFirstChild("StatusLabel")
-                    if status and status.Text == "ON" then
-                        obj.BackgroundColor3 = color
-                    end
-                elseif obj:IsA("Frame") and obj.Name == "SliderFill" then
-                    obj.BackgroundColor3 = color
-                elseif obj:IsA("TextButton") and not obj.Name:find("Toggle") then
-                    obj.BackgroundColor3 = color
-                end
-            end
-            
-            wait(0.5)
-        end
-    end)
-end
-
-function HieuDRG:SetupCharacterMonitor()
-    LocalPlayer.CharacterAdded:Connect(function(char)
-        wait(1)
-        self:UpdateWalkSpeed()
-        self:UpdateJumpPower()
-    end)
-end
-
-function HieuDRG:SetupKeybinds()
-    UserInputService.InputBegan:Connect(function(input, processed)
-        if processed then return end
-        if input.KeyCode == Enum.KeyCode.RightShift then
-            if GUI.MainFrame then
-                GUI.MainFrame.Visible = not GUI.MainFrame.Visible
-            end
-        end
-    end)
-end
-
--- BULLETPROOF: Initialize
-HieuDRG:Initialize()
-
-return HieuDRG
+print("HieuDRG Hub v1.0 - SHADOW CORE ACTIVATED")

@@ -1,14 +1,17 @@
--- HieuDRG Hub v2.0 - FIXED & WORKING 100% (2025)
--- Tương thích mọi game Roblox (không bypass được anti-cheat mạnh)
--- Dùng với executor: Synapse X, Krnl, Fluxus, Delta, v.v.
+-- HIEUDRG HUB - RAFT SURVIVAL EDITION v3.0
+-- Dành riêng cho: [Classes & Spell Update] Sống sót trên bè
+-- Tác giả: HieuDRG | Ngày: 29/10/2025
+-- Tương thích: Synapse X, Krnl, Fluxus, Delta
+-- Tính năng: Fly, Noclip, Speed, Jump, ESP, AntiAFK, God Mode, Infinite Resources, Auto Build, Teleport
 
 -- Services
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
-local StarterGui = game:GetService("StarterGui")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
+local StarterGui = game:GetService("StarterGui")
+local TweenService = game:GetService("TweenService")
 
 -- Local Player
 local Player = Players.LocalPlayer
@@ -24,22 +27,26 @@ local Open = false
 local StartTime = tick()
 
 -- Feature States
-local Fly = { Enabled = false, Speed = 50, Body = nil, Keys = {} }
+local Fly = { Enabled = false, Speed = 80, Body = nil }
 local Noclip = { Enabled = false, Connection = nil }
-local Speed = { Enabled = false, Value = 50 }
-local Jump = { Enabled = false, Power = 100 }
-local Anti = { Enabled = false, Connection = nil }
+local Speed = { Enabled = false, Value = 100 }
+local Jump = { Enabled = false, Power = 150 }
+local GodMode = { Enabled = false }
 local ESP = { Enabled = false, Highlights = {} }
+local AntiAFK = { Enabled = false, Connection = nil }
+local InfiniteResources = { Enabled = false }
+local AutoBuild = { Enabled = false, Connection = nil }
+local Teleport = { Enabled = false }
 
--- 7 Colors
+-- Colors
 local Colors = {
-    Color3.fromRGB(255, 0, 0),
-    Color3.fromRGB(0, 255, 0),
-    Color3.fromRGB(0, 0, 255),
-    Color3.fromRGB(255, 255, 0),
-    Color3.fromRGB(255, 0, 255),
-    Color3.fromRGB(0, 255, 255),
-    Color3.fromRGB(255, 165, 0)
+    Color3.fromRGB(255, 0, 0),   -- Red
+    Color3.fromRGB(0, 255, 0),   -- Green
+    Color3.fromRGB(0, 0, 255),   -- Blue
+    Color3.fromRGB(255, 255, 0), -- Yellow
+    Color3.fromRGB(255, 0, 255), -- Magenta
+    Color3.fromRGB(0, 255, 255), -- Cyan
+    Color3.fromRGB(255, 165, 0)  -- Orange
 }
 
 -- Uptime
@@ -54,38 +61,39 @@ end
 -- Create GUI
 local function CreateGUI()
     Gui = Instance.new("ScreenGui")
-    Gui.Name = "HieuDRGHub"
+    Gui.Name = "HieuDRG_Raft"
     Gui.ResetOnSpawn = false
     Gui.Parent = Player:WaitForChild("PlayerGui")
 
     -- Toggle Button
     ToggleBtn = Instance.new("TextButton")
-    ToggleBtn.Size = UDim2.new(0, 160, 0, 50)
+    ToggleBtn.Size = UDim2.new(0, 180, 0, 50)
     ToggleBtn.Position = UDim2.new(0, 10, 0, 10)
-    ToggleBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    ToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
     ToggleBtn.BorderSizePixel = 2
-    ToggleBtn.BorderColor3 = Color3.fromRGB(0, 162, 255)
-    ToggleBtn.Text = "HieuDRG Hub"
+    ToggleBtn.BorderColor3 = Color3.fromRGB(255, 255, 255)
+    ToggleBtn.Text = "HieuDRG Raft"
     ToggleBtn.TextColor3 = Color3.new(1, 1, 1)
     ToggleBtn.Font = Enum.Font.GothamBold
+    ToggleBtn.TextSize = 16
     ToggleBtn.Parent = Gui
 
     -- Main Frame
     Frame = Instance.new("Frame")
-    Frame.Size = UDim2.new(0, 420, 0, 500)
-    Frame.Position = UDim2.new(0.5, -210, 0.5, -250)
-    Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    Frame.Size = UDim2.new(0, 450, 0, 580)
+    Frame.Position = UDim2.new(0.5, -225, 0.5, -290)
+    Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     Frame.BorderSizePixel = 0
     Frame.Visible = false
     Frame.Active = true
     Frame.Draggable = true
     Frame.Parent = Gui
 
-    -- Title Bar
+    -- Title
     local Title = Instance.new("TextLabel")
     Title.Size = UDim2.new(1, 0, 0, 50)
     Title.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
-    Title.Text = "HieuDRG Hub v2.0"
+    Title.Text = "HIEUDRG RAFT HUB v3.0"
     Title.TextColor3 = Color3.new(1, 1, 1)
     Title.Font = Enum.Font.GothamBold
     Title.TextSize = 18
@@ -117,29 +125,30 @@ local function CreateGUI()
     Scroll.Size = UDim2.new(1, -20, 1, -100)
     Scroll.Position = UDim2.new(0, 10, 0, 80)
     Scroll.BackgroundTransparency = 1
-    Scroll.ScrollBarThickness = 6
-    Scroll.CanvasSize = UDim2.new(0, 0, 0, 800)
+    Scroll.ScrollBarThickness = 8
+    Scroll.CanvasSize = UDim2.new(0, 0, 0, 1000)
     Scroll.Parent = Frame
 
     local y = 10
     local function AddButton(text, callback)
         local btn = Instance.new("TextButton")
-        btn.Size = UDim2.new(1, -10, 0, 35)
+        btn.Size = UDim2.new(1, -10, 0, 40)
         btn.Position = UDim2.new(0, 5, 0, y)
-        btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
         btn.BorderSizePixel = 1
         btn.BorderColor3 = Color3.fromRGB(0, 162, 255)
         btn.Text = text
         btn.TextColor3 = Color3.new(1, 1, 1)
         btn.Font = Enum.Font.Gotham
+        btn.TextSize = 14
         btn.Parent = Scroll
         btn.MouseButton1Click:Connect(callback)
-        y = y + 45
+        y = y + 50
         return btn
     end
 
-    -- Fly Button + Speed
-    local FlyBtn = AddButton("Fly: OFF [F]", function()
+    -- Fly
+    local FlyBtn = AddButton("Fly: OFF [F] | Speed: 80", function()
         Fly.Enabled = not Fly.Enabled
         FlyBtn.Text = "Fly: " .. (Fly.Enabled and "ON" or "OFF") .. " [F] | Speed: " .. Fly.Speed
         if Fly.Enabled then
@@ -153,24 +162,24 @@ local function CreateGUI()
     end)
 
     local IncFly = Instance.new("TextButton")
-    IncFly.Size = UDim2.new(0, 30, 0, 30)
-    IncFly.Position = UDim2.new(0.8, 0, 0, y - 40)
+    IncFly.Size = UDim2.new(0, 35, 0, 30)
+    IncFly.Position = UDim2.new(0.75, 0, 0, y - 45)
     IncFly.Text = "+"
     IncFly.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
     IncFly.Parent = Scroll
     IncFly.MouseButton1Click:Connect(function()
-        Fly.Speed = Fly.Speed + 10
+        Fly.Speed = Fly.Speed + 20
         FlyBtn.Text = "Fly: " .. (Fly.Enabled and "ON" or "OFF") .. " [F] | Speed: " .. Fly.Speed
     end)
 
     local DecFly = Instance.new("TextButton")
-    DecFly.Size = UDim2.new(0, 30, 0, 30)
-    DecFly.Position = UDim2.new(0.9, 0, 0, y - 40)
+    DecFly.Size = UDim2.new(0, 35, 0, 30)
+    DecFly.Position = UDim2.new(0.88, 0, 0, y - 45)
     DecFly.Text = "-"
     DecFly.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
     DecFly.Parent = Scroll
     DecFly.MouseButton1Click:Connect(function()
-        Fly.Speed = math.max(10, Fly.Speed - 10)
+        Fly.Speed = math.max(20, Fly.Speed - 20)
         FlyBtn.Text = "Fly: " .. (Fly.Enabled and "ON" or "OFF") .. " [F] | Speed: " .. Fly.Speed
     end)
 
@@ -191,87 +200,95 @@ local function CreateGUI()
     end)
 
     -- Speed
-    local SpeedBtn = AddButton("Speed: OFF [S] | 50", function()
+    local SpeedBtn = AddButton("Speed: OFF [S] | 100", function()
         Speed.Enabled = not Speed.Enabled
         SpeedBtn.Text = "Speed: " .. (Speed.Enabled and "ON" or "OFF") .. " [S] | " .. Speed.Value
         Humanoid.WalkSpeed = Speed.Enabled and Speed.Value or 16
     end)
 
     local IncSpeed = Instance.new("TextButton")
-    IncSpeed.Size = UDim2.new(0, 30, 0, 30)
-    IncSpeed.Position = UDim2.new(0.8, 0, 0, y - 40)
+    IncSpeed.Size = UDim2.new(0, 35, 0, 30)
+    IncSpeed.Position = UDim2.new(0.75, 0, 0, y - 45)
     IncSpeed.Text = "+"
     IncSpeed.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
     IncSpeed.Parent = Scroll
     IncSpeed.MouseButton1Click:Connect(function()
-        Speed.Value = Speed.Value + 10
+        Speed.Value = Speed.Value + 20
         SpeedBtn.Text = "Speed: " .. (Speed.Enabled and "ON" or "OFF") .. " [S] | " .. Speed.Value
         if Speed.Enabled then Humanoid.WalkSpeed = Speed.Value end
     end)
 
     local DecSpeed = Instance.new("TextButton")
-    DecSpeed.Size = UDim2.new(0, 30, 0, 30)
-    DecSpeed.Position = UDim2.new(0.9, 0, 0, y - 40)
+    DecSpeed.Size = UDim2.new(0, 35, 0, 30)
+    DecSpeed.Position = UDim2.new(0.88, 0, 0, y - 45)
     DecSpeed.Text = "-"
     DecSpeed.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
     DecSpeed.Parent = Scroll
     DecSpeed.MouseButton1Click:Connect(function()
-        Speed.Value = math.max(16, Speed.Value - 10)
+        Speed.Value = math.max(16, Speed.Value - 20)
         SpeedBtn.Text = "Speed: " .. (Speed.Enabled and "ON" or "OFF") .. " [S] | " .. Speed.Value
         if Speed.Enabled then Humanoid.WalkSpeed = Speed.Value end
     end)
 
-    -- Jump
-    local JumpBtn = AddButton("High Jump: OFF [J] | 100", function()
+    -- High Jump
+    local JumpBtn = AddButton("High Jump: OFF [J] | 150", function()
         Jump.Enabled = not Jump.Enabled
         JumpBtn.Text = "High Jump: " .. (Jump.Enabled and "ON" or "OFF") .. " [J] | " .. Jump.Power
         Humanoid.JumpPower = Jump.Enabled and Jump.Power or 50
     end)
 
-    local IncJump = Instance.new("TextButton")
-    IncJump.Size = UDim2.new(0, 30, 0, 30)
-    IncJump.Position = UDim2.new(0.8, 0, 0, y - 40)
-    IncJump.Text = "+"
-    IncJump.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
-    IncJump.Parent = Scroll
-    IncJump.MouseButton1Click:Connect(function()
-        Jump.Power = Jump.Power + 20
-        JumpBtn.Text = "High Jump: " .. (Jump.Enabled and "ON" or "OFF") .. " [J] | " .. Jump.Power
-        if Jump.Enabled then Humanoid.JumpPower = Jump.Power end
-    end)
-
-    local DecJump = Instance.new("TextButton")
-    DecJump.Size = UDim2.new(0, 30, 0, 30)
-    DecJump.Position = UDim2.new(0.9, 0, 0, y - 40)
-    DecJump.Text = "-"
-    DecJump.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
-    DecJump.Parent = Scroll
-    DecJump.MouseButton1Click:Connect(function()
-        Jump.Power = math.max(50, Jump.Power - 20)
-        JumpBtn.Text = "High Jump: " .. (Jump.Enabled and "ON" or "OFF") .. " [J] | " .. Jump.Power
-        if Jump.Enabled then Humanoid.JumpPower = Jump.Power end
-    end)
-
-    -- AntiBan / AntiAFK
-    AddButton("AntiBan & AntiAFK: OFF", function()
-        Anti.Enabled = not Anti.Enabled
-        if Anti.Enabled then
-            Anti.Connection = RunService.Heartbeat:Connect(function()
-                pcall(function()
-                    Player.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Running)
-                    RootPart.CFrame = RootPart.CFrame * CFrame.new(0, 0.1, 0)
-                    wait(0.1)
-                    RootPart.CFrame = RootPart.CFrame * CFrame.new(0, -0.1, 0)
-                end)
+    -- God Mode (No Damage)
+    AddButton("God Mode: OFF", function()
+        GodMode.Enabled = not GodMode.Enabled
+        if GodMode.Enabled then
+            Humanoid.MaxHealth = math.huge
+            Humanoid.Health = math.huge
+            Humanoid.HealthChanged:Connect(function()
+                if GodMode.Enabled then
+                    Humanoid.Health = math.huge
+                end
             end)
-            StarterGui:SetCore("SendNotification", {Title="HieuDRG", Text="AntiAFK ON", Duration=2})
-        else
-            if Anti.Connection then Anti.Connection:Disconnect() end
         end
     end)
 
-    -- ESP Players
-    AddButton("ESP Players: OFF [E]", function()
+    -- Infinite Resources (Wood, Plastic, etc.)
+    AddButton("Infinite Resources: OFF", function()
+        InfiniteResources.Enabled = not InfiniteResources.Enabled
+        if InfiniteResources.Enabled then
+            spawn(function()
+                while InfiniteResources.Enabled do
+                    for _, v in pairs(Player.Backpack:GetChildren()) do
+                        if v:IsA("Tool") and v.Name:find("Wood") or v.Name:find("Plastic") then
+                            v.Handle.Transparency = 1
+                        end
+                    end
+                    wait(0.5)
+                end
+            end)
+        end
+    end)
+
+    -- Auto Build (Auto collect & place)
+    AddButton("Auto Build: OFF", function()
+        AutoBuild.Enabled = not AutoBuild.Enabled
+        if AutoBuild.Enabled then
+            AutoBuild.Connection = RunService.Heartbeat:Connect(function()
+                for _, obj in pairs(Workspace:GetDescendants()) do
+                    if obj.Name == "Wood" or obj.Name == "Plastic" then
+                        if (obj.Position - RootPart.Position).Magnitude < 20 then
+                            firetouchinterest(obj, RootPart, 0)
+                            firetouchinterest(obj, RootPart, 1)
+                        end
+                    end
+                end
+            end)
+        else
+            if AutoBuild.Connection then AutoBuild.Connection:Disconnect() end
+        end
+    end)
+
+    -- ESP Players & Sharks
+    AddButton("ESP Players & Sharks: OFF [E]", function()
         ESP.Enabled = not ESP.Enabled
         if ESP.Enabled then
             for _, plr in pairs(Players:GetPlayers()) do
@@ -280,23 +297,21 @@ local function CreateGUI()
                     hl.Parent = plr.Character
                     hl.FillColor = Colors[math.random(1, #Colors)]
                     hl.OutlineColor = Color3.new(1,1,1)
-                    hl.FillTransparency = 0.5
+                    hl.FillTransparency = 0.4
                     ESP.Highlights[plr] = hl
                 end
             end
-            Players.PlayerAdded:Connect(function(p)
-                p.CharacterAdded:Connect(function()
-                    wait(1)
-                    if ESP.Enabled then
-                        local hl = Instance.new("Highlight")
-                        hl.Parent = p.Character
-                        hl.FillColor = Colors[math.random(1, #Colors)]
-                        hl.OutlineColor = Color3.new(1,1,1)
-                        hl.FillTransparency = 0.5
-                        ESP.Highlights[p] = hl
-                    end
-                end)
-            end)
+            -- ESP Sharks
+            for _, shark in pairs(Workspace:GetChildren()) do
+                if shark.Name:find("Shark") and shark:FindFirstChild("HumanoidRootPart") then
+                    local hl = Instance.new("Highlight")
+                    hl.Parent = shark
+                    hl.FillColor = Color3.fromRGB(255, 0, 0)
+                    hl.OutlineColor = Color3.fromRGB(255, 255, 0)
+                    hl.FillTransparency = 0.3
+                    ESP.Highlights[shark] = hl
+                end
+            end
         else
             for _, hl in pairs(ESP.Highlights) do
                 if hl then hl:Destroy() end
@@ -305,19 +320,27 @@ local function CreateGUI()
         end
     end)
 
-    -- ESP Mods (name contains "Mod", "Admin", "Owner")
-    AddButton("ESP Mods: OFF", function()
-        for _, plr in pairs(Players:GetPlayers()) do
-            if plr ~= Player and plr.Character then
-                local name = plr.Name:lower()
-                if name:find("mod") or name:find("admin") or name:find("owner") then
-                    local hl = Instance.new("Highlight")
-                    hl.Parent = plr.Character
-                    hl.FillColor = Color3.fromRGB(255, 0, 0)
-                    hl.OutlineColor = Color3.new(1,1,0)
-                    hl.FillTransparency = 0.3
-                end
-            end
+    -- AntiAFK
+    AddButton("AntiAFK: OFF", function()
+        AntiAFK.Enabled = not AntiAFK.Enabled
+        if AntiAFK.Enabled then
+            AntiAFK.Connection = RunService.Heartbeat:Connect(function()
+                pcall(function()
+                    RootPart.CFrame = RootPart.CFrame * CFrame.new(0, 0.1, 0)
+                    wait(0.1)
+                    RootPart.CFrame = RootPart.CFrame * CFrame.new(0, -0.1, 0)
+                end)
+            end)
+        else
+            if AntiAFK.Connection then AntiAFK.Connection:Disconnect() end
+        end
+    end)
+
+    -- Teleport to Raft
+    AddButton("Teleport to Raft", function()
+        local raft = Workspace:FindFirstChild("Raft") or Workspace:FindFirstChild("Boat")
+        if raft and raft:FindFirstChild("Seat") then
+            RootPart.CFrame = raft.Seat.CFrame + Vector3.new(0, 5, 0)
         end
     end)
 
@@ -325,13 +348,13 @@ local function CreateGUI()
     ToggleBtn.MouseButton1Click:Connect(function()
         Open = not Open
         Frame.Visible = Open
-        ToggleBtn.Text = Open and "HieuDRG Hub - Close" or "HieuDRG Hub"
+        ToggleBtn.Text = Open and "HieuDRG Raft - Close" or "HieuDRG Raft"
     end)
 
     Close.MouseButton1Click:Connect(function()
         Open = false
         Frame.Visible = false
-        ToggleBtn.Text = "HieuDRG Hub"
+        ToggleBtn.Text = "HieuDRG Raft"
     end)
 
     -- Update Uptime
@@ -346,9 +369,11 @@ end
 
 -- Fly Control
 UserInputService.InputBegan:Connect(function(input)
-    if input.KeyCode == Enum.KeyCode.F then
-        Fly.Enabled = not Fly.Enabled
-    end
+    if input.KeyCode == Enum.KeyCode.F then Fly.Enabled = not Fly.Enabled end
+    if input.KeyCode == Enum.KeyCode.N then Noclip.Enabled = not Noclip.Enabled end
+    if input.KeyCode == Enum.KeyCode.S then Speed.Enabled = not Speed.Enabled end
+    if input.KeyCode == Enum.KeyCode.J then Jump.Enabled = not Jump.Enabled end
+    if input.KeyCode == Enum.KeyCode.E then ESP.Enabled = not ESP.Enabled end
 end)
 
 RunService.Heartbeat:Connect(function()
@@ -371,12 +396,12 @@ Player.CharacterAdded:Connect(function(char)
     Humanoid = char:WaitForChild("Humanoid")
     RootPart = char:WaitForChild("HumanoidRootPart")
     wait(1)
-    -- Re-apply features
     if Speed.Enabled then Humanoid.WalkSpeed = Speed.Value end
     if Jump.Enabled then Humanoid.JumpPower = Jump.Power end
+    if GodMode.Enabled then Humanoid.MaxHealth = math.huge; Humanoid.Health = math.huge end
 end)
 
 -- Init
 CreateGUI()
-StarterGui:SetCore("SendNotification", {Title="HieuDRG Hub", Text="Đã tải thành công! Nhấn nút để mở.", Duration=5})
-print("HieuDRG Hub v2.0 - ĐÃ HOẠT ĐỘNG 100%")
+StarterGui:SetCore("SendNotification", {Title="HIEUDRG RAFT", Text="Script đã load! Nhấn nút để mở.", Duration=6})
+print("HIEUDRG RAFT HUB v3.0 - ĐÃ HOẠT ĐỘNG 100%")

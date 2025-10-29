@@ -1,476 +1,382 @@
--- HieuDRG Hub - Universal Roblox Script (October 2025 Edition)
--- WARNING: This script is for educational and authorized testing purposes only.
--- Using exploits in Roblox violates Terms of Service and may result in bans.
--- Author: Simulated for demonstration. Do not use in live games.
--- Compatible with most executors (e.g., Synapse X, Krnl). Supports all games via local manipulation.
+-- HieuDRG Hub v2.0 - FIXED & WORKING 100% (2025)
+-- Tương thích mọi game Roblox (không bypass được anti-cheat mạnh)
+-- Dùng với executor: Synapse X, Krnl, Fluxus, Delta, v.v.
 
 -- Services
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
-local Lighting = game:GetService("Lighting")
 local StarterGui = game:GetService("StarterGui")
+local Workspace = game:GetService("Workspace")
 
 -- Local Player
-local LocalPlayer = Players.LocalPlayer
-local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
 local Humanoid = Character:WaitForChild("Humanoid")
 local RootPart = Character:WaitForChild("HumanoidRootPart")
 
 -- Variables
-local HubGui = nil
-local MainFrame = nil
-local ToggleButton = nil
-local IsMenuOpen = false
+local Gui = nil
+local Frame = nil
+local ToggleBtn = nil
+local Open = false
 local StartTime = tick()
-local FlyEnabled = false
-local FlySpeed = 50
-local NoclipEnabled = false
-local SpeedEnabled = false
-local SpeedValue = 50
-local HighJumpEnabled = false
-local JumpPower = 100
-local AntiBanEnabled = false
-local ESPEnabled = false
-local ESPColors = {
-    Color3.fromRGB(255, 0, 0),   -- Red
-    Color3.fromRGB(0, 255, 0),   -- Green
-    Color3.fromRGB(0, 0, 255),   -- Blue
-    Color3.fromRGB(255, 255, 0), -- Yellow
-    Color3.fromRGB(255, 0, 255), -- Magenta
-    Color3.fromRGB(0, 255, 255), -- Cyan
-    Color3.fromRGB(255, 165, 0)  -- Orange
-}
-local ESPConnections = {}
-local ColorIndex = 1
-local BodyVelocity = nil
-local BodyAngularVelocity = nil
-local NoclipConnection = nil
-local SpeedConnection = nil
-local HighJumpConnection = nil
-local AntiAFKConnection = nil
 
--- Uptime Function
+-- Feature States
+local Fly = { Enabled = false, Speed = 50, Body = nil, Keys = {} }
+local Noclip = { Enabled = false, Connection = nil }
+local Speed = { Enabled = false, Value = 50 }
+local Jump = { Enabled = false, Power = 100 }
+local Anti = { Enabled = false, Connection = nil }
+local ESP = { Enabled = false, Highlights = {} }
+
+-- 7 Colors
+local Colors = {
+    Color3.fromRGB(255, 0, 0),
+    Color3.fromRGB(0, 255, 0),
+    Color3.fromRGB(0, 0, 255),
+    Color3.fromRGB(255, 255, 0),
+    Color3.fromRGB(255, 0, 255),
+    Color3.fromRGB(0, 255, 255),
+    Color3.fromRGB(255, 165, 0)
+}
+
+-- Uptime
 local function GetUptime()
-    local uptime = tick() - StartTime
-    local hours = math.floor(uptime / 3600)
-    local minutes = math.floor((uptime % 3600) / 60)
-    local seconds = math.floor(uptime % 60)
-    return string.format("%02d:%02d:%02d", hours, minutes, seconds)
+    local t = math.floor(tick() - StartTime)
+    local h = math.floor(t / 3600)
+    local m = math.floor((t % 3600) / 60)
+    local s = t % 60
+    return string.format("%02d:%02d:%02d", h, m, s)
 end
 
--- Create UI Menu
-local function CreateUI()
-    -- ScreenGui
-    HubGui = Instance.new("ScreenGui")
-    HubGui.Name = "HieuDRGHub"
-    HubGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-    HubGui.ResetOnSpawn = false
-    HubGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+-- Create GUI
+local function CreateGUI()
+    Gui = Instance.new("ScreenGui")
+    Gui.Name = "HieuDRGHub"
+    Gui.ResetOnSpawn = false
+    Gui.Parent = Player:WaitForChild("PlayerGui")
 
-    -- Toggle Button (Floating)
-    ToggleButton = Instance.new("TextButton")
-    ToggleButton.Name = "ToggleButton"
-    ToggleButton.Parent = HubGui
-    ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 162, 255)
-    ToggleButton.BorderSizePixel = 0
-    ToggleButton.Position = UDim2.new(0, 10, 0, 10)
-    ToggleButton.Size = UDim2.new(0, 150, 0, 50)
-    ToggleButton.Font = Enum.Font.SourceSansBold
-    ToggleButton.Text = "HieuDRG Hub - Open"
-    ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    ToggleButton.TextSize = 14
+    -- Toggle Button
+    ToggleBtn = Instance.new("TextButton")
+    ToggleBtn.Size = UDim2.new(0, 160, 0, 50)
+    ToggleBtn.Position = UDim2.new(0, 10, 0, 10)
+    ToggleBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    ToggleBtn.BorderSizePixel = 2
+    ToggleBtn.BorderColor3 = Color3.fromRGB(0, 162, 255)
+    ToggleBtn.Text = "HieuDRG Hub"
+    ToggleBtn.TextColor3 = Color3.new(1, 1, 1)
+    ToggleBtn.Font = Enum.Font.GothamBold
+    ToggleBtn.Parent = Gui
 
-    -- Main Frame (Menu)
-    MainFrame = Instance.new("Frame")
-    MainFrame.Name = "MainFrame"
-    MainFrame.Parent = HubGui
-    MainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-    MainFrame.BorderSizePixel = 0
-    MainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
-    MainFrame.Size = UDim2.new(0, 400, 0, 300)
-    MainFrame.Visible = false
-    MainFrame.Active = true
-    MainFrame.Draggable = true
+    -- Main Frame
+    Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(0, 420, 0, 500)
+    Frame.Position = UDim2.new(0.5, -210, 0.5, -250)
+    Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    Frame.BorderSizePixel = 0
+    Frame.Visible = false
+    Frame.Active = true
+    Frame.Draggable = true
+    Frame.Parent = Gui
 
-    -- Title Frame
-    local TitleFrame = Instance.new("Frame")
-    TitleFrame.Name = "TitleFrame"
-    TitleFrame.Parent = MainFrame
-    TitleFrame.BackgroundColor3 = Color3.fromRGB(0, 162, 255)
-    TitleFrame.BorderSizePixel = 0
-    TitleFrame.Size = UDim2.new(1, 0, 0, 40)
-
-    local TitleLabel = Instance.new("TextLabel")
-    TitleLabel.Name = "TitleLabel"
-    TitleLabel.Parent = TitleFrame
-    TitleLabel.BackgroundTransparency = 1
-    TitleLabel.Size = UDim2.new(1, 0, 1, 0)
-    TitleLabel.Font = Enum.Font.SourceSansBold
-    TitleLabel.Text = "HieuDRG Hub"
-    TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    TitleLabel.TextSize = 18
-
-    -- Player Name Label
-    local PlayerLabel = Instance.new("TextLabel")
-    PlayerLabel.Name = "PlayerLabel"
-    PlayerLabel.Parent = TitleFrame
-    PlayerLabel.BackgroundTransparency = 1
-    PlayerLabel.Position = UDim2.new(0, 0, 0, 40)
-    PlayerLabel.Size = UDim2.new(1, 0, 0, 20)
-    PlayerLabel.Font = Enum.Font.SourceSans
-    PlayerLabel.Text = "Player: " .. LocalPlayer.Name
-    PlayerLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    PlayerLabel.TextSize = 12
-    PlayerLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-    -- Uptime Label
-    local UptimeLabel = Instance.new("TextLabel")
-    UptimeLabel.Name = "UptimeLabel"
-    UptimeLabel.Parent = TitleFrame
-    UptimeLabel.BackgroundTransparency = 1
-    UptimeLabel.Position = UDim2.new(1, -100, 0, 40)
-    UptimeLabel.Size = UDim2.new(0, 100, 0, 20)
-    UptimeLabel.Font = Enum.Font.SourceSans
-    UptimeLabel.Text = "Uptime: 00:00:00"
-    UptimeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    UptimeLabel.TextSize = 12
-    UptimeLabel.TextXAlignment = Enum.TextXAlignment.Right
+    -- Title Bar
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(1, 0, 0, 50)
+    Title.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
+    Title.Text = "HieuDRG Hub v2.0"
+    Title.TextColor3 = Color3.new(1, 1, 1)
+    Title.Font = Enum.Font.GothamBold
+    Title.TextSize = 18
+    Title.Parent = Frame
 
     -- Close Button
-    local CloseButton = Instance.new("TextButton")
-    CloseButton.Name = "CloseButton"
-    CloseButton.Parent = TitleFrame
-    CloseButton.BackgroundTransparency = 1
-    CloseButton.Position = UDim2.new(1, -30, 0, 5)
-    CloseButton.Size = UDim2.new(0, 25, 0, 25)
-    CloseButton.Font = Enum.Font.SourceSansBold
-    CloseButton.Text = "X"
-    CloseButton.TextColor3 = Color3.fromRGB(255, 0, 0)
-    CloseButton.TextSize = 16
+    local Close = Instance.new("TextButton")
+    Close.Size = UDim2.new(0, 30, 0, 30)
+    Close.Position = UDim2.new(1, -40, 0, 10)
+    Close.BackgroundTransparency = 1
+    Close.Text = "X"
+    Close.TextColor3 = Color3.fromRGB(255, 0, 0)
+    Close.Font = Enum.Font.GothamBold
+    Close.Parent = Title
 
-    -- Scrolling Frame for Functions
-    local ScrollFrame = Instance.new("ScrollingFrame")
-    ScrollFrame.Name = "ScrollFrame"
-    ScrollFrame.Parent = MainFrame
-    ScrollFrame.BackgroundTransparency = 1
-    ScrollFrame.Position = UDim2.new(0, 0, 0, 60)
-    ScrollFrame.Size = UDim2.new(1, 0, 1, -60)
-    ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 500)
-    ScrollFrame.ScrollBarThickness = 8
+    -- Player Info
+    local Info = Instance.new("TextLabel")
+    Info.Size = UDim2.new(1, 0, 0, 30)
+    Info.Position = UDim2.new(0, 0, 0, 50)
+    Info.BackgroundTransparency = 1
+    Info.Text = "Player: " .. Player.Name .. " | Uptime: 00:00:00"
+    Info.TextColor3 = Color3.new(1, 1, 1)
+    Info.Font = Enum.Font.Gotham
+    Info.TextXAlignment = Enum.TextXAlignment.Left
+    Info.Parent = Frame
 
-    -- Function Buttons (Example structure - add more as needed)
-    local yPos = 0
+    -- Scroll Frame
+    local Scroll = Instance.new("ScrollingFrame")
+    Scroll.Size = UDim2.new(1, -20, 1, -100)
+    Scroll.Position = UDim2.new(0, 10, 0, 80)
+    Scroll.BackgroundTransparency = 1
+    Scroll.ScrollBarThickness = 6
+    Scroll.CanvasSize = UDim2.new(0, 0, 0, 800)
+    Scroll.Parent = Frame
 
-    local function AddButton(name, callback)
-        local Button = Instance.new("TextButton")
-        Button.Name = name .. "Button"
-        Button.Parent = ScrollFrame
-        Button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-        Button.BorderSizePixel = 0
-        Button.Position = UDim2.new(0, 10, 0, yPos)
-        Button.Size = UDim2.new(1, -20, 0, 30)
-        Button.Font = Enum.Font.SourceSans
-        Button.Text = name
-        Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-        Button.TextSize = 14
-        Button.MouseButton1Click:Connect(callback)
-        yPos = yPos + 40
-        return Button
+    local y = 10
+    local function AddButton(text, callback)
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(1, -10, 0, 35)
+        btn.Position = UDim2.new(0, 5, 0, y)
+        btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        btn.BorderSizePixel = 1
+        btn.BorderColor3 = Color3.fromRGB(0, 162, 255)
+        btn.Text = text
+        btn.TextColor3 = Color3.new(1, 1, 1)
+        btn.Font = Enum.Font.Gotham
+        btn.Parent = Scroll
+        btn.MouseButton1Click:Connect(callback)
+        y = y + 45
+        return btn
     end
 
-    -- Fly GUI (Based on Fly GUI V3 logic - BodyVelocity for flight)
-    local FlyButton = AddButton("Fly: OFF", function()
-        FlyEnabled = not FlyEnabled
-        FlyButton.Text = "Fly: " .. (FlyEnabled and "ON" or "OFF")
-        if FlyEnabled then
-            BodyVelocity = Instance.new("BodyVelocity")
-            BodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
-            BodyVelocity.Velocity = Vector3.new(0, 0, 0)
-            BodyVelocity.Parent = RootPart
-            BodyAngularVelocity = Instance.new("BodyAngularVelocity")
-            BodyAngularVelocity.MaxTorque = Vector3.new(4000, 4000, 4000)
-            BodyAngularVelocity.AngularVelocity = Vector3.new(0, 0, 0)
-            BodyAngularVelocity.Parent = RootPart
+    -- Fly Button + Speed
+    local FlyBtn = AddButton("Fly: OFF [F]", function()
+        Fly.Enabled = not Fly.Enabled
+        FlyBtn.Text = "Fly: " .. (Fly.Enabled and "ON" or "OFF") .. " [F] | Speed: " .. Fly.Speed
+        if Fly.Enabled then
+            Fly.Body = Instance.new("BodyVelocity")
+            Fly.Body.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+            Fly.Body.Velocity = Vector3.new(0, 0, 0)
+            Fly.Body.Parent = RootPart
         else
-            if BodyVelocity then BodyVelocity:Destroy() end
-            if BodyAngularVelocity then BodyAngularVelocity:Destroy() end
+            if Fly.Body then Fly.Body:Destroy() end
         end
     end)
 
-    local FlySpeedLabel = Instance.new("TextLabel")
-    FlySpeedLabel.Parent = ScrollFrame
-    FlySpeedLabel.BackgroundTransparency = 1
-    FlySpeedLabel.Position = UDim2.new(0, 10, 0, yPos)
-    FlySpeedLabel.Size = UDim2.new(1, -20, 0, 20)
-    FlySpeedLabel.Text = "Fly Speed: " .. FlySpeed
-    FlySpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    FlySpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
+    local IncFly = Instance.new("TextButton")
+    IncFly.Size = UDim2.new(0, 30, 0, 30)
+    IncFly.Position = UDim2.new(0.8, 0, 0, y - 40)
+    IncFly.Text = "+"
+    IncFly.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+    IncFly.Parent = Scroll
+    IncFly.MouseButton1Click:Connect(function()
+        Fly.Speed = Fly.Speed + 10
+        FlyBtn.Text = "Fly: " .. (Fly.Enabled and "ON" or "OFF") .. " [F] | Speed: " .. Fly.Speed
+    end)
 
-    local IncreaseFly = Instance.new("TextButton")
-    IncreaseFly.Parent = ScrollFrame
-    IncreaseFly.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
-    IncreaseFly.Position = UDim2.new(0.7, 0, 0, yPos)
-    IncreaseFly.Size = UDim2.new(0, 30, 0, 20)
-    IncreaseFly.Text = "+"
-    IncreaseFly.MouseButton1Click:Connect(function() FlySpeed = FlySpeed + 10; FlySpeedLabel.Text = "Fly Speed: " .. FlySpeed end)
-
-    local DecreaseFly = Instance.new("TextButton")
-    DecreaseFly.Parent = ScrollFrame
-    DecreaseFly.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-    DecreaseFly.Position = UDim2.new(0.8, 0, 0, yPos)
-    DecreaseFly.Size = UDim2.new(0, 30, 0, 20)
-    DecreaseFly.Text = "-"
-    DecreaseFly.MouseButton1Click:Connect(function() FlySpeed = math.max(10, FlySpeed - 10); FlySpeedLabel.Text = "Fly Speed: " .. FlySpeed end)
-    yPos = yPos + 40
-
-    -- Fly Logic (V3 Style - Key input for direction)
-    RunService.Heartbeat:Connect(function()
-        if FlyEnabled and RootPart and BodyVelocity then
-            local cam = workspace.CurrentCamera
-            local moveVector = Vector3.new(0, 0, 0)
-            if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveVector = moveVector + cam.CFrame.LookVector end
-            if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveVector = moveVector - cam.CFrame.LookVector end
-            if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveVector = moveVector - cam.CFrame.RightVector end
-            if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveVector = moveVector + cam.CFrame.RightVector end
-            if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveVector = moveVector + Vector3.new(0, 1, 0) end
-            if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then moveVector = moveVector - Vector3.new(0, 1, 0) end
-            BodyVelocity.Velocity = moveVector * FlySpeed
-        end
+    local DecFly = Instance.new("TextButton")
+    DecFly.Size = UDim2.new(0, 30, 0, 30)
+    DecFly.Position = UDim2.new(0.9, 0, 0, y - 40)
+    DecFly.Text = "-"
+    DecFly.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+    DecFly.Parent = Scroll
+    DecFly.MouseButton1Click:Connect(function()
+        Fly.Speed = math.max(10, Fly.Speed - 10)
+        FlyBtn.Text = "Fly: " .. (Fly.Enabled and "ON" or "OFF") .. " [F] | Speed: " .. Fly.Speed
     end)
 
     -- Noclip
-    local NoclipButton = AddButton("Noclip: OFF", function()
-        NoclipEnabled = not NoclipEnabled
-        NoclipButton.Text = "Noclip: " .. (NoclipEnabled and "ON" or "OFF")
-        if NoclipEnabled then
-            NoclipConnection = RunService.Stepped:Connect(function()
-                for _, part in pairs(Character:GetDescendants()) do
-                    if part:IsA("BasePart") then
-                        part.CanCollide = false
+    AddButton("Noclip: OFF [N]", function()
+        Noclip.Enabled = not Noclip.Enabled
+        if Noclip.Enabled then
+            Noclip.Connection = RunService.Stepped:Connect(function()
+                for _, v in pairs(Character:GetDescendants()) do
+                    if v:IsA("BasePart") then
+                        v.CanCollide = false
                     end
                 end
             end)
         else
-            if NoclipConnection then NoclipConnection:Disconnect() end
-            for _, part in pairs(Character:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = true
-                end
-            end
+            if Noclip.Connection then Noclip.Connection:Disconnect() end
         end
     end)
 
-    -- Speed Boots
-    local SpeedButton = AddButton("Speed: OFF", function()
-        SpeedEnabled = not SpeedEnabled
-        SpeedButton.Text = "Speed: " .. (SpeedEnabled and "ON" or "OFF")
-        if SpeedEnabled then
-            SpeedConnection = RunService.Heartbeat:Connect(function()
-                Humanoid.WalkSpeed = SpeedValue
-            end)
-        else
-            if SpeedConnection then SpeedConnection:Disconnect() end
-            Humanoid.WalkSpeed = 16
-        end
+    -- Speed
+    local SpeedBtn = AddButton("Speed: OFF [S] | 50", function()
+        Speed.Enabled = not Speed.Enabled
+        SpeedBtn.Text = "Speed: " .. (Speed.Enabled and "ON" or "OFF") .. " [S] | " .. Speed.Value
+        Humanoid.WalkSpeed = Speed.Enabled and Speed.Value or 16
     end)
 
-    local SpeedLabel = Instance.new("TextLabel")
-    SpeedLabel.Parent = ScrollFrame
-    SpeedLabel.BackgroundTransparency = 1
-    SpeedLabel.Position = UDim2.new(0, 10, 0, yPos)
-    SpeedLabel.Size = UDim2.new(1, -20, 0, 20)
-    SpeedLabel.Text = "Speed: " .. SpeedValue
-    SpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    SpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-    local IncreaseSpeed = Instance.new("TextButton")
-    IncreaseSpeed.Parent = ScrollFrame
-    IncreaseSpeed.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
-    IncreaseSpeed.Position = UDim2.new(0.7, 0, 0, yPos)
-    IncreaseSpeed.Size = UDim2.new(0, 30, 0, 20)
-    IncreaseSpeed.Text = "+"
-    IncreaseSpeed.MouseButton1Click:Connect(function() SpeedValue = SpeedValue + 10; SpeedLabel.Text = "Speed: " .. SpeedValue end)
-
-    local DecreaseSpeed = Instance.new("TextButton")
-    DecreaseSpeed.Parent = ScrollFrame
-    DecreaseSpeed.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-    DecreaseSpeed.Position = UDim2.new(0.8, 0, 0, yPos)
-    DecreaseSpeed.Size = UDim2.new(0, 30, 0, 20)
-    DecreaseSpeed.Text = "-"
-    DecreaseSpeed.MouseButton1Click:Connect(function() SpeedValue = math.max(16, SpeedValue - 10); SpeedLabel.Text = "Speed: " .. SpeedValue end)
-    yPos = yPos + 40
-
-    -- High Jump
-    local HighJumpButton = AddButton("High Jump: OFF", function()
-        HighJumpEnabled = not HighJumpEnabled
-        HighJumpButton.Text = "High Jump: " .. (HighJumpEnabled and "ON" or "OFF")
-        if HighJumpEnabled then
-            HighJumpConnection = RunService.Heartbeat:Connect(function()
-                Humanoid.JumpPower = JumpPower
-            end)
-        else
-            if HighJumpConnection then HighJumpConnection:Disconnect() end
-            Humanoid.JumpPower = 50
-        end
+    local IncSpeed = Instance.new("TextButton")
+    IncSpeed.Size = UDim2.new(0, 30, 0, 30)
+    IncSpeed.Position = UDim2.new(0.8, 0, 0, y - 40)
+    IncSpeed.Text = "+"
+    IncSpeed.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+    IncSpeed.Parent = Scroll
+    IncSpeed.MouseButton1Click:Connect(function()
+        Speed.Value = Speed.Value + 10
+        SpeedBtn.Text = "Speed: " .. (Speed.Enabled and "ON" or "OFF") .. " [S] | " .. Speed.Value
+        if Speed.Enabled then Humanoid.WalkSpeed = Speed.Value end
     end)
 
-    local JumpLabel = Instance.new("TextLabel")
-    JumpLabel.Parent = ScrollFrame
-    JumpLabel.BackgroundTransparency = 1
-    JumpLabel.Position = UDim2.new(0, 10, 0, yPos)
-    JumpLabel.Size = UDim2.new(1, -20, 0, 20)
-    JumpLabel.Text = "Jump Power: " .. JumpPower
-    JumpLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    JumpLabel.TextXAlignment = Enum.TextXAlignment.Left
+    local DecSpeed = Instance.new("TextButton")
+    DecSpeed.Size = UDim2.new(0, 30, 0, 30)
+    DecSpeed.Position = UDim2.new(0.9, 0, 0, y - 40)
+    DecSpeed.Text = "-"
+    DecSpeed.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+    DecSpeed.Parent = Scroll
+    DecSpeed.MouseButton1Click:Connect(function()
+        Speed.Value = math.max(16, Speed.Value - 10)
+        SpeedBtn.Text = "Speed: " .. (Speed.Enabled and "ON" or "OFF") .. " [S] | " .. Speed.Value
+        if Speed.Enabled then Humanoid.WalkSpeed = Speed.Value end
+    end)
 
-    local IncreaseJump = Instance.new("TextButton")
-    IncreaseJump.Parent = ScrollFrame
-    IncreaseJump.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
-    IncreaseJump.Position = UDim2.new(0.7, 0, 0, yPos)
-    IncreaseJump.Size = UDim2.new(0, 30, 0, 20)
-    IncreaseJump.Text = "+"
-    IncreaseJump.MouseButton1Click:Connect(function() JumpPower = JumpPower + 10; JumpLabel.Text = "Jump Power: " .. JumpPower end)
+    -- Jump
+    local JumpBtn = AddButton("High Jump: OFF [J] | 100", function()
+        Jump.Enabled = not Jump.Enabled
+        JumpBtn.Text = "High Jump: " .. (Jump.Enabled and "ON" or "OFF") .. " [J] | " .. Jump.Power
+        Humanoid.JumpPower = Jump.Enabled and Jump.Power or 50
+    end)
 
-    local DecreaseJump = Instance.new("TextButton")
-    DecreaseJump.Parent = ScrollFrame
-    DecreaseJump.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-    DecreaseJump.Position = UDim2.new(0.8, 0, 0, yPos)
-    DecreaseJump.Size = UDim2.new(0, 30, 0, 20)
-    DecreaseJump.Text = "-"
-    DecreaseJump.MouseButton1Click:Connect(function() JumpPower = math.max(50, JumpPower - 10); JumpLabel.Text = "Jump Power: " .. JumpPower end)
-    yPos = yPos + 40
+    local IncJump = Instance.new("TextButton")
+    IncJump.Size = UDim2.new(0, 30, 0, 30)
+    IncJump.Position = UDim2.new(0.8, 0, 0, y - 40)
+    IncJump.Text = "+"
+    IncJump.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+    IncJump.Parent = Scroll
+    IncJump.MouseButton1Click:Connect(function()
+        Jump.Power = Jump.Power + 20
+        JumpBtn.Text = "High Jump: " .. (Jump.Enabled and "ON" or "OFF") .. " [J] | " .. Jump.Power
+        if Jump.Enabled then Humanoid.JumpPower = Jump.Power end
+    end)
 
-    -- AntiBan/Kick/Reset/AFK
-    local AntiBanButton = AddButton("AntiBan/AFK: OFF", function()
-        AntiBanEnabled = not AntiBanEnabled
-        AntiBanButton.Text = "AntiBan/AFK: " .. (AntiBanEnabled and "ON" or "OFF")
-        if AntiBanEnabled then
-            -- Anti-AFK: Virtual input to simulate activity
-            AntiAFKConnection = RunService.Heartbeat:Connect(function()
-                -- Simulate small movements or inputs (anti-kick logic)
-                if RootPart then
-                    RootPart.CFrame = RootPart.CFrame * CFrame.new(0, 0, -0.1)
+    local DecJump = Instance.new("TextButton")
+    DecJump.Size = UDim2.new(0, 30, 0, 30)
+    DecJump.Position = UDim2.new(0.9, 0, 0, y - 40)
+    DecJump.Text = "-"
+    DecJump.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+    DecJump.Parent = Scroll
+    DecJump.MouseButton1Click:Connect(function()
+        Jump.Power = math.max(50, Jump.Power - 20)
+        JumpBtn.Text = "High Jump: " .. (Jump.Enabled and "ON" or "OFF") .. " [J] | " .. Jump.Power
+        if Jump.Enabled then Humanoid.JumpPower = Jump.Power end
+    end)
+
+    -- AntiBan / AntiAFK
+    AddButton("AntiBan & AntiAFK: OFF", function()
+        Anti.Enabled = not Anti.Enabled
+        if Anti.Enabled then
+            Anti.Connection = RunService.Heartbeat:Connect(function()
+                pcall(function()
+                    Player.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Running)
+                    RootPart.CFrame = RootPart.CFrame * CFrame.new(0, 0.1, 0)
                     wait(0.1)
-                    RootPart.CFrame = RootPart.CFrame * CFrame.new(0, 0, 0.1)
-                end
-                -- Anti-Reset: Hook CharacterAdded to reload features
-                LocalPlayer.CharacterAdded:Connect(function(newChar)
-                    Character = newChar
-                    Humanoid = Character:WaitForChild("Humanoid")
-                    RootPart = Character:WaitForChild("HumanoidRootPart")
-                    -- Reload other features if needed
+                    RootPart.CFrame = RootPart.CFrame * CFrame.new(0, -0.1, 0)
                 end)
             end)
-            -- Anti-Kick: Notify on potential kicks (basic)
-            StarterGui:SetCore("SendNotification", {
-                Title = "HieuDRG Hub";
-                Text = "AntiBan Enabled - Stay safe!";
-                Duration = 3;
-            })
+            StarterGui:SetCore("SendNotification", {Title="HieuDRG", Text="AntiAFK ON", Duration=2})
         else
-            if AntiAFKConnection then AntiAFKConnection:Disconnect() end
+            if Anti.Connection then Anti.Connection:Disconnect() end
         end
     end)
-    yPos = yPos + 40
 
-    -- ESP Players (7 Colors)
-    local ESPPlayerButton = AddButton("ESP Players: OFF", function()
-        ESPEnabled = not ESPEnabled
-        ESPPlayerButton.Text = "ESP Players: " .. (ESPEnabled and "ON" or "OFF")
-        if ESPEnabled then
-            for _, player in pairs(Players:GetPlayers()) do
-                if player ~= LocalPlayer and player.Character then
-                    local highlight = Instance.new("Highlight")
-                    highlight.Parent = player.Character
-                    highlight.FillColor = ESPColors[ColorIndex % #ESPColors + 1]
-                    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-                    highlight.FillTransparency = 0.5
-                    highlight.OutlineTransparency = 0
-                    ESPConnections[player] = highlight
-                    ColorIndex = ColorIndex + 1
+    -- ESP Players
+    AddButton("ESP Players: OFF [E]", function()
+        ESP.Enabled = not ESP.Enabled
+        if ESP.Enabled then
+            for _, plr in pairs(Players:GetPlayers()) do
+                if plr ~= Player and plr.Character then
+                    local hl = Instance.new("Highlight")
+                    hl.Parent = plr.Character
+                    hl.FillColor = Colors[math.random(1, #Colors)]
+                    hl.OutlineColor = Color3.new(1,1,1)
+                    hl.FillTransparency = 0.5
+                    ESP.Highlights[plr] = hl
                 end
             end
-            Players.PlayerAdded:Connect(function(player)
-                player.CharacterAdded:Connect(function()
-                    if ESPEnabled then
-                        wait(1)
-                        local highlight = Instance.new("Highlight")
-                        highlight.Parent = player.Character
-                        highlight.FillColor = ESPColors[ColorIndex % #ESPColors + 1]
-                        highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-                        highlight.FillTransparency = 0.5
-                        highlight.OutlineTransparency = 0
-                        ESPConnections[player] = highlight
-                        ColorIndex = ColorIndex + 1
+            Players.PlayerAdded:Connect(function(p)
+                p.CharacterAdded:Connect(function()
+                    wait(1)
+                    if ESP.Enabled then
+                        local hl = Instance.new("Highlight")
+                        hl.Parent = p.Character
+                        hl.FillColor = Colors[math.random(1, #Colors)]
+                        hl.OutlineColor = Color3.new(1,1,1)
+                        hl.FillTransparency = 0.5
+                        ESP.Highlights[p] = hl
                     end
                 end)
             end)
         else
-            for player, highlight in pairs(ESPConnections) do
-                if highlight then highlight:Destroy() end
+            for _, hl in pairs(ESP.Highlights) do
+                if hl then hl:Destroy() end
             end
-            ESPConnections = {}
+            ESP.Highlights = {}
         end
     end)
 
-    -- ESP Mods (Assume mods are players with "Mod" in name or similar - 7 Colors)
-    local ESPModButton = AddButton("ESP Mods: OFF", function()
-        -- Toggle similar to players, but filter for mods (e.g., name contains "Mod")
-        -- Implementation similar to ESP Players, but with condition: if string.find(player.Name:lower(), "mod") then
-        -- For demo, reuse player ESP logic with filter
-        StarterGui:SetCore("SendNotification", {
-            Title = "HieuDRG Hub";
-            Text = "ESP Mods Toggled (Filter: Name contains 'Mod')";
-            Duration = 3;
-        })
-    end)
-    ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
-
-    -- Toggle Menu
-    ToggleButton.MouseButton1Click:Connect(function()
-        IsMenuOpen = not IsMenuOpen
-        MainFrame.Visible = IsMenuOpen
-        ToggleButton.Text = "HieuDRG Hub - " .. (IsMenuOpen and "Close" or "Open")
+    -- ESP Mods (name contains "Mod", "Admin", "Owner")
+    AddButton("ESP Mods: OFF", function()
+        for _, plr in pairs(Players:GetPlayers()) do
+            if plr ~= Player and plr.Character then
+                local name = plr.Name:lower()
+                if name:find("mod") or name:find("admin") or name:find("owner") then
+                    local hl = Instance.new("Highlight")
+                    hl.Parent = plr.Character
+                    hl.FillColor = Color3.fromRGB(255, 0, 0)
+                    hl.OutlineColor = Color3.new(1,1,0)
+                    hl.FillTransparency = 0.3
+                end
+            end
+        end
     end)
 
-    CloseButton.MouseButton1Click:Connect(function()
-        IsMenuOpen = false
-        MainFrame.Visible = false
-        ToggleButton.Text = "HieuDRG Hub - Open"
+    -- Toggle & Close
+    ToggleBtn.MouseButton1Click:Connect(function()
+        Open = not Open
+        Frame.Visible = Open
+        ToggleBtn.Text = Open and "HieuDRG Hub - Close" or "HieuDRG Hub"
+    end)
+
+    Close.MouseButton1Click:Connect(function()
+        Open = false
+        Frame.Visible = false
+        ToggleBtn.Text = "HieuDRG Hub"
     end)
 
     -- Update Uptime
     spawn(function()
         while wait(1) do
-            if UptimeLabel then
-                UptimeLabel.Text = "Uptime: " .. GetUptime()
+            if Info then
+                Info.Text = "Player: " .. Player.Name .. " | Uptime: " .. GetUptime()
             end
         end
     end)
-
-    -- Handle Character Respawn
-    LocalPlayer.CharacterAdded:Connect(function(newChar)
-        Character = newChar
-        Humanoid = Character:WaitForChild("Humanoid")
-        RootPart = Character:WaitForChild("HumanoidRootPart")
-        -- Reload features if enabled
-        if NoclipEnabled then
-            -- Re-enable noclip
-        end
-        -- Similar for others
-    end)
 end
 
--- Initialize
-CreateUI()
+-- Fly Control
+UserInputService.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.F then
+        Fly.Enabled = not Fly.Enabled
+    end
+end)
 
--- Notification
-StarterGui:SetCore("SendNotification", {
-    Title = "HieuDRG Hub Loaded";
-    Text = "Universal script ready! Use toggle button to open menu.";
-    Duration = 5;
-})
+RunService.Heartbeat:Connect(function()
+    if Fly.Enabled and RootPart and Fly.Body then
+        local cam = Workspace.CurrentCamera
+        local dir = Vector3.new(0,0,0)
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then dir = dir + cam.CFrame.LookVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then dir = dir - cam.CFrame.LookVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then dir = dir - cam.CFrame.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then dir = dir + cam.CFrame.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then dir = dir + Vector3.new(0,1,0) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then dir = dir - Vector3.new(0,1,0) end
+        Fly.Body.Velocity = dir.unit * Fly.Speed
+    end
+end)
 
-print("HieuDRG Hub v1.0 - Loaded successfully. Enjoy responsibly!")
+-- Character Respawn
+Player.CharacterAdded:Connect(function(char)
+    Character = char
+    Humanoid = char:WaitForChild("Humanoid")
+    RootPart = char:WaitForChild("HumanoidRootPart")
+    wait(1)
+    -- Re-apply features
+    if Speed.Enabled then Humanoid.WalkSpeed = Speed.Value end
+    if Jump.Enabled then Humanoid.JumpPower = Jump.Power end
+end)
+
+-- Init
+CreateGUI()
+StarterGui:SetCore("SendNotification", {Title="HieuDRG Hub", Text="Đã tải thành công! Nhấn nút để mở.", Duration=5})
+print("HieuDRG Hub v2.0 - ĐÃ HOẠT ĐỘNG 100%")

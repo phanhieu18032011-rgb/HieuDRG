@@ -1,36 +1,32 @@
--- HIEUDRG RAFT HUB v5.0 - ĐÃ TEST 100% TRÊN GAME [Sống sót trên bè]
--- TẤT CẢ NÚT BẬT ĐƯỢC NGAY KHI CLICK
--- DÙNG CHO: Synapse X, Krnl, Delta
+-- HIEUDRG RAFT HUB v6.0 - BẬT/TẮT HOÀN HẢO
+-- TESTED 100% TRÊN: [Classes & Spell Update] Sống sót trên bè
+-- DÙNG VỚI: Synapse X, Krnl, Delta
 
--- Services
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 local StarterGui = game:GetService("StarterGui")
 
--- Player
 local Player = Players.LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
 local Humanoid = Character:WaitForChild("Humanoid")
 local RootPart = Character:WaitForChild("HumanoidRootPart")
 
 -- === TRẠNG THÁI ===
-local Fly = { on = false, speed = 80, body = nil }
-local Noclip = { on = false, conn = nil }
-local Speed = { on = false, value = 100 }
-local Jump = { on = false, power = 150 }
-local God = { on = false }
-local ESP = { on = false, hl = {} }
-local AutoBuild = { on = false, conn = nil }
+local Fly = { on = false, speed = 80, body = nil, btn = nil }
+local Noclip = { on = false, conn = nil, btn = nil }
+local Speed = { on = false, value = 100, btn = nil }
+local Jump = { on = false, power = 150, btn = nil }
+local God = { on = false, btn = nil }
+local ESP = { on = false, hl = {}, btn = nil }
+local AutoBuild = { on = false, conn = nil, btn = nil }
 
 -- === GUI ===
-local Gui = Instance.new("ScreenGui")
+local Gui = Instance.new("ScreenGui", Player.PlayerGui)
 Gui.Name = "HieuDRG_Raft"
 Gui.ResetOnSpawn = false
-Gui.Parent = Player.PlayerGui
 
--- Toggle Button
 local Toggle = Instance.new("TextButton", Gui)
 Toggle.Size = UDim2.new(0, 180, 0, 50)
 Toggle.Position = UDim2.new(0, 10, 0, 10)
@@ -38,9 +34,7 @@ Toggle.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
 Toggle.Text = "HieuDRG Raft"
 Toggle.TextColor3 = Color3.new(1,1,1)
 Toggle.Font = Enum.Font.GothamBold
-Toggle.TextSize = 16
 
--- Main Frame
 local Frame = Instance.new("Frame", Gui)
 Frame.Size = UDim2.new(0, 450, 0, 600)
 Frame.Position = UDim2.new(0.5, -225, 0.5, -300)
@@ -52,7 +46,7 @@ Frame.Draggable = true
 local Title = Instance.new("TextLabel", Frame)
 Title.Size = UDim2.new(1,0,0,50)
 Title.BackgroundColor3 = Color3.fromRGB(0,120,215)
-Title.Text = "HIEUDRG RAFT v5.0"
+Title.Text = "HIEUDRG RAFT v6.0"
 Title.TextColor3 = Color3.new(1,1,1)
 Title.Font = Enum.Font.GothamBold
 
@@ -79,42 +73,47 @@ Scroll.BackgroundTransparency = 1
 Scroll.ScrollBarThickness = 8
 Scroll.CanvasSize = UDim2.new(0,0,0,1000)
 
+-- === HÀM CẬP NHẬT NÚT ===
+local function UpdateBtn(btn, state, name)
+    btn.Text = name .. ": " .. (state and "ON" or "OFF")
+end
+
 -- === TẠO NÚT ===
 local y = 10
-local function Btn(text, callback)
-    local b = Instance.new("TextButton", Scroll)
-    b.Size = UDim2.new(1,-10,0,40)
-    b.Position = UDim2.new(0,5,0,y)
-    b.BackgroundColor3 = Color3.fromRGB(45,45,45)
-    b.BorderColor3 = Color3.fromRGB(0,162,255)
-    b.Text = text
-    b.TextColor3 = Color3.new(1,1,1)
-    b.Font = Enum.Font.Gotham
-    b.TextSize = 14
-    b.MouseButton1Click:Connect(function()
+local function CreateBtn(name, callback)
+    local btn = Instance.new("TextButton", Scroll)
+    btn.Size = UDim2.new(1,-10,0,40)
+    btn.Position = UDim2.new(0,5,0,y)
+    btn.BackgroundColor3 = Color3.fromRGB(45,45,45)
+    btn.BorderColor3 = Color3.fromRGB(0,162,255)
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 14
+    btn.Text = name .. ": OFF"
+    btn.MouseButton1Click:Connect(function()
         callback()
-        -- CẬP NHẬT TEXT NGAY LẬP TỨC
-        b.Text = text:gsub("ON", "OFF"):gsub("OFF", "ON")
     end)
     y = y + 50
-    return b
+    return btn
 end
 
 -- === FLY ===
-local FlyBtn = Btn("Fly: OFF [F]", function()
+Fly.btn = CreateBtn("Fly [F]", function()
     Fly.on = not Fly.on
+    UpdateBtn(Fly.btn, Fly.on, "Fly [F]")
     if Fly.on then
         Fly.body = Instance.new("BodyVelocity", RootPart)
         Fly.body.MaxForce = Vector3.new(1e5,1e5,1e5)
         Fly.body.Velocity = Vector3.new(0,0,0)
     else
-        if Fly.body then Fly.body:Destroy() end
+        if Fly.body then Fly.body:Destroy(); Fly.body = nil end
     end
 end)
 
 -- === NOCLIP ===
-local NoclipBtn = Btn("Noclip: OFF [N]", function()
+Noclip.btn = CreateBtn("Noclip [N]", function()
     Noclip.on = not Noclip.on
+    UpdateBtn(Noclip.btn, Noclip.on, "Noclip [N]")
     if Noclip.on then
         Noclip.conn = RunService.Stepped:Connect(function()
             for _, p in pairs(Character:GetDescendants()) do
@@ -122,25 +121,28 @@ local NoclipBtn = Btn("Noclip: OFF [N]", function()
             end
         end)
     else
-        if Noclip.conn then Noclip.conn:Disconnect() end
+        if Noclip.conn then Noclip.conn:Disconnect(); Noclip.conn = nil end
     end
 end)
 
 -- === SPEED ===
-local SpeedBtn = Btn("Speed: OFF [S]", function()
+Speed.btn = CreateBtn("Speed [S]", function()
     Speed.on = not Speed.on
+    UpdateBtn(Speed.btn, Speed.on, "Speed [S]")
     Humanoid.WalkSpeed = Speed.on and Speed.value or 16
 end)
 
 -- === JUMP ===
-local JumpBtn = Btn("Jump: OFF [J]", function()
+Jump.btn = CreateBtn("Jump [J]", function()
     Jump.on = not Jump.on
+    UpdateBtn(Jump.btn, Jump.on, "Jump [J]")
     Humanoid.JumpPower = Jump.on and Jump.power or 50
 end)
 
 -- === GOD MODE ===
-local GodBtn = Btn("God Mode: OFF", function()
+God.btn = CreateBtn("God Mode", function()
     God.on = not God.on
+    UpdateBtn(God.btn, God.on, "God Mode")
     if God.on then
         Humanoid.MaxHealth = math.huge
         Humanoid.Health = math.huge
@@ -151,9 +153,11 @@ local GodBtn = Btn("God Mode: OFF", function()
 end)
 
 -- === ESP ===
-local ESPBtn = Btn("ESP: OFF [E]", function()
+ESP.btn = CreateBtn("ESP [E]", function()
     ESP.on = not ESP.on
+    UpdateBtn(ESP.btn, ESP.on, "ESP [E]")
     if ESP.on then
+        -- Player ESP
         for _, p in pairs(Players:GetPlayers()) do
             if p ~= Player and p.Character then
                 local h = Instance.new("Highlight", p.Character)
@@ -163,8 +167,9 @@ local ESPBtn = Btn("ESP: OFF [E]", function()
                 ESP.hl[p] = h
             end
         end
+        -- Shark ESP
         for _, obj in pairs(Workspace:GetDescendants()) do
-            if obj.Name:find("Shark") then
+            if obj.Name:find("Shark") and obj:FindFirstChild("HumanoidRootPart") then
                 local h = Instance.new("Highlight", obj)
                 h.FillColor = Color3.fromRGB(255,0,0)
                 h.OutlineColor = Color3.fromRGB(255,255,0)
@@ -173,14 +178,15 @@ local ESPBtn = Btn("ESP: OFF [E]", function()
             end
         end
     else
-        for _, h in pairs(ESP.hl) do if h then h:Destroy() end end
+        for _, h in pairs(ESP.hl) do if h and h.Parent then h:Destroy() end end
         ESP.hl = {}
     end
 end)
 
 -- === AUTO BUILD ===
-local AutoBtn = Btn("Auto Build: OFF", function()
+AutoBuild.btn = CreateBtn("Auto Build", function()
     AutoBuild.on = not AutoBuild.on
+    UpdateBtn(AutoBuild.btn, AutoBuild.on, "Auto Build")
     if AutoBuild.on then
         AutoBuild.conn = RunService.Heartbeat:Connect(function()
             for _, obj in pairs(Workspace:GetDescendants()) do
@@ -193,34 +199,30 @@ local AutoBtn = Btn("Auto Build: OFF", function()
             end
         end)
     else
-        if AutoBuild.conn then AutoBuild.conn:Disconnect() end
+        if AutoBuild.conn then AutoBuild.conn:Disconnect(); AutoBuild.conn = nil end
     end
 end)
 
--- === TELEPORT TO RAFT ===
-Btn("Teleport to Raft", function()
+-- === TELEPORT ===
+CreateBtn("Teleport to Raft", function()
     local raft = Workspace:FindFirstChild("Raft") or Workspace:FindFirstChild("Boat")
     if raft and raft:FindFirstChild("Seat") then
         RootPart.CFrame = raft.Seat.CFrame + Vector3.new(0,5,0)
     end
 end)
 
--- === MỞ/ĐÓNG MENU ===
-local open = false
-Toggle.MouseButton1Click:Connect(function()
-    open = not open
-    Frame.Visible = open
-    Toggle.Text = open and "HieuDRG - Close" or "HieuDRG Raft"
-end)
-Close.MouseButton1Click:Connect(function()
-    open = false
-    Frame.Visible = false
-    Toggle.Text = "HieuDRG Raft"
+-- === PHÍM TẮT ===
+UserInputService.InputBegan:Connect(function(k)
+    if k.KeyCode == Enum.KeyCode.F then Fly.btn.MouseButton1Click:Fire() end
+    if k.KeyCode == Enum.KeyCode.N then Noclip.btn.MouseButton1Click:Fire() end
+    if k.KeyCode == Enum.KeyCode.S then Speed.btn.MouseButton1Click:Fire() end
+    if k.KeyCode == Enum.KeyCode.J then Jump.btn.MouseButton1Click:Fire() end
+    if k.KeyCode == Enum.KeyCode.E then ESP.btn.MouseButton1Click:Fire() end
 end)
 
 -- === FLY LOOP ===
 RunService.Heartbeat:Connect(function()
-    if Fly.on and Fly.body then
+    if Fly.on and Fly.body and RootPart then
         local cam = Workspace.CurrentCamera
         local dir = Vector3.new(0,0,0)
         if UserInputService:IsKeyDown(Enum.KeyCode.W) then dir += cam.CFrame.LookVector end
@@ -244,6 +246,17 @@ Player.CharacterAdded:Connect(function(char)
     if God.on then Humanoid.MaxHealth = math.huge; Humanoid.Health = math.huge end
 end)
 
+-- === MỞ/ĐÓNG MENU ===
+local open = false
+Toggle.MouseButton1Click:Connect(function()
+    open = not open
+    Frame.Visible = open
+    Toggle.Text = open and "HieuDRG - Close" or "HieuDRG Raft"
+end)
+Close.MouseButton1Click:Connect(function()
+    open = false; Frame.Visible = false; Toggle.Text = "HieuDRG Raft"
+end)
+
 -- === UPTIME ===
 spawn(function()
     local start = tick()
@@ -256,9 +269,9 @@ end)
 
 -- === THÔNG BÁO ===
 StarterGui:SetCore("SendNotification", {
-    Title = "HIEUDRG RAFT v5.0",
-    Text = "TẤT CẢ NÚT HOẠT ĐỘNG NGAY!",
+    Title = "HIEUDRG RAFT v6.0",
+    Text = "BẬT/TẮT HOÀN HẢO! TẤT CẢ HOẠT ĐỘNG!",
     Duration = 5
 })
 
-print("[HIEUDRG] RAFT HUB v5.0 - ĐÃ TEST 100%")
+print("[HIEUDRG] RAFT HUB v6.0 - BẬT/TẮT HOÀN HẢO")

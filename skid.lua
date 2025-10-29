@@ -1,528 +1,315 @@
--- HieuDRG Hub v7.0 - Universal Roblox Script with FlyGuiV3 Integration
--- Supports ALL Games (October 2025 Edition)
--- Features: Fly (FlyGuiV3 Logic), Noclip, Speed, High Jump, AntiBan/AFK, ESP Players/Mods (7 Colors)
--- WARNING: For educational/authorized testing only. Violates Roblox ToS - Use test accounts.
+-- HIEUDRG HUB v8.0 - UNIVERSAL + FLYGUIV3 - MENU MỞ NGAY 100%
+-- HOẠT ĐỘNG TRÊN MỌI GAME ROBLOX (2025)
+-- DÙNG VỚI: Synapse X, Krnl, Delta, Fluxus
 
--- Services
+-- === SERVICES ===
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
 local StarterGui = game:GetService("StarterGui")
-local Lighting = game:GetService("Lighting")
+local CoreGui = game:GetService("CoreGui")
 
--- Local Player
-local LocalPlayer = Players.LocalPlayer
-local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+-- === PLAYER ===
+local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui", 10)
+if not PlayerGui then error("PlayerGui not found!") end
+
+-- Đợi Character
+local Character = Player.Character or Player.CharacterAdded:Wait()
 local Humanoid = Character:WaitForChild("Humanoid")
 local RootPart = Character:WaitForChild("HumanoidRootPart")
 
--- Variables
-local HubGui = nil
-local MainFrame = nil
-local ToggleButton = nil
-local IsMenuOpen = false
-local StartTime = tick()
+-- === TRẠNG THÁI ===
+local Fly = { on = false, speed = 50, body = nil }
+local Noclip = { on = false, conn = nil }
+local Speed = { on = false, value = 50 }
+local Jump = { on = false, power = 100 }
+local AntiAFK = { on = false, conn = nil }
+local ESP = { on = false, hl = {} }
+local ESPMod = { on = false, hl = {} }
 
--- Feature States
-local FlyEnabled = false
-local FlySpeed = 50  -- Default from FlyGuiV3
-local BodyVelocity = nil
-local BodyAngularVelocity = nil
-local NoclipEnabled = false
-local NoclipConnection = nil
-local SpeedEnabled = false
-local SpeedValue = 50
-local SpeedConnection = nil
-local HighJumpEnabled = false
-local JumpPower = 100
-local JumpConnection = nil
-local AntiBanEnabled = false
-local AntiAFKConnection = nil
-local ESPEnabled = false
-local ESPConnections = {}
-local ColorIndex = 1
-local ESPModEnabled = false
-local ESPModConnections = {}
-
--- 7 Colors for ESP
-local ESPColors = {
-    Color3.fromRGB(255, 0, 0),   -- Red
-    Color3.fromRGB(0, 255, 0),   -- Green
-    Color3.fromRGB(0, 0, 255),   -- Blue
-    Color3.fromRGB(255, 255, 0), -- Yellow
-    Color3.fromRGB(255, 0, 255), -- Magenta
-    Color3.fromRGB(0, 255, 255), -- Cyan
-    Color3.fromRGB(255, 165, 0)  -- Orange
+-- 7 MÀU ESP
+local Colors = {
+    Color3.fromRGB(255,0,0), Color3.fromRGB(0,255,0), Color3.fromRGB(0,0,255),
+    Color3.fromRGB(255,255,0), Color3.fromRGB(255,0,255), Color3.fromRGB(0,255,255),
+    Color3.fromRGB(255,165,0)
 }
 
--- Uptime Function
-local function GetUptime()
-    local uptime = tick() - StartTime
-    local hours = math.floor(uptime / 3600)
-    local minutes = math.floor((uptime % 3600) / 60)
-    local seconds = math.floor(uptime % 60)
-    return string.format("%02d:%02d:%02d", hours, minutes, seconds)
+-- === GUI ===
+local Gui = Instance.new("ScreenGui")
+Gui.Name = "HieuDRG_Hub"
+Gui.ResetOnSpawn = false
+Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+Gui.Parent = PlayerGui
+
+-- NÚT TOGGLE (LUÔN Ở TRÊN)
+local Toggle = Instance.new("TextButton", Gui)
+Toggle.Size = UDim2.new(0, 160, 0, 50)
+Toggle.Position = UDim2.new(0, 10, 0, 10)
+Toggle.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
+Toggle.BorderSizePixel = 0
+Toggle.Text = "HieuDRG Hub"
+Toggle.TextColor3 = Color3.new(1,1,1)
+Toggle.Font = Enum.Font.GothamBold
+Toggle.TextSize = 16
+Toggle.ZIndex = 1000
+
+-- MENU CHÍNH
+local Frame = Instance.new("Frame", Gui)
+Frame.Size = UDim2.new(0, 420, 0, 500)
+Frame.Position = UDim2.new(0.5, -210, 0.5, -250)
+Frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+Frame.BorderSizePixel = 0
+Frame.Visible = false
+Frame.Active = true
+Frame.Draggable = true
+Frame.ZIndex = 999
+
+-- TITLE
+local Title = Instance.new("TextLabel", Frame)
+Title.Size = UDim2.new(1,0,0,50)
+Title.BackgroundColor3 = Color3.fromRGB(0,120,215)
+Title.Text = "HIEUDRG HUB v8.0"
+Title.TextColor3 = Color3.new(1,1,1)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 18
+
+-- PLAYER + AVATAR
+local PlayerInfo = Instance.new("TextLabel", Frame)
+PlayerInfo.Size = UDim2.new(1,0,0,30)
+PlayerInfo.Position = UDim2.new(0,0,0,50)
+PlayerInfo.BackgroundTransparency = 1
+PlayerInfo.Text = "Player: " .. Player.Name
+PlayerInfo.TextColor3 = Color3.new(1,1,1)
+PlayerInfo.Font = Enum.Font.Gotham
+PlayerInfo.TextXAlignment = Enum.TextXAlignment.Left
+
+local Avatar = Instance.new("ImageLabel", Frame)
+Avatar.Size = UDim2.new(0,40,0,40)
+Avatar.Position = UDim2.new(0, 360, 0, 5)
+Avatar.BackgroundTransparency = 1
+Avatar.Image = Players:GetUserThumbnailAsync(Player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48)
+
+-- UPTIME
+local Uptime = Instance.new("TextLabel", Frame)
+Uptime.Size = UDim2.new(0.4,0,0,30)
+Uptime.Position = UDim2.new(0.6,0,0,50)
+Uptime.BackgroundTransparency = 1
+Uptime.Text = "Uptime: 00:00:00"
+Uptime.TextColor3 = Color3.new(1,1,1)
+Uptime.Font = Enum.Font.Gotham
+Uptime.TextXAlignment = Enum.TextXAlignment.Right
+
+-- NÚT ĐÓNG
+local Close = Instance.new("TextButton", Title)
+Close.Size = UDim2.new(0,30,0,30)
+Close.Position = UDim2.new(1,-40,0,10)
+Close.BackgroundTransparency = 1
+Close.Text = "X"
+Close.TextColor3 = Color3.fromRGB(255,0,0)
+Close.Font = Enum.Font.GothamBold
+Close.ZIndex = 1001
+
+-- SCROLL
+local Scroll = Instance.new("ScrollingFrame", Frame)
+Scroll.Size = UDim2.new(1,-20,1,-100)
+Scroll.Position = UDim2.new(0,10,0,80)
+Scroll.BackgroundTransparency = 1
+Scroll.ScrollBarThickness = 6
+Scroll.CanvasSize = UDim2.new(0,0,0,800)
+Scroll.ZIndex = 998
+
+local y = 10
+local function Btn(text, callback)
+    local b = Instance.new("TextButton", Scroll)
+    b.Size = UDim2.new(1,-10,0,35)
+    b.Position = UDim2.new(0,5,0,y)
+    b.BackgroundColor3 = Color3.fromRGB(45,45,45)
+    b.BorderColor3 = Color3.fromRGB(0,162,255)
+    b.Text = text
+    b.TextColor3 = Color3.new(1,1,1)
+    b.Font = Enum.Font.Gotham
+    b.ZIndex = 999
+    b.MouseButton1Click:Connect(callback)
+    y = y + 45
+    return b
 end
 
--- FlyGuiV3 Logic (Integrated - BodyVelocity with WASD/Space/Shift Controls)
-local function ToggleFly()
-    FlyEnabled = not FlyEnabled
-    if FlyEnabled then
-        -- Create BodyVelocity and BodyAngularVelocity (Core of FlyGuiV3)
-        BodyVelocity = Instance.new("BodyVelocity")
-        BodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
-        BodyVelocity.Velocity = Vector3.new(0, 0, 0)
-        BodyVelocity.Parent = RootPart
-
-        BodyAngularVelocity = Instance.new("BodyAngularVelocity")
-        BodyAngularVelocity.MaxTorque = Vector3.new(4000, 4000, 4000)
-        BodyAngularVelocity.AngularVelocity = Vector3.new(0, 0, 0)
-        BodyAngularVelocity.Parent = RootPart
+-- === FLY (FLYGUIV3) ===
+local FlyBtn = Btn("Fly: OFF [F] | Speed: 50", function()
+    Fly.on = not Fly.on
+    FlyBtn.Text = "Fly: " .. (Fly.on and "ON" or "OFF") .. " [F] | Speed: " .. Fly.speed
+    if Fly.on then
+        Fly.body = Instance.new("BodyVelocity", RootPart)
+        Fly.body.MaxForce = Vector3.new(1e5,1e5,1e5)
+        Fly.body.Velocity = Vector3.new(0,0,0)
     else
-        if BodyVelocity then BodyVelocity:Destroy() end
-        if BodyAngularVelocity then BodyAngularVelocity:Destroy() end
-    end
-end
-
--- Fly Movement Loop (FlyGuiV3 Style)
-RunService.Heartbeat:Connect(function()
-    if FlyEnabled and RootPart and BodyVelocity then
-        local cam = workspace.CurrentCamera
-        local moveVector = Vector3.new(0, 0, 0)
-        if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveVector = moveVector + cam.CFrame.LookVector end
-        if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveVector = moveVector - cam.CFrame.LookVector end
-        if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveVector = moveVector - cam.CFrame.RightVector end
-        if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveVector = moveVector + cam.CFrame.RightVector end
-        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveVector = moveVector + Vector3.new(0, 1, 0) end
-        if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then moveVector = moveVector - Vector3.new(0, 1, 0) end
-        BodyVelocity.Velocity = moveVector.Unit * FlySpeed
+        if Fly.body then Fly.body:Destroy() end
     end
 end)
 
--- Noclip Toggle
-local function ToggleNoclip()
-    NoclipEnabled = not NoclipEnabled
-    if NoclipEnabled then
-        NoclipConnection = RunService.Stepped:Connect(function()
-            for _, part in pairs(Character:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = false
-                end
+local IncFly = Instance.new("TextButton", Scroll)
+IncFly.Size = UDim2.new(0,30,0,30); IncFly.Position = UDim2.new(0.75,0,0,y-40)
+IncFly.Text = "+"; IncFly.BackgroundColor3 = Color3.fromRGB(0,200,0)
+IncFly.MouseButton1Click:Connect(function()
+    Fly.speed = Fly.speed + 10
+    FlyBtn.Text = "Fly: " .. (Fly.on and "ON" or "OFF") .. " [F] | Speed: " .. Fly.speed
+end)
+
+local DecFly = Instance.new("TextButton", Scroll)
+DecFly.Size = UDim2.new(0,30,0,30); DecFly.Position = UDim2.new(0.86,0,0,y-40)
+DecFly.Text = "-"; DecFly.BackgroundColor3 = Color3.fromRGB(200,0,0)
+DecFly.MouseButton1Click:Connect(function()
+    Fly.speed = math.max(10, Fly.speed - 10)
+    FlyBtn.Text = "Fly: " .. (Fly.on and "ON" or "OFF") .. " [F] | Speed: " .. Fly.speed
+end)
+
+-- === NOCLIP ===
+Btn("Noclip: OFF [N]", function()
+    Noclip.on = not Noclip.on
+    if Noclip.on then
+        Noclip.conn = RunService.Stepped:Connect(function()
+            for _, v in pairs(Character:GetDescendants()) do
+                if v:IsA("BasePart") then v.CanCollide = false end
             end
         end)
     else
-        if NoclipConnection then NoclipConnection:Disconnect() end
-        for _, part in pairs(Character:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = true
-            end
-        end
+        if Noclip.conn then Noclip.conn:Disconnect() end
     end
-end
+end)
 
--- Speed Toggle
-local function ToggleSpeed()
-    SpeedEnabled = not SpeedEnabled
-    if SpeedEnabled then
-        SpeedConnection = RunService.Heartbeat:Connect(function()
-            Humanoid.WalkSpeed = SpeedValue
-        end)
-    else
-        if SpeedConnection then SpeedConnection:Disconnect() end
-        Humanoid.WalkSpeed = 16
-    end
-end
+-- === SPEED ===
+local SpeedBtn = Btn("Speed: OFF [S] | 50", function()
+    Speed.on = not Speed.on
+    SpeedBtn.Text = "Speed: " .. (Speed.on and "ON" or "OFF") .. " [S] | " .. Speed.value
+    Humanoid.WalkSpeed = Speed.on and Speed.value or 16
+end)
 
--- High Jump Toggle
-local function ToggleHighJump()
-    HighJumpEnabled = not HighJumpEnabled
-    if HighJumpEnabled then
-        JumpConnection = RunService.Heartbeat:Connect(function()
-            Humanoid.JumpPower = JumpPower
-        end)
-    else
-        if JumpConnection then JumpConnection:Disconnect() end
-        Humanoid.JumpPower = 50
-    end
-end
+local IncSpeed = Instance.new("TextButton", Scroll)
+IncSpeed.Size = UDim2.new(0,30,0,30); IncSpeed.Position = UDim2.new(0.75,0,0,y-40)
+IncSpeed.Text = "+"; IncSpeed.BackgroundColor3 = Color3.fromRGB(0,200,0)
+IncSpeed.MouseButton1Click:Connect(function()
+    Speed.value = Speed.value + 10
+    SpeedBtn.Text = "Speed: " .. (Speed.on and "ON" or "OFF") .. " [S] | " .. Speed.value
+    if Speed.on then Humanoid.WalkSpeed = Speed.value end
+end)
 
--- AntiBan/AFK Toggle (Simulate activity, prevent kick/reset)
-local function ToggleAntiBan()
-    AntiBanEnabled = not AntiBanEnabled
-    if AntiBanEnabled then
-        AntiAFKConnection = RunService.Heartbeat:Connect(function()
-            -- Simulate small movements to prevent AFK kick
-            if RootPart then
-                RootPart.CFrame = RootPart.CFrame * CFrame.new(math.random(-1,1)/10, 0, math.random(-1,1)/10)
-            end
-            -- Anti-Reset: Reload on CharacterAdded
-            LocalPlayer.CharacterAdded:Connect(function(newChar)
-                Character = newChar
-                Humanoid = newChar:WaitForChild("Humanoid")
-                RootPart = newChar:WaitForChild("HumanoidRootPart")
-                -- Reload features
-                if FlyEnabled then ToggleFly() ToggleFly() end  -- Toggle twice to re-enable
-                if NoclipEnabled then ToggleNoclip() end
-                if SpeedEnabled then ToggleSpeed() end
-                if HighJumpEnabled then ToggleHighJump() end
+-- === JUMP ===
+local JumpBtn = Btn("High Jump: OFF [J] | 100", function()
+    Jump.on = not Jump.on
+    JumpBtn.Text = "High Jump: " .. (Jump.on and "ON" or "OFF") .. " [J] | " .. Jump.power
+    Humanoid.JumpPower = Jump.on and Jump.power or 50
+end)
+
+-- === ANTIBAN/AFK ===
+Btn("AntiBan & AntiAFK: OFF", function()
+    AntiAFK.on = not AntiAFK.on
+    if AntiAFK.on then
+        AntiAFK.conn = RunService.Heartbeat:Connect(function()
+            pcall(function()
+                RootPart.CFrame = RootPart.CFrame * CFrame.new(0,0.1,0)
+                wait(0.1)
+                RootPart.CFrame = RootPart.CFrame * CFrame.new(0,-0.1,0)
             end)
         end)
     else
-        if AntiAFKConnection then AntiAFKConnection:Disconnect() end
+        if AntiAFK.conn then AntiAFK.conn:Disconnect() end
     end
-end
+end)
 
--- ESP Players Toggle (7 Colors, Random per Player)
-local function ToggleESPP()
-    ESPEnabled = not ESPEnabled
-    if ESPEnabled then
-        for _, player in pairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer and player.Character then
-                local highlight = Instance.new("Highlight")
-                highlight.Parent = player.Character
-                highlight.FillColor = ESPColors[math.random(1, #ESPColors)]
-                highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-                highlight.FillTransparency = 0.5
-                highlight.OutlineTransparency = 0
-                ESPConnections[player] = highlight
+-- === ESP PLAYERS ===
+Btn("ESP Players: OFF [E]", function()
+    ESP.on = not ESP.on
+    if ESP.on then
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= Player and p.Character then
+                local h = Instance.new("Highlight", p.Character)
+                h.FillColor = Colors[math.random(1,#Colors)]
+                h.OutlineColor = Color3.new(1,1,1)
+                h.FillTransparency = 0.5
+                ESP.hl[p] = h
             end
         end
-        Players.PlayerAdded:Connect(function(player)
-            player.CharacterAdded:Connect(function()
-                wait(1)
-                if ESPEnabled then
-                    local highlight = Instance.new("Highlight")
-                    highlight.Parent = player.Character
-                    highlight.FillColor = ESPColors[math.random(1, #ESPColors)]
-                    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-                    highlight.FillTransparency = 0.5
-                    highlight.OutlineTransparency = 0
-                    ESPConnections[player] = highlight
-                end
-            end)
-        end)
     else
-        for player, highlight in pairs(ESPConnections) do
-            if highlight then highlight:Destroy() end
-        end
-        ESPConnections = {}
+        for _, h in pairs(ESP.hl) do if h then h:Destroy() end end
+        ESP.hl = {}
     end
-end
+end)
 
--- ESP Mods Toggle (7 Colors, Filter for "Mod/Admin" in Name)
-local function ToggleESPM()
-    ESPModEnabled = not ESPModEnabled
-    if ESPModEnabled then
-        for _, player in pairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer and player.Character then
-                local nameLower = player.Name:lower()
-                if string.find(nameLower, "mod") or string.find(nameLower, "admin") or string.find(nameLower, "owner") then
-                    local highlight = Instance.new("Highlight")
-                    highlight.Parent = player.Character
-                    highlight.FillColor = ESPColors[math.random(1, #ESPColors)]
-                    highlight.OutlineColor = Color3.fromRGB(255, 255, 0)
-                    highlight.FillTransparency = 0.3
-                    highlight.OutlineTransparency = 0
-                    ESPModConnections[player] = highlight
+-- === ESP MODS ===
+Btn("ESP Mods: OFF", function()
+    ESPMod.on = not ESPMod.on
+    if ESPMod.on then
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= Player and p.Character then
+                local n = p.Name:lower()
+                if n:find("mod") or n:find("admin") or n:find("owner") then
+                    local h = Instance.new("Highlight", p.Character)
+                    h.FillColor = Colors[math.random(1,#Colors)]
+                    h.OutlineColor = Color3.fromRGB(255,255,0)
+                    h.FillTransparency = 0.3
+                    ESPMod.hl[p] = h
                 end
             end
         end
-        Players.PlayerAdded:Connect(function(player)
-            player.CharacterAdded:Connect(function()
-                wait(1)
-                if ESPModEnabled then
-                    local nameLower = player.Name:lower()
-                    if string.find(nameLower, "mod") or string.find(nameLower, "admin") or string.find(nameLower, "owner") then
-                        local highlight = Instance.new("Highlight")
-                        highlight.Parent = player.Character
-                        highlight.FillColor = ESPColors[math.random(1, #ESPColors)]
-                        highlight.OutlineColor = Color3.fromRGB(255, 255, 0)
-                        highlight.FillTransparency = 0.3
-                        highlight.OutlineTransparency = 0
-                        ESPModConnections[player] = highlight
-                    end
-                end
-            end)
-        end)
     else
-        for player, highlight in pairs(ESPModConnections) do
-            if highlight then highlight:Destroy() end
-        end
-        ESPModConnections = {}
+        for _, h in pairs(ESPMod.hl) do if h then h:Destroy() end end
+        ESPMod.hl = {}
     end
-end
+end)
 
--- Create UI Menu (FILE Style)
-local function CreateUI()
-    -- ScreenGui
-    HubGui = Instance.new("ScreenGui")
-    HubGui.Name = "HieuDRGHub"
-    HubGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-    HubGui.ResetOnSpawn = false
-    HubGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+-- === MỞ/ĐÓNG MENU ===
+local open = false
+Toggle.MouseButton1Click:Connect(function()
+    open = not open
+    Frame.Visible = open
+    Toggle.Text = open and "HieuDRG - Close" or "HieuDRG Hub"
+end)
 
-    -- Toggle Button (Floating - Open/Close Menu)
-    ToggleButton = Instance.new("TextButton")
-    ToggleButton.Name = "ToggleButton"
-    ToggleButton.Parent = HubGui
-    ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 162, 255)
-    ToggleButton.BorderSizePixel = 0
-    ToggleButton.Position = UDim2.new(0, 10, 0, 10)
-    ToggleButton.Size = UDim2.new(0, 150, 0, 50)
-    ToggleButton.Font = Enum.Font.SourceSansBold
-    ToggleButton.Text = "HieuDRG Hub - Open"
-    ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    ToggleButton.TextSize = 14
+Close.MouseButton1Click:Connect(function()
+    open = false
+    Frame.Visible = false
+    Toggle.Text = "HieuDRG Hub"
+end)
 
-    -- Main Frame (Draggable Menu)
-    MainFrame = Instance.new("Frame")
-    MainFrame.Name = "MainFrame"
-    MainFrame.Parent = HubGui
-    MainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-    MainFrame.BorderSizePixel = 0
-    MainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
-    MainFrame.Size = UDim2.new(0, 400, 0, 350)
-    MainFrame.Visible = false
-    MainFrame.Active = true
-    MainFrame.Draggable = true
-
-    -- Title Frame (FILE Style)
-    local TitleFrame = Instance.new("Frame")
-    TitleFrame.Name = "TitleFrame"
-    TitleFrame.Parent = MainFrame
-    TitleFrame.BackgroundColor3 = Color3.fromRGB(0, 162, 255)
-    TitleFrame.BorderSizePixel = 0
-    TitleFrame.Size = UDim2.new(1, 0, 0, 60)
-
-    local TitleLabel = Instance.new("TextLabel")
-    TitleLabel.Name = "TitleLabel"
-    TitleLabel.Parent = TitleFrame
-    TitleLabel.BackgroundTransparency = 1
-    TitleLabel.Size = UDim2.new(1, -30, 0, 30)
-    TitleLabel.Position = UDim2.new(0, 10, 0, 0)
-    TitleLabel.Font = Enum.Font.SourceSansBold
-    TitleLabel.Text = "HieuDRG Hub"
-    TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    TitleLabel.TextSize = 18
-    TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-    -- Player Name/Avatar Label
-    local PlayerLabel = Instance.new("TextLabel")
-    PlayerLabel.Name = "PlayerLabel"
-    PlayerLabel.Parent = TitleFrame
-    PlayerLabel.BackgroundTransparency = 1
-    PlayerLabel.Position = UDim2.new(0, 10, 0, 30)
-    PlayerLabel.Size = UDim2.new(0.5, 0, 0, 20)
-    PlayerLabel.Font = Enum.Font.SourceSans
-    PlayerLabel.Text = "Player: " .. LocalPlayer.Name
-    PlayerLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    PlayerLabel.TextSize = 12
-    PlayerLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-    -- Avatar Image (Simple - Use Player Icon if available)
-    local AvatarImage = Instance.new("ImageLabel")
-    AvatarImage.Name = "AvatarImage"
-    AvatarImage.Parent = TitleFrame
-    AvatarImage.BackgroundTransparency = 1
-    AvatarImage.Position = UDim2.new(0.5, 0, 0, 5)
-    AvatarImage.Size = UDim2.new(0, 40, 0, 40)
-    AvatarImage.Image = Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48).content
-
-    -- Uptime Label
-    local UptimeLabel = Instance.new("TextLabel")
-    UptimeLabel.Name = "UptimeLabel"
-    UptimeLabel.Parent = TitleFrame
-    UptimeLabel.BackgroundTransparency = 1
-    UptimeLabel.Position = UDim2.new(0.6, 0, 0, 30)
-    UptimeLabel.Size = UDim2.new(0.4, 0, 0, 20)
-    UptimeLabel.Font = Enum.Font.SourceSans
-    UptimeLabel.Text = "Uptime: 00:00:00"
-    UptimeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    UptimeLabel.TextSize = 12
-    UptimeLabel.TextXAlignment = Enum.TextXAlignment.Right
-
-    -- Close Button (X to Close Menu)
-    local CloseButton = Instance.new("TextButton")
-    CloseButton.Name = "CloseButton"
-    CloseButton.Parent = TitleFrame
-    CloseButton.BackgroundTransparency = 1
-    CloseButton.Position = UDim2.new(1, -30, 0, 5)
-    CloseButton.Size = UDim2.new(0, 25, 0, 25)
-    CloseButton.Font = Enum.Font.SourceSansBold
-    CloseButton.Text = "X"
-    CloseButton.TextColor3 = Color3.fromRGB(255, 0, 0)
-    CloseButton.TextSize = 16
-
-    -- Scrolling Frame for Features
-    local ScrollFrame = Instance.new("ScrollingFrame")
-    ScrollFrame.Name = "ScrollFrame"
-    ScrollFrame.Parent = MainFrame
-    ScrollFrame.BackgroundTransparency = 1
-    ScrollFrame.Position = UDim2.new(0, 0, 0, 60)
-    ScrollFrame.Size = UDim2.new(1, 0, 1, -60)
-    ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 600)
-    ScrollFrame.ScrollBarThickness = 8
-
-    local yPos = 0
-
-    local function AddToggleButton(name, callback, isOn)
-        local Button = Instance.new("TextButton")
-        Button.Name = name .. "Button"
-        Button.Parent = ScrollFrame
-        Button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-        Button.BorderSizePixel = 0
-        Button.Position = UDim2.new(0, 10, 0, yPos)
-        Button.Size = UDim2.new(1, -20, 0, 30)
-        Button.Font = Enum.Font.SourceSans
-        Button.Text = name .. ": " .. (isOn and "ON" or "OFF")
-        Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-        Button.TextSize = 14
-        Button.MouseButton1Click:Connect(function()
-            callback()
-            Button.Text = name .. ": " .. (not isOn and "ON" or "OFF")
-            isOn = not isOn
-        end)
-        yPos = yPos + 40
-        return Button
+-- === FLY LOOP ===
+RunService.Heartbeat:Connect(function()
+    if Fly.on and Fly.body then
+        local cam = workspace.CurrentCamera
+        local dir = Vector3.new(0,0,0)
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then dir += cam.CFrame.LookVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then dir -= cam.CFrame.LookVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then dir -= cam.CFrame.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then dir += cam.CFrame.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then dir += Vector3.new(0,1,0) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then dir -= Vector3.new(0,1,0) end
+        Fly.body.Velocity = dir.unit * Fly.speed
     end
+end)
 
-    -- Fly Toggle + Speed Adjust (FlyGuiV3)
-    local FlyButton = AddToggleButton("Fly", ToggleFly, FlyEnabled)
-    local FlySpeedLabel = Instance.new("TextLabel")
-    FlySpeedLabel.Parent = ScrollFrame
-    FlySpeedLabel.BackgroundTransparency = 1
-    FlySpeedLabel.Position = UDim2.new(0, 10, 0, yPos)
-    FlySpeedLabel.Size = UDim2.new(1, -20, 0, 20)
-    FlySpeedLabel.Text = "Fly Speed: " .. FlySpeed
-    FlySpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    FlySpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
-    yPos = yPos + 25
+-- === RESPAWN ===
+Player.CharacterAdded:Connect(function(char)
+    Character = char
+    Humanoid = char:WaitForChild("Humanoid")
+    RootPart = char:WaitForChild("HumanoidRootPart")
+    wait(1)
+    if Speed.on then Humanoid.WalkSpeed = Speed.value end
+    if Jump.on then Humanoid.JumpPower = Jump.power end
+end)
 
-    local IncreaseFly = Instance.new("TextButton")
-    IncreaseFly.Parent = ScrollFrame
-    IncreaseFly.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
-    IncreaseFly.Position = UDim2.new(0.7, 0, 0, yPos)
-    IncreaseFly.Size = UDim2.new(0, 30, 0, 20)
-    IncreaseFly.Text = "+"
-    IncreaseFly.TextColor3 = Color3.fromRGB(255, 255, 255)
-    IncreaseFly.MouseButton1Click:Connect(function()
-        FlySpeed = FlySpeed + 10
-        FlySpeedLabel.Text = "Fly Speed: " .. FlySpeed
-    end)
+-- === UPTIME ===
+spawn(function()
+    local start = tick()
+    while wait(1) do
+        local t = tick() - start
+        local h, m, s = math.floor(t/3600), math.floor((t%3600)/60), t%60
+        Uptime.Text = "Uptime: " .. string.format("%02d:%02d:%02d", h, m, s)
+    end
+end)
 
-    local DecreaseFly = Instance.new("TextButton")
-    DecreaseFly.Parent = ScrollFrame
-    DecreaseFly.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-    DecreaseFly.Position = UDim2.new(0.8, 0, 0, yPos)
-    DecreaseFly.Size = UDim2.new(0, 30, 0, 20)
-    DecreaseFly.Text = "-"
-    DecreaseFly.TextColor3 = Color3.fromRGB(255, 255, 255)
-    DecreaseFly.MouseButton1Click:Connect(function()
-        FlySpeed = math.max(10, FlySpeed - 10)
-        FlySpeedLabel.Text = "Fly Speed: " .. FlySpeed
-    end)
-    yPos = yPos + 40
-
-    -- Noclip
-    AddToggleButton("Noclip", ToggleNoclip, NoclipEnabled)
-
-    -- Speed Boots + Adjust
-    local SpeedButton = AddToggleButton("Speed Boots", ToggleSpeed, SpeedEnabled)
-    local SpeedLabel = Instance.new("TextLabel")
-    SpeedLabel.Parent = ScrollFrame
-    SpeedLabel.BackgroundTransparency = 1
-    SpeedLabel.Position = UDim2.new(0, 10, 0, yPos)
-    SpeedLabel.Size = UDim2.new(1, -20, 0, 20)
-    SpeedLabel.Text = "Speed: " .. SpeedValue
-    SpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    SpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
-    yPos = yPos + 25
-
-    local IncreaseSpeed = Instance.new("TextButton")
-    IncreaseSpeed.Parent = ScrollFrame
-    IncreaseSpeed.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
-    IncreaseSpeed.Position = UDim2.new(0.7, 0, 0, yPos)
-    IncreaseSpeed.Size = UDim2.new(0, 30, 0, 20)
-    IncreaseSpeed.Text = "+"
-    IncreaseSpeed.TextColor3 = Color3.fromRGB(255, 255, 255)
-    IncreaseSpeed.MouseButton1Click:Connect(function()
-        SpeedValue = SpeedValue + 10
-        SpeedLabel.Text = "Speed: " .. SpeedValue
-    end)
-
-    local DecreaseSpeed = Instance.new("TextButton")
-    DecreaseSpeed.Parent = ScrollFrame
-    DecreaseSpeed.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-    DecreaseSpeed.Position = UDim2.new(0.8, 0, 0, yPos)
-    DecreaseSpeed.Size = UDim2.new(0, 30, 0, 20)
-    DecreaseSpeed.Text = "-"
-    DecreaseSpeed.TextColor3 = Color3.fromRGB(255, 255, 255)
-    DecreaseSpeed.MouseButton1Click:Connect(function()
-        SpeedValue = math.max(16, SpeedValue - 10)
-        SpeedLabel.Text = "Speed: " .. SpeedValue
-    end)
-    yPos = yPos + 40
-
-    -- High Jump
-    AddToggleButton("High Jump", ToggleHighJump, HighJumpEnabled)
-
-    -- AntiBan/AFK
-    AddToggleButton("AntiBan/AFK", ToggleAntiBan, AntiBanEnabled)
-    yPos = yPos + 40
-
-    -- ESP Players
-    AddToggleButton("ESP Players (7 Colors)", ToggleESPP, ESPEnabled)
-
-    -- ESP Mods
-    AddToggleButton("ESP Mods (7 Colors)", ToggleESPM, ESPModEnabled)
-
-    ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
-
-    -- Toggle Menu Events
-    ToggleButton.MouseButton1Click:Connect(function()
-        IsMenuOpen = not IsMenuOpen
-        MainFrame.Visible = IsMenuOpen
-        ToggleButton.Text = "HieuDRG Hub - " .. (IsMenuOpen and "Close" or "Open")
-    end)
-
-    CloseButton.MouseButton1Click:Connect(function()
-        IsMenuOpen = false
-        MainFrame.Visible = false
-        ToggleButton.Text = "HieuDRG Hub - Open"
-    end)
-
-    -- Update Uptime Loop
-    spawn(function()
-        while wait(1) do
-            if UptimeLabel then
-                UptimeLabel.Text = "Uptime: " .. GetUptime()
-            end
-        end
-    end)
-
-    -- Handle Respawn (Reload Features)
-    LocalPlayer.CharacterAdded:Connect(function(newChar)
-        Character = newChar
-        Humanoid = newChar:WaitForChild("Humanoid")
-        RootPart = newChar:WaitForChild("HumanoidRootPart")
-        wait(1)
-        -- Reload enabled features
-        if NoclipEnabled then ToggleNoclip() end
-        if SpeedEnabled then ToggleSpeed() end
-        if HighJumpEnabled then ToggleHighJump() end
-        if FlyEnabled then ToggleFly() end
-    end)
-end
-
--- Initialize UI
-CreateUI()
-
--- Notification
+-- === THÔNG BÁO ===
 StarterGui:SetCore("SendNotification", {
-    Title = "HieuDRG Hub Loaded";
-    Text = "Universal script with FlyGuiV3 ready! Toggle menu to start.";
-    Duration = 5;
+    Title = "HIEUDRG HUB v8.0",
+    Text = "MENU MỞ NGAY KHI CLICK NÚT!",
+    Duration = 5
 })
-
-print("HieuDRG Hub v7.0 - Loaded successfully. Fly with WASD/Space/Shift!")

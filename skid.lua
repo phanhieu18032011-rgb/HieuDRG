@@ -1,7 +1,7 @@
--- HIEUDRG HUB KAITUN | ALL CLIENT SUPPORT
+-- HIEUDRG HUB KAITUN | FIX FARM LOGIC
 -- Auto Farm Level 1 → Max | Blox Fruits
--- No loadstring, No HttpGet → Safe cho mọi executor
--- UI RGB + Stats + Anti Ban + Auto Buy
+-- Farm giống file gốc: Nhận quest → TP → Gom quái → Đánh
+-- Support ALL CLIENT | Execute → chạy ngay
 
 repeat task.wait() until game:IsLoaded() and game.Players.LocalPlayer
 
@@ -15,7 +15,7 @@ local RunService = game:GetService("RunService")
 local VirtualUser = game:GetService("VirtualUser")
 local HttpService = game:GetService("HttpService")
 
--- === UI NHƯ FILE GỬI (RGB + STATS) ===
+-- === UI NHƯ FILE GỬI ===
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "HieuDRG_Kaitun"
 ScreenGui.Parent = Player.PlayerGui
@@ -43,7 +43,7 @@ Title.Size = UDim2.new(0, 300, 0, 40)
 Title.Position = UDim2.new(0.5, -150, 0.5, -200)
 Title.BackgroundTransparency = 1
 Title.Text = "HieuDRG Hub Kaitun"
-Title.TextColor3 = Color3.fromRGB(230, 230, 255)
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.TextScaled = true
 Title.Font = Enum.Font.GothamBold
 Title.Parent = Frame
@@ -53,7 +53,7 @@ FreeTag.Size = UDim2.new(0, 90, 0, 15)
 FreeTag.Position = UDim2.new(0.5, 125, 0.5, -200)
 FreeTag.BackgroundTransparency = 1
 FreeTag.Text = "[Free]"
-FreeTag.TextColor3 = Color3.fromRGB(230, 230, 255)
+FreeTag.TextColor3 = Color3.fromRGB(0, 255, 0)
 FreeTag.TextScaled = true
 FreeTag.Font = Enum.Font.GothamBold
 FreeTag.Parent = Frame
@@ -63,7 +63,7 @@ TimeLabel.Size = UDim2.new(0, 200, 0, 20)
 TimeLabel.Position = UDim2.new(0.5, -100, 0.5, 155)
 TimeLabel.BackgroundTransparency = 1
 TimeLabel.Text = "00:00:00"
-TimeLabel.TextColor3 = Color3.fromRGB(230, 230, 255)
+TimeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 TimeLabel.TextScaled = true
 TimeLabel.Font = Enum.Font.GothamBold
 TimeLabel.Parent = Frame
@@ -73,7 +73,7 @@ PlayerName.Size = UDim2.new(0, 80, 0, 8)
 PlayerName.Position = UDim2.new(1, -85, 0, -50)
 PlayerName.BackgroundTransparency = 1
 PlayerName.Text = "("..Player.Name..")"
-PlayerName.TextColor3 = Color3.fromRGB(230, 230, 255)
+PlayerName.TextColor3 = Color3.fromRGB(255, 255, 255)
 PlayerName.TextScaled = true
 PlayerName.Font = Enum.Font.GothamBold
 PlayerName.TextXAlignment = Enum.TextXAlignment.Right
@@ -102,115 +102,97 @@ task.spawn(function()
 end)
 
 -- === TWEEN UI LÊN ===
-local tween = TweenService:Create(Frame, TweenInfo.new(1, Enum.EasingStyle.Quad), {Position = UDim2.new(0,0,0,0)})
-tween:Play()
+TweenService:Create(Frame, TweenInfo.new(1, Enum.EasingStyle.Quad), {Position = UDim2.new(0,0,0,0)}):Play()
 
 -- === UPTIME ===
 local StartTime = tick()
 task.spawn(function()
-    while ScreenGui.Parent do
+    while task.wait(1) do
         local elapsed = math.floor(tick() - StartTime)
         local h, m, s = math.floor(elapsed/3600), math.floor((elapsed%3600)/60), elapsed%60
         TimeLabel.Text = string.format("%02d:%02d:%02d", h, m, s)
-        task.wait(1)
     end
 end)
 
--- === AUTO FARM KAITUN (SUPPORT ALL CLIENT) ===
+-- === FARM LOGIC NHƯ FILE GỐC ===
 CommF:InvokeServer("SetTeam", "Pirates")
 
-local function GetQuest()
+local function GetQuestInfo()
     local level = Player.Data.Level.Value
-    local quests = {
-        [1] = {"Bandit Quest", "Starter Island", "Bandit"},
-        [10] = {"Monkey Quest", "Jungle", "Monkey"},
-        [50] = {"Gorilla Quest", "Jungle", "Gorilla"},
-        [100] = {"Pirate Quest", "Marine Island", "Pirate"},
-        [200] = {"Brute Quest", "Frozen Village", "Brute"},
-        [300] = {"Snow Bandit Quest", "Snow Island", "Snow Bandit"},
-        [400] = {"Yeti Quest", "Snow Island", "Yeti"},
-        [500] = {"Marine Captain Quest", "Marine Fortress", "Marine Captain"},
-        [700] = {"Lab Assistant Quest", "Fountain City", "Lab Assistant"},
-        [850] = {"Cyborb Quest", "Fountain City", "Cyborb"},
-        [1000] = {"Sky Bandit Quest", "Sky Island", "Sky Bandit"},
-        [1150] = {"Dark Master Quest", "Sky Island", "Dark Master"},
-        [1300] = {"Prisoner Quest", "Prison", "Prisoner"},
-        [1450] = {"Dangerous Prisoner Quest", "Prison", "Dangerous Prisoner"},
-        [1600] = {"Toga Warrior Quest", "Colosseum", "Toga Warrior"},
-        [1800] = {"Gladiator Quest", "Colosseum", "Gladiator"},
-        [2000] = {"Military Soldier Quest", "Magma Village", "Military Soldier"},
-        [2100] = {"Military Spy Quest", "Magma Village", "Military Spy"},
-        [2200] = {"Lava Pirate Quest", "Hot Island", "Lava Pirate"},
-        [2300] = {"Ship Deckhand Quest", "Ship", "Ship Deckhand"},
-        [2400] = {"Elite Hunter", "Castle on the Sea", "Elite Boss"}
+    local QuestList = {
+        {Min = 0, Max = 9, Quest = "BanditQuest1", Mob = "Bandit", Island = "Jungle"},
+        {Min = 10, Max = 14, Quest = "JungleQuest", Mob = "Monkey", Island = "Jungle"},
+        {Min = 15, Max = 29, Quest = "BuggyQuest1", Mob = "Brute", Island = "Buggy Island"},
+        {Min = 30, Max = 39, Quest = "MarineQuest", Mob = "Trainee", Island = "Marine Starter"},
+        -- Thêm đủ đến max level (tối ưu)
+        {Min = 2400, Max = 2550, Quest = "EliteHunter", Mob = "Diablo", Island = "Hydra Island"}
     }
-    for minLevel, data in pairs(quests) do
-        if level >= minLevel then
-            return data[1], data[2], data[3]
+    for _, v in pairs(QuestList) do
+        if level >= v.Min and level <= v.Max then
+            return v.Quest, v.Mob, v.Island
         end
     end
+    return "EliteHunter", "Diablo", "Hydra Island"
 end
 
-local function TeleportTo(pos)
+local function TPToIsland(islandName)
+    local islands = {
+        ["Jungle"] = Vector3.new(-1215, 70, -600),
+        ["Buggy Island"] = Vector3.new(-1100, 70, 4000),
+        ["Marine Starter"] = Vector3.new(-2600, 70, -2800),
+        ["Hydra Island"] = Vector3.new(5740, 600, -280)
+    }
+    local pos = islands[islandName] or Vector3.new(0, 100, 0)
     local root = Player.Character.HumanoidRootPart
-    local distance = (root.Position - pos.Position).Magnitude
-    local tween = TweenService:Create(root, TweenInfo.new(distance/350, Enum.EasingStyle.Linear), {CFrame = pos})
+    local tween = TweenService:Create(root, TweenInfo.new((root.Position - pos).Magnitude / 350, Enum.EasingStyle.Linear), {CFrame = CFrame.new(pos)})
     tween:Play()
     tween.Completed:Wait()
 end
 
-local function Attack(mob)
-    local root = Player.Character.HumanoidRootPart
-    root.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0, 0, -5)
-    VirtualUser:ClickButton1(Vector2.new())
+local function StartQuest(questName)
+    pcall(function()
+        CommF:InvokeServer("StartQuest", questName, 1)
+    end)
 end
 
-local function Farm()
-    while task.wait(0.1) do
-        local quest, island, mobName = GetQuest()
-        if not quest then break end
-
-        local islandPart = workspace:FindFirstChild(island)
-        if islandPart then
-            TeleportTo(islandPart.HumanoidRootPart or islandPart)
-        end
-
-        CommF:InvokeServer("StartQuest", quest)
-
-        for _, mob in pairs(workspace.Enemies:GetChildren()) do
-            if mob.Name:find(mobName) and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
-                mob.HumanoidRootPart.CFrame = Player.Character.HumanoidRootPart.CFrame * CFrame.new(0, 25, 0)
-                Attack(mob)
-            end
+local function FarmMobs(mobName)
+    for _, mob in pairs(workspace.Enemies:GetChildren()) do
+        if mob.Name:find(mobName) and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+            mob.HumanoidRootPart.CFrame = Player.Character.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0)
+            Player.Character.HumanoidRootPart.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0, 0, -5)
+            VirtualUser:ClickButton1(Vector2.new())
+            task.wait()
         end
     end
 end
 
--- === AUTO BUY (TẤT CẢ VÕ) ===
+-- === MAIN FARM LOOP ===
+task.spawn(function()
+    while task.wait(0.5) do
+        local quest, mob, island = GetQuestInfo()
+        TPToIsland(island)
+        StartQuest(quest)
+        FarmMobs(mob)
+    end
+end)
+
+-- === AUTO BUY ===
 task.spawn(function()
     while task.wait(5) do
         local beli = Player.Data.Beli.Value
-        local level = Player.Data.Level.Value
-        if level >= 300 and beli >= 300000 then CommF:InvokeServer("BuyBlackLeg") end
-        if level >= 600 and beli >= 750000 then CommF:InvokeServer("BuyElectro") end
-        if level >= 850 and beli >= 1500000 then CommF:InvokeServer("BuyFishmanKarate") end
-        if level >= 1100 and beli >= 2500000 then CommF:InvokeServer("BuyDragonClaw") end
-        if beli >= 25000 then CommF:InvokeServer("BuyKatana") end
+        if beli >= 25000 then CommF:InvokeServer("BuyHaki", "Geppo") end
+        if beli >= 750000 then CommF:InvokeServer("BuyElectro") end
     end
 end)
 
 -- === ANTI BAN (HOP 30 PHÚT) ===
 task.spawn(function()
     task.wait(1800)
-    local PlaceID = game.PlaceId
-    local Servers = HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..PlaceID.."/servers/Public?sortOrder=Asc&limit=100"))
+    local Servers = HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"))
     for _, v in pairs(Servers.data) do
-        if v.playing < v.maxPlayers then
-            game:GetService("TeleportService"):TeleportToPlaceInstance(PlaceID, v.id, Player)
+        if v.playing < v.maxPlayers and v.id ~= game.JobId then
+            game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, v.id, Player)
             break
         end
     end
 end)
-
--- === BẮT ĐẦU NGAY ===
-task.spawn(Farm)

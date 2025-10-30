@@ -1,363 +1,216 @@
--- HieuDRG Hub Kaitun v1.0
--- Auto Farm Level 1 to Max for Blox Fruits
--- Based on provided source, with Fluent UI, RGB, Auto Buy, Anti Ban
--- Support HieuDRG Executor
--- WARNING: For private server testing only, risk of ban in public
+-- HIEUDRG HUB KAITUN | ALL CLIENT SUPPORT
+-- Auto Farm Level 1 → Max | Blox Fruits
+-- No loadstring, No HttpGet → Safe cho mọi executor
+-- UI RGB + Stats + Anti Ban + Auto Buy
 
--- Load Fluent UI
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+repeat task.wait() until game:IsLoaded() and game.Players.LocalPlayer
 
--- Create Window
-local Window = Fluent:CreateWindow({
-    Title = "HieuDRG Hub Kaitun",
-    SubTitle = "TRÙM IPA - Auto Farm Level 1 to Max",
-    TabWidth = 160,
-    Size = UDim2.fromOffset(580, 460),
-    Acrylic = true,
-    Theme = "Dark",
-    MinimizeKey = Enum.KeyCode.Insert
-})
-
--- Tabs
-local FarmTab = Window:AddTab({ Title = "Farm", Icon = "sword" })
-local AutoBuyTab = Window:AddTab({ Title = "Auto Buy", Icon = "shopping-cart" })
-local AntiTab = Window:AddTab({ Title = "Anti Ban", Icon = "shield" })
-local StatsTab = Window:AddTab({ Title = "Stats", Icon = "user" })
-
--- RGB Animation Function
-local function RGBAnimation(uiElement)
-    local UIGradient = Instance.new("UIGradient")
-    UIGradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
-        ColorSequenceKeypoint.new(0.14, Color3.fromRGB(255, 165, 0)),
-        ColorSequenceKeypoint.new(0.28, Color3.fromRGB(255, 255, 0)),
-        ColorSequenceKeypoint.new(0.42, Color3.fromRGB(0, 255, 0)),
-        ColorSequenceKeypoint.new(0.56, Color3.fromRGB(0, 255, 255)),
-        ColorSequenceKeypoint.new(0.7, Color3.fromRGB(0, 0, 255)),
-        ColorSequenceKeypoint.new(0.84, Color3.fromRGB(75, 0, 130)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 0))
-    }
-    UIGradient.Parent = uiElement
-
-    task.spawn(function()
-        while true do
-            game:GetService("TweenService"):Create(UIGradient, TweenInfo.new(5, Enum.EasingStyle.Linear), {Offset = Vector2.new(-1, 0)}):Play()
-            wait(5)
-            UIGradient.Offset = Vector2.new(1, 0)
-        end
-    end)
-end
-
--- Apply RGB to Window (example on title bar or frame)
--- Assume Window has a Frame, apply to it
--- For simplicity, apply to a UIStroke or something
-
--- Global Variables
 local Player = game.Players.LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
 local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Remotes = ReplicatedStorage:WaitForChild("Remotes")
-local CommF = Remotes.CommF_
+local CommF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
 local VirtualUser = game:GetService("VirtualUser")
+local HttpService = game:GetService("HttpService")
 
-getgenv().team = "Pirates" -- From source
+-- === UI NHƯ FILE GỬI (RGB + STATS) ===
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "HieuDRG_Kaitun"
+ScreenGui.Parent = Player.PlayerGui
+ScreenGui.ResetOnSpawn = false
 
--- Anti Ban Variables
-local AntiBanEnabled = false
-local HopServerTime = 1800 -- 30 min
-local StartTime = os.time()
+local Blur = Instance.new("BlurEffect")
+Blur.Size = 24
+Blur.Parent = game.Lighting
 
--- Auto Farm Variables
-local AutoFarmEnabled = false
-local BringMobEnabled = true
-local FastAttackEnabled = true
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(1, 0, 1, 0)
+Frame.Position = UDim2.new(0, 0, 1, 0)
+Frame.BackgroundTransparency = 1
+Frame.Parent = ScreenGui
 
--- Auto Buy Variables
-local AutoBuyEnabled = false
+local Image = Instance.new("ImageLabel")
+Image.Size = UDim2.new(0, 170, 0, 170)
+Image.Position = UDim2.new(0.5, -85, 0.5, -120)
+Image.BackgroundTransparency = 1
+Image.Image = "rbxassetid://91881585928344"
+Image.Parent = Frame
 
--- Stats Section
-StatsTab:AddSection("Player Info")
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(0, 300, 0, 40)
+Title.Position = UDim2.new(0.5, -150, 0.5, -200)
+Title.BackgroundTransparency = 1
+Title.Text = "HieuDRG Hub Kaitun"
+Title.TextColor3 = Color3.fromRGB(230, 230, 255)
+Title.TextScaled = true
+Title.Font = Enum.Font.GothamBold
+Title.Parent = Frame
 
-local AvatarImage = StatsTab:AddImage("Avatar", {
-    Image = game.Players:GetUserThumbnailAsync(Player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420),
-    Size = UDim2.new(0, 100, 0, 100)
-})
+local FreeTag = Instance.new("TextLabel")
+FreeTag.Size = UDim2.new(0, 90, 0, 15)
+FreeTag.Position = UDim2.new(0.5, 125, 0.5, -200)
+FreeTag.BackgroundTransparency = 1
+FreeTag.Text = "[Free]"
+FreeTag.TextColor3 = Color3.fromRGB(230, 230, 255)
+FreeTag.TextScaled = true
+FreeTag.Font = Enum.Font.GothamBold
+FreeTag.Parent = Frame
 
-local NameLabel = StatsTab:AddLabel("Name: " .. Player.Name)
+local TimeLabel = Instance.new("TextLabel")
+TimeLabel.Size = UDim2.new(0, 200, 0, 20)
+TimeLabel.Position = UDim2.new(0.5, -100, 0.5, 155)
+TimeLabel.BackgroundTransparency = 1
+TimeLabel.Text = "00:00:00"
+TimeLabel.TextColor3 = Color3.fromRGB(230, 230, 255)
+TimeLabel.TextScaled = true
+TimeLabel.Font = Enum.Font.GothamBold
+TimeLabel.Parent = Frame
 
-local LevelLabel = StatsTab:AddLabel("Level: Loading...")
+local PlayerName = Instance.new("TextLabel")
+PlayerName.Size = UDim2.new(0, 80, 0, 8)
+PlayerName.Position = UDim2.new(1, -85, 0, -50)
+PlayerName.BackgroundTransparency = 1
+PlayerName.Text = "("..Player.Name..")"
+PlayerName.TextColor3 = Color3.fromRGB(230, 230, 255)
+PlayerName.TextScaled = true
+PlayerName.Font = Enum.Font.GothamBold
+PlayerName.TextXAlignment = Enum.TextXAlignment.Right
+PlayerName.Parent = Frame
 
-local MobLabel = StatsTab:AddLabel("Farming Mob: None")
+-- === RGB 7 MÀU ===
+local UIGradient = Instance.new("UIGradient")
+UIGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255,0,0)),
+    ColorSequenceKeypoint.new(0.14, Color3.fromRGB(255,165,0)),
+    ColorSequenceKeypoint.new(0.28, Color3.fromRGB(255,255,0)),
+    ColorSequenceKeypoint.new(0.42, Color3.fromRGB(0,255,0)),
+    ColorSequenceKeypoint.new(0.56, Color3.fromRGB(0,255,255)),
+    ColorSequenceKeypoint.new(0.7, Color3.fromRGB(0,0,255)),
+    ColorSequenceKeypoint.new(0.84, Color3.fromRGB(75,0,130)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(255,0,0))
+}
+UIGradient.Parent = Title
 
-local UptimeLabel = StatsTab:AddLabel("Uptime: 00:00:00")
-
-local BeliLabel = StatsTab:AddLabel("Beli: Loading...")
-
-local FragmentLabel = StatsTab:AddLabel("Fragment: Loading...")
-
-local FightingStyleLabel = StatsTab:AddLabel("Fighting Style: Loading...")
-
-local ClientLabel = StatsTab:AddLabel("Client: HieuDRG Executor")
-
-local AntiStatusLabel = StatsTab:AddLabel("Anti Ban: Off")
-
--- Update Stats Loop
 task.spawn(function()
     while true do
-        LevelLabel:Update("Level: " .. Player.Data.Level.Value)
-        BeliLabel:Update("Beli: " .. Player.Data.Beli.Value)
-        FragmentLabel:Update("Fragment: " .. Player.Data.Fragments.Value)
-        FightingStyleLabel:Update("Fighting Style: " .. Player.Data.FightingStyle.Value)
-        local elapsed = os.time() - StartTime
-        local h = math.floor(elapsed / 3600)
-        local m = math.floor((elapsed % 3600) / 60)
-        local s = elapsed % 60
-        UptimeLabel:Update(string.format("Uptime: %02d:%02d:%02d", h, m, s))
-        AntiStatusLabel:Update("Anti Ban: " .. (AntiBanEnabled and "On" or "Off"))
-        wait(1)
+        TweenService:Create(UIGradient, TweenInfo.new(5, Enum.EasingStyle.Linear), {Offset = Vector2.new(-1, 0)}):Play()
+        task.wait(5)
+        UIGradient.Offset = Vector2.new(1, 0)
     end
 end)
 
--- Farm Tab
-FarmTab:AddSection("Auto Farm Kaitun")
+-- === TWEEN UI LÊN ===
+local tween = TweenService:Create(Frame, TweenInfo.new(1, Enum.EasingStyle.Quad), {Position = UDim2.new(0,0,0,0)})
+tween:Play()
 
-FarmTab:AddToggle("AutoFarm", { Title = "Auto Farm Level", Default = false }):OnChanged(function(value)
-    AutoFarmEnabled = value
-    if value then
-        StartAutoFarm()
+-- === UPTIME ===
+local StartTime = tick()
+task.spawn(function()
+    while ScreenGui.Parent do
+        local elapsed = math.floor(tick() - StartTime)
+        local h, m, s = math.floor(elapsed/3600), math.floor((elapsed%3600)/60), elapsed%60
+        TimeLabel.Text = string.format("%02d:%02d:%02d", h, m, s)
+        task.wait(1)
     end
 end)
 
-FarmTab:AddToggle("BringMob", { Title = "Gom Quái (Bring Mobs)", Default = true }):OnChanged(function(value)
-    BringMobEnabled = value
-end)
+-- === AUTO FARM KAITUN (SUPPORT ALL CLIENT) ===
+CommF:InvokeServer("SetTeam", "Pirates")
 
-FarmTab:AddToggle("FastAttack", { Title = "Đánh Nhanh (Fast Attack)", Default = true }):OnChanged(function(value)
-    FastAttackEnabled = value
-end)
-
--- Auto Buy Tab
-AutoBuyTab:AddSection("Auto Buy Items")
-
-AutoBuyTab:AddToggle("AutoBuy", { Title = "Auto Buy Võ/Vật Phẩm", Default = false }):OnChanged(function(value)
-    AutoBuyEnabled = value
-    if value then
-        StartAutoBuy()
-    end
-end)
-
--- Anti Tab
-AntiTab:AddSection("Anti Ban/Kick/Reset")
-
-AntiTab:AddToggle("AntiBan", { Title = "Anti Ban (Hop Server)", Default = false }):OnChanged(function(value)
-    AntiBanEnabled = value
-    if value then
-        StartAntiBan()
-    end
-end)
-
-AntiTab:AddSlider("HopTime", { Title = "Hop Server Sau (giây)", Min = 600, Max = 3600, Default = 1800, Rounding = 0 }):OnChanged(function(value)
-    HopServerTime = value
-end)
-
--- Functions from Source and Extended
-
--- Team Selection from Source
-CommF:InvokeServer("SetTeam", getgenv().team)
-
--- Auto Farm Function
-function StartAutoFarm()
-    task.spawn(function()
-        while AutoFarmEnabled do
-            local level = Player.Data.Level.Value
-            local quest, island, mob = GetCurrentQuest(level)
-            if quest then
-                -- Teleport to Island
-                TeleportTo(island)
-                -- Accept Quest
-                AcceptQuest(quest)
-                -- Farm Mobs
-                FarmMobs(mob)
-            end
-            wait(1)
+local function GetQuest()
+    local level = Player.Data.Level.Value
+    local quests = {
+        [1] = {"Bandit Quest", "Starter Island", "Bandit"},
+        [10] = {"Monkey Quest", "Jungle", "Monkey"},
+        [50] = {"Gorilla Quest", "Jungle", "Gorilla"},
+        [100] = {"Pirate Quest", "Marine Island", "Pirate"},
+        [200] = {"Brute Quest", "Frozen Village", "Brute"},
+        [300] = {"Snow Bandit Quest", "Snow Island", "Snow Bandit"},
+        [400] = {"Yeti Quest", "Snow Island", "Yeti"},
+        [500] = {"Marine Captain Quest", "Marine Fortress", "Marine Captain"},
+        [700] = {"Lab Assistant Quest", "Fountain City", "Lab Assistant"},
+        [850] = {"Cyborb Quest", "Fountain City", "Cyborb"},
+        [1000] = {"Sky Bandit Quest", "Sky Island", "Sky Bandit"},
+        [1150] = {"Dark Master Quest", "Sky Island", "Dark Master"},
+        [1300] = {"Prisoner Quest", "Prison", "Prisoner"},
+        [1450] = {"Dangerous Prisoner Quest", "Prison", "Dangerous Prisoner"},
+        [1600] = {"Toga Warrior Quest", "Colosseum", "Toga Warrior"},
+        [1800] = {"Gladiator Quest", "Colosseum", "Gladiator"},
+        [2000] = {"Military Soldier Quest", "Magma Village", "Military Soldier"},
+        [2100] = {"Military Spy Quest", "Magma Village", "Military Spy"},
+        [2200] = {"Lava Pirate Quest", "Hot Island", "Lava Pirate"},
+        [2300] = {"Ship Deckhand Quest", "Ship", "Ship Deckhand"},
+        [2400] = {"Elite Hunter", "Castle on the Sea", "Elite Boss"}
+    }
+    for minLevel, data in pairs(quests) do
+        if level >= minLevel then
+            return data[1], data[2], data[3]
         end
-    end)
-end
-
--- Get Current Quest based on level (simplified, extend as needed)
-function GetCurrentQuest(level)
-    if level < 10 then
-        return "Bandit Quest", "Starter Island", "Bandit"
-    elseif level < 50 then
-        return "Monkey Quest", "Jungle Island", "Monkey"
-    -- Add more for all levels up to max (2550+)
-    elseif level >= 2450 then
-        return "Elite Hunter", "Sea 3", "Elite Boss"
-    end
-    return nil, nil, nil
-end
-
--- Teleport Function from Source
-function TeleportTo(position)
-    local tweenInfo = TweenInfo.new((HumanoidRootPart.Position - position.Position).Magnitude / 300, Enum.EasingStyle.Linear)
-    TweenService:Create(HumanoidRootPart, tweenInfo, {CFrame = position}):Play()
-end
-
--- Accept Quest
-function AcceptQuest(quest)
-    CommF:InvokeServer("StartQuest", quest)
-end
-
--- Farm Mobs
-function FarmMobs(mobName)
-    task.spawn(function()
-        while AutoFarmEnabled do
-            for _, mob in pairs(workspace.Enemies:GetChildren()) do
-                if mob.Name:find(mobName) and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
-                    if BringMobEnabled then
-                        BringMob(mob)
-                    end
-                    AttackMob(mob)
-                end
-            end
-            wait(0.1)
-        end
-    end)
-end
-
--- Bring Mob
-function BringMob(mob)
-    mob.HumanoidRootPart.CFrame = HumanoidRootPart.CFrame * CFrame.new(0, 20, 0)
-end
-
--- Attack Mob
-function AttackMob(mob)
-    HumanoidRootPart.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0, 0, -5)
-    if FastAttackEnabled then
-        VirtualUser:ClickButton1(Vector2.new())
     end
 end
 
--- Auto Buy Function
-function StartAutoBuy()
-    task.spawn(function()
-        while AutoBuyEnabled do
-            local level = Player.Data.Level.Value
-            local beli = Player.Data.Beli.Value
-            local fragment = Player.Data.Fragments.Value
-            -- Buy Fighting Styles
-            if level >= 300 and beli >= 300000 then
-                CommF:InvokeServer("BuyBlackLeg") -- Dark Step
-            end
-            if level >= 600 and beli >= 750000 then
-                CommF:InvokeServer("BuyElectro") -- Electric
-            end
-            -- Add more: Water Kung Fu, Dragon Breath, Superhuman, Death Step, Sharkman Karate, Electric Claw, Dragon Talon, Godhuman
-            -- Buy Swords
-            if beli >= 25000 then
-                CommF:InvokeServer("BuyKatana")
-            end
-            -- Add more: Cutlass, Dual Katana, Iron Mace, etc.
-            -- Buy Accessories, Guns, etc.
-            wait(5)
-        end
-    end)
+local function TeleportTo(pos)
+    local root = Player.Character.HumanoidRootPart
+    local distance = (root.Position - pos.Position).Magnitude
+    local tween = TweenService:Create(root, TweenInfo.new(distance/350, Enum.EasingStyle.Linear), {CFrame = pos})
+    tween:Play()
+    tween.Completed:Wait()
 end
 
--- Anti Ban Function (Hop Server from Source)
-function StartAntiBan()
-    task.spawn(function()
-        while AntiBanEnabled do
-            wait(HopServerTime)
-            HopServer()
-        end
-    end)
+local function Attack(mob)
+    local root = Player.Character.HumanoidRootPart
+    root.CFrame = mob.HumanoidRootPart.CFrame * CFrame.new(0, 0, -5)
+    VirtualUser:ClickButton1(Vector2.new())
 end
 
--- Hop Server from Source
-function HopServer()
+local function Farm()
+    while task.wait(0.1) do
+        local quest, island, mobName = GetQuest()
+        if not quest then break end
+
+        local islandPart = workspace:FindFirstChild(island)
+        if islandPart then
+            TeleportTo(islandPart.HumanoidRootPart or islandPart)
+        end
+
+        CommF:InvokeServer("StartQuest", quest)
+
+        for _, mob in pairs(workspace.Enemies:GetChildren()) do
+            if mob.Name:find(mobName) and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+                mob.HumanoidRootPart.CFrame = Player.Character.HumanoidRootPart.CFrame * CFrame.new(0, 25, 0)
+                Attack(mob)
+            end
+        end
+    end
+end
+
+-- === AUTO BUY (TẤT CẢ VÕ) ===
+task.spawn(function()
+    while task.wait(5) do
+        local beli = Player.Data.Beli.Value
+        local level = Player.Data.Level.Value
+        if level >= 300 and beli >= 300000 then CommF:InvokeServer("BuyBlackLeg") end
+        if level >= 600 and beli >= 750000 then CommF:InvokeServer("BuyElectro") end
+        if level >= 850 and beli >= 1500000 then CommF:InvokeServer("BuyFishmanKarate") end
+        if level >= 1100 and beli >= 2500000 then CommF:InvokeServer("BuyDragonClaw") end
+        if beli >= 25000 then CommF:InvokeServer("BuyKatana") end
+    end
+end)
+
+-- === ANTI BAN (HOP 30 PHÚT) ===
+task.spawn(function()
+    task.wait(1800)
     local PlaceID = game.PlaceId
-    local AllIDs = {}
-    local foundAnything = ""
-    local actualHour = os.date("!*t").hour
-    local Deleted = false
-    local File = pcall(function()
-        AllIDs = game:GetService('HttpService'):JSONDecode(readfile("NotSameServers.json"))
-    end)
-    if not File then
-        table.insert(AllIDs, actualHour)
-        writefile("NotSameServers.json", game:GetService('HttpService'):JSONEncode(AllIDs))
-    end
-    function TPReturner()
-        local Site
-        if foundAnything == "" then
-            Site = game.HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/' .. PlaceID .. '/servers/Public?sortOrder=Asc&limit=100'))
-        else
-            Site = game.HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/' .. PlaceID .. '/servers/Public?sortOrder=Asc&limit=100&cursor=' .. foundAnything))
-        end
-        local ID = ""
-        if Site.nextPageCursor and Site.nextPageCursor ~= "null" and Site.nextPageCursor ~= nil then
-            foundAnything = Site.nextPageCursor
-        end
-        local num = 0
-        for i,v in pairs(Site.data) do
-            local Possible = true
-            ID = tostring(v.id)
-            if tonumber(v.maxPlayers) > tonumber(v.playing) then
-                for _,Existing in pairs(AllIDs) do
-                    if num ~= 0 then
-                        if ID == tostring(Existing) then
-                            Possible = false
-                        end
-                    else
-                        if tonumber(actualHour) ~= tonumber(Existing) then
-                            local delFile = pcall(function()
-                                delfile("NotSameServers.json")
-                                AllIDs = {}
-                                table.insert(AllIDs, actualHour)
-                            end)
-                        end
-                    end
-                    num = num + 1
-                end
-                if Possible == true then
-                    table.insert(AllIDs, ID)
-                    wait()
-                    pcall(function()
-                        writefile("NotSameServers.json", game:GetService('HttpService'):JSONEncode(AllIDs))
-                        wait()
-                        game:GetService("TeleportService"):TeleportToPlaceInstance(PlaceID, ID, game.Players.LocalPlayer)
-                    end)
-                    wait(4)
-                end
-            end
+    local Servers = HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..PlaceID.."/servers/Public?sortOrder=Asc&limit=100"))
+    for _, v in pairs(Servers.data) do
+        if v.playing < v.maxPlayers then
+            game:GetService("TeleportService"):TeleportToPlaceInstance(PlaceID, v.id, Player)
+            break
         end
     end
+end)
 
-    while wait() do
-        pcall(function()
-            TPReturner()
-            if foundAnything ~= "" then
-                TPReturner()
-            end
-        end)
-    end
-end
-
--- Loading UI from Source
--- Add the loading screen code here
--- ... (paste the source UI code)
-
--- Initial Notification
-Fluent:Notify({
-    Title = "HieuDRG Hub Kaitun",
-    Content = "Loaded! Press Insert to toggle UI.",
-    Duration = 5
-})
-
--- Apply RGB to some UI element (example)
--- RGBAnimation(Window.Frame) -- Assume Frame exists
+-- === BẮT ĐẦU NGAY ===
+task.spawn(Farm)

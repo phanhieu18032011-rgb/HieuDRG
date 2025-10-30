@@ -1,284 +1,185 @@
--- HIEUDRG HUB v13.0 - RAFT SURVIVAL HACK (Sống sót trên bè)
--- Game: https://www.roblox.com/games/14682928991/Classes-Spell-Update-Song-sot-tren-be
--- Features: Auto Teleport + Collect Chests, Kill Aura (Shark/Mobs), Infinite Health + Energy
--- UI: FILE Style - Universal 2025
+-- DELTA EXECUTOR OPTIMIZED FLY GUI
+-- Fluent UI + Noclip + ESP + Speed Control
+-- Tested on: Delta v3.0+ (PC & Mobile)
 
--- === SERVICES ===
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
-local StarterGui = game:GetService("StarterGui")
-local Workspace = game:GetService("Workspace")
-local UserInputService = game:GetService("UserInputService")
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 
-local LocalPlayer = Players.LocalPlayer
-local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-local Humanoid = Character:WaitForChild("Humanoid")
-local RootPart = Character:WaitForChild("HumanoidRootPart")
-
--- === VARIABLES ===
-local HubGui, MainFrame, ToggleButton, IsMenuOpen = nil, nil, nil, false
-local StartTime = tick()
-
--- === FEATURE STATES ===
-local AutoTPCollect = { on = false, conn = nil }
-local KillAura = { on = false, conn = nil, range = 25 }
-local InfiniteHealth = { on = false }
-local InfiniteEnergy = { on = false }
-
--- === UPTIME ===
-local function GetUptime()
-    local t = tick() - StartTime
-    local h, m, s = math.floor(t/3600), math.floor((t%3600)/60), math.floor(t%60)
-    return string.format("%02d:%02d:%02d", h, m, s)
-end
-
--- === AUTO TELEPORT + COLLECT CHESTS/RƯƠNG/HÒM ===
-local function ToggleAutoTPCollect()
-    AutoTPCollect.on = not AutoTPCollect.on
-    if AutoTPCollect.on then
-        AutoTPCollect.conn = RunService.Heartbeat:Connect(function()
-            for _, obj in pairs(Workspace:GetDescendants()) do
-                local name = obj.Name:lower()
-                if name:find("chest") or name:find("rương") or name:find("box") or name:find("treasure") or name:find("debris") then
-                    if obj:IsA("BasePart") and obj.Parent and (obj.Position - RootPart.Position).Magnitude > 8 then
-                        -- Teleport to chest
-                        RootPart.CFrame = CFrame.new(obj.Position + Vector3.new(0, 5, 0))
-                        wait(0.6)
-                    end
-                    if (obj.Position - RootPart.Position).Magnitude < 12 then
-                        -- Auto collect
-                        firetouchinterest(obj, RootPart, 0)
-                        firetouchinterest(obj, RootPart, 1)
-                        wait(0.1)
-                    end
-                end
-            end
-        end)
-    else
-        if AutoTPCollect.conn then AutoTPCollect.conn:Disconnect() end
-    end
-end
-
--- === KILL AURA (Shark + Mobs) ===
-local function ToggleKillAura()
-    KillAura.on = not KillAura.on
-    if KillAura.on then
-        KillAura.conn = RunService.Heartbeat:Connect(function()
-            for _, mob in pairs(Workspace:GetDescendants()) do
-                if mob:FindFirstChild("Humanoid") and mob:FindFirstChild("HumanoidRootPart") and mob ~= Character then
-                    local dist = (mob.HumanoidRootPart.Position - RootPart.Position).Magnitude
-                    if dist <= KillAura.range then
-                        mob.Humanoid:TakeDamage(15)  -- Damage per tick
-                    end
-                end
-            end
-        end)
-    else
-        if KillAura.conn then KillAura.conn:Disconnect() end
-    end
-end
-
--- === INFINITE HEALTH ===
-local function ToggleInfiniteHealth()
-    InfiniteHealth.on = not InfiniteHealth.on
-    if InfiniteHealth.on then
-        Humanoid.MaxHealth = math.huge
-        Humanoid.Health = math.huge
-        Humanoid.HealthChanged:Connect(function()
-            if InfiniteHealth.on then
-                Humanoid.Health = math.huge
-            end
-        end)
-    end
-end
-
--- === INFINITE ENERGY (Stamina/Hunger/Thirst) ===
-local function ToggleInfiniteEnergy()
-    InfiniteEnergy.on = not InfiniteEnergy.on
-    if InfiniteEnergy.on then
-        spawn(function()
-            while InfiniteEnergy.on and wait(0.5) do
-                pcall(function()
-                    -- Reset hunger, thirst, stamina
-                    local stats = LocalPlayer:FindFirstChild("PlayerStats") or LocalPlayer:FindFirstChild("Stats")
-                    if stats then
-                        if stats:FindFirstChild("Hunger") then stats.Hunger.Value = 100 end
-                        if stats:FindFirstChild("Thirst") then stats.Thirst.Value = 100 end
-                        if stats:FindFirstChild("Stamina") then stats.Stamina.Value = 100 end
-                    end
-                    Humanoid.WalkSpeed = 20  -- No fatigue
-                end)
-            end
-        end)
-    end
-end
-
--- === CREATE UI (FILE STYLE) ===
-local function CreateUI()
-    HubGui = Instance.new("ScreenGui")
-    HubGui.Name = "HieuDRGHub"
-    HubGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-    HubGui.ResetOnSpawn = false
-
-    -- Toggle Button
-    ToggleButton = Instance.new("TextButton")
-    ToggleButton.Parent = HubGui
-    ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
-    ToggleButton.Position = UDim2.new(0, 10, 0, 10)
-    ToggleButton.Size = UDim2.new(0, 160, 0, 50)
-    ToggleButton.Font = Enum.Font.GothamBold
-    ToggleButton.Text = "HieuDRG Hub"
-    ToggleButton.TextColor3 = Color3.new(1,1,1)
-    ToggleButton.TextSize = 16
-    ToggleButton.ZIndex = 1000
-
-    -- Main Frame
-    MainFrame = Instance.new("Frame")
-    MainFrame.Parent = HubGui
-    MainFrame.BackgroundColor3 = Color3.fromRGB(30,30,30)
-    MainFrame.Position = UDim2.new(0.5, -210, 0.5, -200)
-    MainFrame.Size = UDim2.new(0, 420, 0, 400)
-    MainFrame.Visible = false
-    MainFrame.Active = true
-    MainFrame.Draggable = true
-    MainFrame.ZIndex = 999
-
-    -- Title
-    local Title = Instance.new("TextLabel")
-    Title.Parent = MainFrame
-    Title.BackgroundColor3 = Color3.fromRGB(0,120,215)
-    Title.Size = UDim2.new(1,0,0,50)
-    Title.Text = "HIEUDRG HUB v13.0"
-    Title.TextColor3 = Color3.new(1,1,1)
-    Title.Font = Enum.Font.GothamBold
-    Title.TextSize = 18
-
-    -- Player + Avatar
-    local PlayerInfo = Instance.new("TextLabel")
-    PlayerInfo.Parent = MainFrame
-    PlayerInfo.BackgroundTransparency = 1
-    PlayerInfo.Position = UDim2.new(0,0,0,50)
-    PlayerInfo.Size = UDim2.new(1,0,0,30)
-    PlayerInfo.Text = "Player: " .. LocalPlayer.Name
-    PlayerInfo.TextColor3 = Color3.new(1,1,1)
-    PlayerInfo.Font = Enum.Font.Gotham
-    PlayerInfo.TextXAlignment = Enum.TextXAlignment.Left
-
-    local Avatar = Instance.new("ImageLabel")
-    Avatar.Parent = MainFrame
-    Avatar.BackgroundTransparency = 1
-    Avatar.Position = UDim2.new(0, 360, 0, 5)
-    Avatar.Size = UDim2.new(0,40,0,40)
-    Avatar.Image = Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48)
-
-    -- Uptime
-    local Uptime = Instance.new("TextLabel")
-    Uptime.Parent = MainFrame
-    Uptime.BackgroundTransparency = 1
-    Uptime.Position = UDim2.new(0.6,0,0,50)
-    Uptime.Size = UDim2.new(0.4,0,0,30)
-    Uptime.Text = "Uptime: 00:00:00"
-    Uptime.TextColor3 = Color3.new(1,1,1)
-    Uptime.Font = Enum.Font.Gotham
-    Uptime.TextXAlignment = Enum.TextXAlignment.Right
-
-    -- Close Button
-    local Close = Instance.new("TextButton")
-    Close.Parent = Title
-    Close.BackgroundTransparency = 1
-    Close.Position = UDim2.new(1,-40,0,10)
-    Close.Size = UDim2.new(0,30,0,30)
-    Close.Text = "X"
-    Close.TextColor3 = Color3.fromRGB(255,0,0)
-    Close.Font = Enum.Font.GothamBold
-    Close.ZIndex = 1001
-
-    -- Scroll
-    local Scroll = Instance.new("ScrollingFrame")
-    Scroll.Parent = MainFrame
-    Scroll.BackgroundTransparency = 1
-    Scroll.Position = UDim2.new(0,10,0,80)
-    Scroll.Size = UDim2.new(1,-20,1,-100)
-    Scroll.ScrollBarThickness = 6
-    Scroll.CanvasSize = UDim2.new(0,0,0,400)
-
-    local y = 10
-    local function Btn(text, callback)
-        local b = Instance.new("TextButton")
-        b.Parent = Scroll
-        b.Size = UDim2.new(1,-10,0,35)
-        b.Position = UDim2.new(0,5,0,y)
-        b.BackgroundColor3 = Color3.fromRGB(45,45,45)
-        b.BorderColor3 = Color3.fromRGB(0,162,255)
-        b.Text = text
-        b.TextColor3 = Color3.new(1,1,1)
-        b.Font = Enum.Font.Gotham
-        b.ZIndex = 999
-        b.MouseButton1Click:Connect(callback)
-        y = y + 45
-        return b
-    end
-
-    -- === TOGGLE BUTTONS ===
-    local tpBtn = Btn("Auto TP + Collect Chests: OFF", function()
-        ToggleAutoTPCollect()
-        tpBtn.Text = "Auto TP + Collect Chests: " .. (AutoTPCollect.on and "ON" or "OFF")
-    end)
-
-    local auraBtn = Btn("Kill Aura (Shark/Mobs): OFF", function()
-        ToggleKillAura()
-        auraBtn.Text = "Kill Aura (Shark/Mobs): " .. (KillAura.on and "ON" or "OFF")
-    end)
-
-    local healthBtn = Btn("Infinite Health: OFF", function()
-        ToggleInfiniteHealth()
-        healthBtn.Text = "Infinite Health: " .. (InfiniteHealth.on and "ON" or "OFF")
-    end)
-
-    local energyBtn = Btn("Infinite Energy: OFF", function()
-        ToggleInfiniteEnergy()
-        energyBtn.Text = "Infinite Energy: " .. (InfiniteEnergy.on and "ON" or "OFF")
-    end)
-
-    -- === MENU TOGGLE ===
-    ToggleButton.MouseButton1Click:Connect(function()
-        IsMenuOpen = not IsMenuOpen
-        MainFrame.Visible = IsMenuOpen
-        ToggleButton.Text = IsMenuOpen and "HieuDRG - Close" or "HieuDRG Hub"
-    end)
-
-    Close.MouseButton1Click:Connect(function()
-        IsMenuOpen = false
-        MainFrame.Visible = false
-        ToggleButton.Text = "HieuDRG Hub"
-    end)
-
-    -- === UPTIME LOOP ===
-    spawn(function()
-        while wait(1) do
-            Uptime.Text = "Uptime: " .. GetUptime()
-        end
-    end)
-
-    -- === RESPAWN ===
-    LocalPlayer.CharacterAdded:Connect(function(char)
-        Character = char
-        Humanoid = char:WaitForChild("Humanoid")
-        RootPart = char:WaitForChild("HumanoidRootPart")
-        wait(1)
-        if InfiniteHealth.on then ToggleInfiniteHealth() end
-        if InfiniteEnergy.on then ToggleInfiniteEnergy() end
-    end)
-end
-
--- === INIT ===
-CreateUI()
-
-StarterGui:SetCore("SendNotification", {
-    Title = "HIEUDRG HUB v13.0",
-    Text = "RAFT SURVIVAL HACK READY! Auto Collect + Kill Shark!",
-    Duration = 6
+-- Tạo cửa sổ
+local Window = Fluent:CreateWindow({
+    Title = "Delta Fly GUI",
+    SubTitle = "by Overlord",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(560, 420),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.End
 })
 
-print("HIEUDRG HUB v13.0 - RAFT SURVIVAL LOADED 100%")
+-- Tabs
+local FlyTab = Window:AddTab({ Title = "Fly", Icon = "plane" })
+local VisualTab = Window:AddTab({ Title = "ESP", Icon = "eye" })
+local SettingsTab = Window:AddTab({ Title = "Settings", Icon = "settings" })
+
+-- Core Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+
+-- Biến trạng thái
+local Flying = false
+local FlySpeed = 100
+local Noclip = true
+local ESP = false
+
+local BodyGyro, BodyVelocity
+local NoclipConnection, ESPConnection
+
+-- === FLY ENGINE ===
+local function StartFly()
+    local char = LocalPlayer.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    local root = char.HumanoidRootPart
+
+    -- Tạo Body movers
+    BodyGyro = Instance.new("BodyGyro")
+    BodyGyro.P = 9000
+    BodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+    BodyGyro.Parent = root
+
+    BodyVelocity = Instance.new("BodyVelocity")
+    BodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+    BodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    BodyVelocity.Parent = root
+
+    Flying = true
+
+    -- Fly loop (Delta-safe)
+    spawn(function()
+        while task.wait() and Flying and root and root.Parent do
+            local move = Vector3.new(0, 0, 0)
+            local look = Camera.CFrame.LookVector
+
+            if UserInputService:IsKeyDown(Enum.KeyCode.W) then move += look end
+            if UserInputService:IsKeyDown(Enum.KeyCode.S) then move -= look end
+            if UserInputService:IsKeyDown(Enum.KeyCode.A) then move -= look:Cross(Vector3.new(0,1,0)) end
+            if UserInputService:IsKeyDown(Enum.KeyCode.D) then move += look:Cross(Vector3.new(0,1,0)) end
+            if UserInputService:IsKeyDown(Enum.KeyCode.Space) then move += Vector3.new(0,1,0) end
+            if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then move -= Vector3.new(0,1,0) end
+
+            BodyVelocity.Velocity = move.Unit * FlySpeed
+            BodyGyro.CFrame = Camera.CFrame
+        end
+    end)
+end
+
+local function StopFly()
+    Flying = false
+    if BodyGyro then BodyGyro:Destroy() end
+    if BodyVelocity then BodyVelocity:Destroy() end
+end
+
+-- === NOCLIP ===
+local function SetNoclip(enabled)
+    Noclip = enabled
+    if NoclipConnection then NoclipConnection:Disconnect() end
+
+    if enabled and LocalPlayer.Character then
+        NoclipConnection = RunService.Stepped:Connect(function()
+            for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end)
+    end
+end
+
+-- === ESP ===
+local function CreateESP(player)
+    if player == LocalPlayer then return end
+    local char = player.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+
+    local box = Instance.new("BoxHandleAdornment")
+    box.Name = "DeltaESP_" .. player.Name
+    box.Adornee = char.HumanoidRootPart
+    box.Size = char.HumanoidRootPart.Size + Vector3.new(1, 1, 1)
+    box.Color3 = Color3.fromRGB(255, 0, 0)
+    box.Transparency = 0.7
+    box.AlwaysOnTop = true
+    box.ZIndex = 10
+    box.Parent = game:GetService("CoreGui")
+end
+
+local function UpdateESP()
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            if not player.Character.HumanoidRootPart:FindFirstChild("DeltaESP_" .. player.Name) then
+                CreateESP(player)
+            end
+        end
+    end
+end
+
+local function SetESP(enabled)
+    ESP = enabled
+    if ESPConnection then ESPConnection:Disconnect() end
+
+    if enabled then
+        ESPConnection = RunService.RenderStepped:Connect(UpdateESP)
+        UpdateESP()
+    else
+        for _, obj in ipairs(game:GetService("CoreGui"):GetChildren()) do
+            if obj.Name:find("DeltaESP_") then
+                obj:Destroy()
+            end
+        end
+    end
+end
+
+-- === UI CONTROLS ===
+FlyTab:AddToggle("Fly", {
+    Title = "Enable Fly",
+    Default = false
+}):OnChanged(function(state)
+    if state then StartFly() else StopFly() end
+end)
+
+FlyTab:AddSlider("Speed", {
+    Title = "Fly Speed",
+    Min = 16,
+    Max = 500,
+    Default = 100,
+    Rounding = 1
+}):OnChanged(function(value)
+    FlySpeed = value
+end)
+
+FlyTab:AddToggle("Noclip", {
+    Title = "Noclip",
+    Default = true
+}):OnChanged(SetNoclip)
+
+VisualTab:AddToggle("ESP", {
+    Title = "Player ESP",
+    Default = false
+}):OnChanged(SetESP)
+
+SettingsTab:AddKeybind("ToggleGUI", {
+    Title = "Toggle GUI",
+    Mode = "Toggle",
+    Default = Enum.KeyCode.Insert
+}):OnChanged(function()
+    Window:Toggle()
+end)
+
+-- === KHỞI TẠO ===
+SetNoclip(true)
+
+Fluent:Notify({
+    Title = "Delta Fly GUI",
+    Content = "Loaded successfully! Press INSERT to toggle.",
+    Duration = 5
+})

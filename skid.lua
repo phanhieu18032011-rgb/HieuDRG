@@ -3,7 +3,7 @@ local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/tbao1
 
 local Window = redzlib:MakeWindow({
     Title = "HieuDRG Hub V1 | 99 night in the forest",
-    SubTitle = "by STELLAR",
+    SubTitle = "by hieuphan",
     SaveFolder = "stellar"
 })
 

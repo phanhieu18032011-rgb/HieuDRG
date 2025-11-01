@@ -1,8 +1,8 @@
 local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/tbao143/Library-ui/refs/heads/main/Redzhubui"))()
 
 local Window = redzlib:MakeWindow({
-  Title = "TBoy Roblox Tổng Hợp Hubs 2025",
-  SubTitle = "by real_tbeo - Multi-Game Loader (Bandishare Edition)",
+  Title = " Roblox Tổng Hợp Hubs 2025",
+  SubTitle = "by  - Multi-Game Loader (Bandishare Edition)",
   SaveFolder = "Redz | redz lib v5.lua"
 })
 

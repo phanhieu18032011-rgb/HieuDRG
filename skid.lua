@@ -11,7 +11,6 @@ Window:AddMinimizeButton({
     Corner = { CornerRadius = UDim.new(0, 5) },
 })
 
-local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
@@ -581,7 +580,7 @@ TabMain:AddInput({
     end
 })
 
-TabMain:AddToggle({
+local AutoFeedToggleRef = TabMain:AddToggle({
     Title="Auto Feed",
     Description="",
     Callback=function(state)
@@ -592,7 +591,7 @@ TabMain:AddToggle({
                     task.wait(0.075)
                     if wiki(selectedFood) == 0 then
                         autoFeedToggle = false
-                        TabMain:Find("Auto Feed"):Set(false)
+                        AutoFeedToggleRef:Set(false)
                         notifeed(selectedFood)
                         break
                     end
@@ -704,13 +703,13 @@ TabTp:AddButton({
 
 TabTp:AddSection({Title = "Children"})
 
-local MobDropdown = TabTp:AddDropdown({
+local MobDropdownRef = TabTp:AddDropdown({
     Title="Select Child",
     Description="",
     Items=currentMobNames,
     Multi=false,
     Callback=function(options)
-        selectedMob = options[#options] or currentMobNames[1] or nil
+        selectedMob = options or currentMobNames[1] or nil
     end
 })
 
@@ -721,10 +720,10 @@ TabTp:AddButton({
         currentMobs, currentMobNames = getMobs()
         if #currentMobNames > 0 then
             selectedMob = currentMobNames[1]
-            MobDropdown:Refresh(currentMobNames)
+            MobDropdownRef:Refresh(currentMobNames)
         else
             selectedMob = nil
-            MobDropdown:Refresh({"No child found"})
+            MobDropdownRef:Refresh({"No child found"})
         end
     end
 })
@@ -755,13 +754,13 @@ TabTp:AddButton({
 
 TabTp:AddSection({Title = "Chest"})
 
-local ChestDropdown = TabTp:AddDropdown({
+local ChestDropdownRef = TabTp:AddDropdown({
     Title="Select Chest",
     Description="",
     Items=currentChestNames,
     Multi=false,
     Callback=function(options)
-        selectedChest = options[#options] or currentChestNames[1] or nil
+        selectedChest = options or currentChestNames[1] or nil
     end
 })
 
@@ -772,10 +771,10 @@ TabTp:AddButton({
         currentChests, currentChestNames = getChests()
         if #currentChestNames > 0 then
             selectedChest = currentChestNames[1]
-            ChestDropdown:Refresh(currentChestNames)
+            ChestDropdownRef:Refresh(currentChestNames)
         else
             selectedChest = nil
-            ChestDropdown:Refresh({"No chests found"})
+            ChestDropdownRef:Refresh({"No chests found"})
         end
     end
 })

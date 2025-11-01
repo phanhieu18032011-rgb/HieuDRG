@@ -2,7 +2,7 @@ local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/tbao1
 
 local Window = redzlib:MakeWindow({
   Title = "TBoy Roblox Tổng Hợp Hubs 2025",
-  SubTitle = "by real_tbeo - Multi-Game Loader",
+  SubTitle = "by real_tbeo - Multi-Game Loader (Bandishare Edition)",
   SaveFolder = "Redz | redz lib v5.lua"
 })
 
@@ -12,12 +12,19 @@ Window:AddMinimizeButton({
 })
 
 local Tab = Window:MakeTab({"Discord", "info"})
+
 local Tab2 = Window:MakeTab({"Blox Fruits", "home"})
+
 local Tab3 = Window:MakeTab({"Grow a Garden", "swords"})
+
 local Tab4 = Window:MakeTab({"Steal a Brainrot", "locate"})
+
 local Tab5 = Window:MakeTab({"99 Nights in the Forest", "signal"})
+
 local Tab6 = Window:MakeTab({"Hunt Zombie", "shoppingCart"})
+
 local Tab7 = Window:MakeTab({"Linh Tinh", "user"})
+
 local Tab8 = Window:MakeTab({"Khác", "settings"})
 
 Tab:AddButton({
@@ -47,72 +54,96 @@ Tab:AddButton({
     end
 })
 
-Tab2:AddToggle({
+Tab2:AddButton({
     Title="Redz Hub Blox Fruits",
-    Description="NO KEY - Auto Farm/Boss/Raid Update 28",
+    Description="NO KEY - Auto Farm/Boss/Raid Update 28 (Bandishare)",
     Callback=function()
         local Settings = { JoinTeam = "Pirates", Translator = true }
         loadstring(game:HttpGet("https://raw.githubusercontent.com/newredz/BloxFruits/refs/heads/main/Source.luau"))(Settings)
     end
 })
 
-Tab2:AddToggle({
+Tab2:AddButton({
     Title="GreenZ Hub Blox Fruits",
-    Description="NO KEY - Farm Fruit/Chest Update 28",
+    Description="NO KEY - Farm Fruit/Chest Update 28 (Bandishare)",
     Callback=function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/LuaAnarchist/GreenZ-Hub/refs/heads/main/KaitunDoughKing.lua"))()
     end
 })
 
-Tab2:AddToggle({
-    Title="Quantum Onyx Hub",
-    Description="NO KEY - Full Auto Farm Update 28",
-    Callback=function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/flazhy/QuantumOnyx/refs/heads/main/QuantumOnyx.lua"))()
-    end
-})
-
-Tab2:AddToggle({
+Tab2:AddButton({
     Title="Netna Hub Blox Fruits",
-    Description="KEY - Auto Farm Candy Update 28",
+    Description="KEY - Auto Farm Candy Update 28 (Bandishare)",
     Callback=function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/NetnaHub/BloxFruits/main/NetnaHub.lua"))()
     end
 })
 
-Tab2:AddToggle({
+Tab2:AddButton({
+    Title="Fluxus Blox Fruits V50",
+    Description="NO KEY - Mobile Farm APK Update 24 (Bandishare)",
+    Callback=function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/FluxusHub/BloxFruits/main/FluxusV50.lua"))()
+    end
+})
+
+Tab2:AddButton({
+    Title="Hydrogen Blox Fruits Update 24",
+    Description="NO KEY - Raid/Boss Update 24 (Bandishare APK)",
+    Callback=function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/HydrogenHack/BloxFruits/main/HydrogenUpdate24.lua"))()
+    end
+})
+
+Tab2:AddButton({
     Title="HoHo Hub Blox Fruits",
-    Description="NO KEY - Full Script Update 28",
+    Description="NO KEY - Full Auto Update 28 (Bandishare)",
     Callback=function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/acsu123/HOHO_Hub/main/Loading_UI"))()
     end
 })
 
-Tab2:AddToggle({
-    Title="Dough Hub Blox Fruits",
-    Description="NO KEY - Auto Dough King",
-    Callback=function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/DoughHub/BloxFruits/main/Dough.lua"))()
-    end
-})
-
-Tab2:AddToggle({
-    Title="Thunder Z Hub",
-    Description="KEY - Auto Race V4",
+Tab2:AddButton({
+    Title="Thunder Z Blox Fruits",
+    Description="KEY - Auto Race V4 Update 20 (Bandishare)",
     Callback=function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/ThunderZ/BloxFruits/main/ThunderZ.lua"))()
     end
 })
 
-Tab2:AddToggle({
+Tab2:AddButton({
     Title="Powered V2 Blox Fruits",
-    Description="NO KEY - Farm Chest/Fruit",
+    Description="NO KEY - Farm Chest/Fruit Update 19 (Bandishare)",
     Callback=function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/PoweredV2/BloxFruits/main/Powered.lua"))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/PoweredV2/BloxFruits/main/PoweredV2.lua"))()
     end
 })
 
-Tab3:AddToggle({
+Tab2:AddButton({
+    Title="Dough King Blox Fruits",
+    Description="NO KEY - Auto Dough Update 19 (Bandishare)",
+    Callback=function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/DoughKingHub/BloxFruits/main/Dough.lua"))()
+    end
+})
+
+Tab2:AddButton({
+    Title="Quantum Onyx Blox Fruits",
+    Description="NO KEY - Farm Update 28 (Bandishare GitHub)",
+    Callback=function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/flazhy/QuantumOnyx/refs/heads/main/QuantumOnyx.lua"))()
+    end
+})
+
+Tab2:AddButton({
+    Title="VNG Blox Fruits Hack",
+    Description="NO KEY - Auto Farm VNG Update 24 (Bandishare APK)",
+    Callback=function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/VNGHack/BloxFruits/main/VNG.lua"))()
+    end
+})
+
+Tab3:AddButton({
     Title="Garden Farm Hub",
     Description="NO KEY - Auto Plant/Harvest",
     Callback=function()
@@ -120,7 +151,7 @@ Tab3:AddToggle({
     end
 })
 
-Tab3:AddToggle({
+Tab3:AddButton({
     Title="Bucket Eyes Grow Hub",
     Description="NO KEY - Auto Grow Bucket",
     Callback=function()
@@ -128,7 +159,7 @@ Tab3:AddToggle({
     end
 })
 
-Tab3:AddToggle({
+Tab3:AddButton({
     Title="Auto Garden Pro",
     Description="KEY - Multi-Plant Farm",
     Callback=function()
@@ -136,7 +167,7 @@ Tab3:AddToggle({
     end
 })
 
-Tab3:AddToggle({
+Tab3:AddButton({
     Title="Simple Garden ESP",
     Description="NO KEY - Item ESP",
     Callback=function()
@@ -144,7 +175,7 @@ Tab3:AddToggle({
     end
 })
 
-Tab3:AddToggle({
+Tab3:AddButton({
     Title="Garden Speed Hub",
     Description="NO KEY - Speed Grow",
     Callback=function()
@@ -152,7 +183,7 @@ Tab3:AddToggle({
     end
 })
 
-Tab3:AddToggle({
+Tab3:AddButton({
     Title="Grow Teleport Hub",
     Description="NO KEY - TP Plants",
     Callback=function()
@@ -160,7 +191,7 @@ Tab3:AddToggle({
     end
 })
 
-Tab4:AddToggle({
+Tab4:AddButton({
     Title="Brainrot Steal Hub",
     Description="NO KEY - Auto Steal Items",
     Callback=function()
@@ -168,7 +199,7 @@ Tab4:AddToggle({
     end
 })
 
-Tab4:AddToggle({
+Tab4:AddButton({
     Title="Steal Rot Pro",
     Description="KEY - ESP + Teleport",
     Callback=function()
@@ -176,7 +207,7 @@ Tab4:AddToggle({
     end
 })
 
-Tab4:AddToggle({
+Tab4:AddButton({
     Title="Brainrot Farm Hub",
     Description="NO KEY - Auto Farm Rot",
     Callback=function()
@@ -184,7 +215,7 @@ Tab4:AddToggle({
     end
 })
 
-Tab4:AddToggle({
+Tab4:AddButton({
     Title="Steal ESP Hub",
     Description="NO KEY - Item ESP",
     Callback=function()
@@ -192,7 +223,7 @@ Tab4:AddToggle({
     end
 })
 
-Tab4:AddToggle({
+Tab4:AddButton({
     Title="Brainrot Speed Hub",
     Description="NO KEY - Speed Hack",
     Callback=function()
@@ -200,7 +231,7 @@ Tab4:AddToggle({
     end
 })
 
-Tab5:AddToggle({
+Tab5:AddButton({
     Title="99 Nights Aura Hub",
     Description="NO KEY - Kill/Chop Aura",
     Callback=function()
@@ -208,7 +239,7 @@ Tab5:AddToggle({
     end
 })
 
-Tab5:AddToggle({
+Tab5:AddButton({
     Title="Forest ESP Pro",
     Description="KEY - Item/Mob ESP",
     Callback=function()
@@ -216,7 +247,7 @@ Tab5:AddToggle({
     end
 })
 
-Tab5:AddToggle({
+Tab5:AddButton({
     Title="Night Fly Hub",
     Description="NO KEY - Fly + Speed",
     Callback=function()
@@ -224,7 +255,7 @@ Tab5:AddToggle({
     end
 })
 
-Tab5:AddToggle({
+Tab5:AddButton({
     Title="Forest Auto Cook",
     Description="NO KEY - Auto Food",
     Callback=function()
@@ -232,7 +263,7 @@ Tab5:AddToggle({
     end
 })
 
-Tab6:AddToggle({
+Tab6:AddButton({
     Title="Zombie Hunt Aura",
     Description="NO KEY - Auto Kill Zombies",
     Callback=function()
@@ -240,7 +271,7 @@ Tab6:AddToggle({
     end
 })
 
-Tab6:AddToggle({
+Tab6:AddButton({
     Title="Hunt ESP Hub",
     Description="NO KEY - Zombie ESP",
     Callback=function()
@@ -248,7 +279,7 @@ Tab6:AddToggle({
     end
 })
 
-Tab6:AddToggle({
+Tab6:AddButton({
     Title="Zombie Farm Pro",
     Description="KEY - Auto Farm",
     Callback=function()
@@ -256,7 +287,7 @@ Tab6:AddToggle({
     end
 })
 
-Tab6:AddToggle({
+Tab6:AddButton({
     Title="Hunt Speed Hub",
     Description="NO KEY - Speed + Jump",
     Callback=function()
@@ -264,7 +295,7 @@ Tab6:AddToggle({
     end
 })
 
-Tab6:AddToggle({
+Tab6:AddButton({
     Title="Zombie Teleport Hub",
     Description="NO KEY - TP Zombies",
     Callback=function()
@@ -272,7 +303,7 @@ Tab6:AddToggle({
     end
 })
 
-Tab6:AddToggle({
+Tab6:AddButton({
     Title="Hunt Noclip Hub",
     Description="NO KEY - Noclip",
     Callback=function()
@@ -280,7 +311,7 @@ Tab6:AddToggle({
     end
 })
 
-Tab7:AddToggle({
+Tab7:AddButton({
     Title="Universal Fly Script",
     Description="NO KEY - Fly cho mọi game",
     Callback=function()
@@ -288,7 +319,7 @@ Tab7:AddToggle({
     end
 })
 
-Tab7:AddToggle({
+Tab7:AddButton({
     Title="Universal ESP Script",
     Description="NO KEY - Item ESP mọi game",
     Callback=function()
@@ -296,7 +327,7 @@ Tab7:AddToggle({
     end
 })
 
-Tab7:AddToggle({
+Tab7:AddButton({
     Title="Speed Hack Universal",
     Description="NO KEY - WalkSpeed x16 mọi game",
     Callback=function()
@@ -304,7 +335,7 @@ Tab7:AddToggle({
     end
 })
 
-Tab7:AddToggle({
+Tab7:AddButton({
     Title="Infinite Jump Universal",
     Description="NO KEY - Jump mọi game",
     Callback=function()
@@ -312,7 +343,7 @@ Tab7:AddToggle({
     end
 })
 
-Tab7:AddToggle({
+Tab7:AddButton({
     Title="Teleport Universal",
     Description="NO KEY - TP Script mọi game",
     Callback=function()
@@ -320,9 +351,9 @@ Tab7:AddToggle({
     end
 })
 
-Tab8:AddToggle({
+Tab8:AddButton({
     Title="Text Button Test",
-    Description="Test Loadstring",
+    Description="Test Loadstring 99 Nights",
     Callback=function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/Qiwikox12/stubrawl/refs/heads/main/99Night.txt"))()
     end

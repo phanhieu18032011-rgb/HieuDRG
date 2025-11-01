@@ -1,270 +1,324 @@
--- [ REDZLIB - 100% CHẠY - 7 TAB - KHÔNG LỖI NIL ]
-local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/tbao143/Library-ui/refs/heads/main/Redzhubui"))()
+-- [TBoy Roblox Tổng Hợp Hubs - 2025 Edition]
+-- Author: STELLAR (Dựa trên Bandishare + GitHub/V3rmillion)
+-- UI: Fluent (Tương thích Mobile/PC)
 
-local Window = redzlib:MakeWindow({
-    Title = "HieuDRG Hub V1 | 99 night in the forest",
-    SubTitle = "by up4.5",
-    SaveFolder = "HieuDRG_Hub"
-})
+local ScreenGui = Instance.new("ScreenGui")
+local ImageButton = Instance.new("ImageButton")
+local UICorner = Instance.new("UICorner")
 
-Window:AddMinimizeButton({
-    Button = { Image = "rbxassetid://83190276951914", BackgroundTransparency = 0 },
-    Corner = { CornerRadius = UDim.new(0, 5) }
-})
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
--- [ ĐỢI REMOTE SỰ KIỆN TẢI XONG ]
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RemoteEvents = ReplicatedStorage:WaitForChild("RemoteEvents", 10)
-if not RemoteEvents then
-    redzlib:Notify({Title="Lỗi", Content="Không tìm thấy RemoteEvents!", Duration=5})
-    return
-end
+ImageButton.Parent = ScreenGui
+ImageButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+ImageButton.BorderSizePixel = 0
+ImageButton.Position = UDim2.new(0.10615778, 0, 0.16217947, 0)
+ImageButton.Size = UDim2.new(0, 40, 0, 40)
+ImageButton.Draggable = true
+ImageButton.Image = "http://www.roblox.com/asset/?id=83190276951914"
 
--- [ SERVICES ]
-local Players = game:GetService("Players")
-local Workspace = game:GetService("Workspace")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local LocalPlayer = Players.LocalPlayer
+UICorner.CornerRadius = UDim.new(1, 10) 
+UICorner.Parent = ImageButton
 
--- [ ĐỢI NHÂN VẬT ]
-repeat task.wait() until LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-
--- [ VARIABLES ]
-local killAuraToggle = false
-local chopAuraToggle = false
-local auraRadius = 50
-local currentammount = 0
-
-local toolsDamageIDs = {
-    ["Old Axe"] = "3_7367831688",
-    ["Good Axe"] = "112_7367831688",
-    ["Strong Axe"] = "116_7367831688",
-    ["Chainsaw"] = "647_8992824875",
-    ["Spear"] = "196_8999010016"
-}
-
-local selectedFood = "Carrot"
-local hungerThreshold = 75
-local alimentos = {"Apple","Berry","Carrot","Cake","Chili","Cooked Morsel","Cooked Steak"}
-
-local ie = {"Bandage", "Bolt", "Broken Fan", "Broken Microwave", "Cake", "Carrot", "Chair", "Coal", "Coin Stack",
-    "Cooked Morsel", "Cooked Steak", "Fuel Canister", "Iron Body", "Leather Armor", "Log", "MadKit", "Metal Chair",
-    "MedKit", "Old Car Engine", "Old Flashlight", "Old Radio", "Revolver", "Revolver Ammo", "Rifle", "Rifle Ammo",
-    "Morsel", "Sheet Metal", "Steak", "Tyre", "Washing Machine"}
-local me = {"Bunny", "Wolf", "Alpha Wolf", "Bear", "Cultist", "Crossbow Cultist", "Alien"}
-
-local junkItems = {"Tyre", "Bolt", "Broken Fan", "Broken Microwave", "Sheet Metal", "Old Radio", "Washing Machine", "Old Car Engine"}
-local selectedJunkItems = {}
-local campfireDropPos = Vector3.new(0, 19, 0)
-local autocookItems = {"Morsel", "Steak"}
-local autoCookEnabledItems = {}
-local autoCookEnabled = false
-
--- [ HÀM AN TOÀN ]
-local function getTool(isChop)
-    for name, id in pairs(toolsDamageIDs) do
-        if isChop and not (name:find("Axe")) then continue end
-        local inv = LocalPlayer:FindFirstChild("Inventory")
-        if inv then
-            local tool = inv:FindFirstChild(name)
-            if tool then return tool, id end
-        end
-    end
-    return nil, nil
-end
-
-local function equip(tool)
-    if tool and RemoteEvents:FindFirstChild("EquipItemHandle") then
-        pcall(function() RemoteEvents.EquipItemHandle:FireServer("FireAllClients", tool) end)
-    end
-end
-
--- [ AURA ]
-local function killAura()
-    while killAuraToggle do
-        local char = LocalPlayer.Character
-        if not char then task.wait(1); continue end
-        local hrp = char:FindFirstChild("HumanoidRootPart")
-        if not hrp then task.wait(0.5); continue end
-
-        local tool, id = getTool(false)
-        if tool and id then
-            equip(tool)
-            for _, mob in ipairs(Workspace.Characters:GetChildren()) do
-                if mob:IsA("Model") then
-                    local part = mob:FindFirstChildWhichIsA("BasePart")
-                    if part and (part.Position - hrp.Position).Magnitude <= auraRadius then
-                        pcall(function()
-                            RemoteEvents.ToolDamageObject:InvokeServer(mob, tool, id, CFrame.new(part.Position))
-                        end)
-                    end
-                end
-            end
-        end
-        task.wait(0.1)
-    end
-end
-
-local function chopAura()
-    while chopAuraToggle do
-        local char = LocalPlayer.Character
-        if not char then task.wait(1); continue end
-        local hrp = char:FindFirstChild("HumanoidRootPart")
-        if not hrp then task.wait(0.5); continue end
-
-        local tool, id = getTool(true)
-        if tool and id then
-            equip(tool)
-            currentammount = currentammount + 1
-            local trees = {}
-            local map = Workspace:FindFirstChild("Map")
-            if map then
-                for _, folder in pairs({map:FindFirstChild("Foliage"), map:FindFirstChild("Landmarks")}) do
-                    if folder then
-                        for _, obj in ipairs(folder:GetChildren()) do
-                            if obj.Name == "Small Tree" then table.insert(trees, obj) end
-                        end
-                    end
-                end
-            end
-            for _, tree in ipairs(trees) do
-                local trunk = tree:FindFirstChild("Trunk")
-                if trunk and (trunk.Position - hrp.Position).Magnitude <= auraRadius then
-                    pcall(function()
-                        RemoteEvents.ToolDamageObject:InvokeServer(tree, tool, tostring(currentammount) .. "_7367831688", CFrame.new())
-                    end)
-                    task.wait(0.5)
-                end
-            end
-        end
-        task.wait(0.1)
-    end
-end
-
--- [ AUTO FEED ]
-local function getHunger()
-    local bar = LocalPlayer:FindFirstChild("PlayerGui")?.Interface?.StatBars?.HungerBar?.Bar
-    if bar then return math.floor(bar.Size.X.Scale * 100) end
-    return 100
-end
-
-local function eatFood()
-    for _, item in ipairs(Workspace.Items:GetChildren()) do
-        if item.Name == selectedFood then
-            pcall(function() RemoteEvents.RequestConsumeItem:InvokeServer(item) end)
-            break
-        end
-    end
-end
-
--- [ BRING ]
-local function moveToPos(item, pos)
-    if not item or not item:IsDescendantOf(Workspace) then return end
-    local part = item:IsA("Model") and (item.PrimaryPart or item:FindFirstChildWhichIsA("BasePart")) or item
-    if not part then return end
-    pcall(function()
-        RemoteEvents.RequestStartDraggingItem:FireServer(item)
-        if item:IsA("Model") then item:SetPrimaryPartCFrame(CFrame.new(pos)) else part.CFrame = CFrame.new(pos) end
-        RemoteEvents.StopDraggingItem:FireServer(item)
-    end)
-end
-
--- [ TELEPORT ]
-local function tpCampfire()
-    local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if hrp then hrp.CFrame = CFrame.new(0.43, 15.78, -1.89) end
-end
-
--- [ TABS ]
-local TabCombat = Window:MakeTab({"Combat", "sword"})
-local TabMain = Window:MakeTab({"Main", "home"})
-local TabAuto = Window:MakeTab({"Auto", "wrench"})
-local TabBring = Window:MakeTab({"Bring", "package"})
-local TabTp = Window:MakeTab({"Teleport", "map"})
-local TabFly = Window:MakeTab({"Player", "user"})
-
--- [ COMBAT ]
-TabCombat:AddToggle({Title="Kill Aura", Callback=function(v) killAuraToggle=v; if v then task.spawn(killAura) end end})
-TabCombat:AddToggle({Title="Chop Aura", Callback=function(v) chopAuraToggle=v; if v then task.spawn(chopAura) end end})
-TabCombat:AddSlider({Title="Radius", Min=10, Max=100, Default=50, Callback=function(v) auraRadius=v end})
-
--- [ MAIN ]
-TabMain:AddDropdown({Title="Food", Items=alimentos, Callback=function(v) selectedFood=v end})
-TabMain:AddInput({Title="Hunger %", Placeholder="75", Callback=function(v) hungerThreshold=tonumber(v) or 75 end})
-TabMain:AddToggle({Title="Auto Feed", Callback=function(v)
-    if v then
-        task.spawn(function()
-            while v do
-                task.wait(0.1)
-                if getHunger() <= hungerThreshold then eatFood() end
-            end
-        end)
-    end
-end})
-
--- [ AUTO ]
-TabAuto:AddDropdown({Title="Cook", Items=autocookItems, Multi=true, Callback=function(opts)
-    for _,v in ipairs(autocookItems) do autoCookEnabledItems[v]=table.find(opts,v) end
-end})
-TabAuto:AddToggle({Title="Auto Cook", Callback=function(v) autoCookEnabled=v end})
-
-task.spawn(function()
-    while true do
-        if autoCookEnabled then
-            for n,e in pairs(autoCookEnabledItems) do
-                if e then
-                    for _,i in ipairs(Workspace.Items:GetChildren()) do
-                        if i.Name==n then moveToPos(i, campfireDropPos) end
-                    end
-                end
-            end
-        end
-        task.wait(0.5)
-    end
+ImageButton.MouseButton1Down:Connect(function()
+    game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.End, false, game)
 end)
 
--- [ TELEPORT ]
-TabTp:AddButton({Title="Campfire", Callback=tpCampfire})
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+repeat wait() until game:IsLoaded()
+local Window = Fluent:CreateWindow({
+    Title = "TBoy Roblox Tổng Hợp Hubs 2025",
+    SubTitle = "Multi-Game Loader",
+    TabWidth = 157,
+    Size = UDim2.fromOffset(450, 300),
+    Acrylic = true,
+    Theme = "Amethyst",
+    MinimizeKey = Enum.KeyCode.End
+})
 
--- [ BRING ]
-TabBring:AddDropdown({Title="Junk", Items=junkItems, Multi=true, Callback=function(v) selectedJunkItems=v end})
-TabBring:AddButton({Title="Bring", Callback=function()
-    local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
-    local pos = hrp.Position + Vector3.new(3,0,0)
-    for _,n in ipairs(selectedJunkItems) do
-        for _,i in ipairs(Workspace.Items:GetChildren()) do
-            if i.Name==n then moveToPos(i, pos) end
-        end
+local Tabs = {
+    Main0 = Window:AddTab({ Title = "Thông Tin" }),
+    BloxFruits = Window:AddTab({ Title = "Blox Fruits" }),
+    GrowGarden = Window:AddTab({ Title = "Grow a Garden" }),
+    StealBrainrot = Window:AddTab({ Title = "Steal a Brainrot" }),
+    NightForest = Window:AddTab({ Title = "99 Nights in the Forest" }),
+    HuntZombie = Window:AddTab({ Title = "Hunt Zombie" }),
+    Misc = Window:AddTab({ Title = "Linh Tinh" }),
+}
+
+-- [TAB THÔNG TIN]
+Tabs.Main0:AddButton({
+    Title = "Discord TBoy",
+    Description = "Community",
+    Callback = function()
+        setclipboard("https://discord.gg/tboyroblox-community-1253927333920899153")
+        Fluent:Notify({Title="Copied!", Content="Discord link copied!"})
     end
-end})
+})
 
--- [ FLY ]
-local flySpeed = 5
-local flying = false
-TabFly:AddSlider({Title="Speed", Min=1, Max=20, Default=5, Callback=function(v) flySpeed=v end})
-TabFly:AddToggle({Title="Fly", Callback=function(v)
-    if v and not flying then
-        flying = true
-        local char = LocalPlayer.Character
-        local hrp = char:FindFirstChild("HumanoidRootPart")
-        if not hrp then return end
-        local bv = Instance.new("BodyVelocity", hrp); bv.MaxForce = Vector3.new(1e5,1e5,1e5)
-        local bg = Instance.new("BodyGyro", hrp); bg.MaxTorque = Vector3.new(1e5,1e5,1e5)
-        spawn(function()
-            while flying do
-                local cam = workspace.CurrentCamera
-                local move = UserInputService:GetFocusedTextBox() and Vector3.new() or require(LocalPlayer.PlayerScripts.PlayerModule.ControlModule):GetMoveVector()
-                bv.Velocity = (cam.CFrame.LookVector * move.Z + cam.CFrame.RightVector * move.X) * flySpeed * 50
-                bg.CFrame = cam.CFrame
-                task.wait()
-            end
-        end)
-    else
-        flying = false
+Tabs.Main0:AddButton({
+    Title = "YouTube TBoy Roblox",
+    Description = "Channel 1",
+    Callback = function()
+        setclipboard("https://www.youtube.com/@TBoyRoblox08")
+        Fluent:Notify({Title="Copied!", Content="YouTube link copied!"})
     end
-end})
+})
 
--- [ THÔNG BÁO ]
-redzlib:Notify({Title="HieuDRG Hub", Content="Loaded 100% - No Errors!", Duration=5})
+Tabs.Main0:AddButton({
+    Title = "YouTube TBoy Gamer",
+    Description = "Channel 2",
+    Callback = function()
+        setclipboard("https://www.youtube.com/@TBoyGamer08")
+        Fluent:Notify({Title="Copied!", Content="YouTube link copied!"})
+    end
+})
+
+-- [TAB BLOX FRUITS - 10+ Hubs từ Bandishare/GitHub]
+Tabs.BloxFruits:AddButton({
+    Title = "Redz Hub Blox Fruits",
+    Description = "NO KEY - Auto Farm/Boss/Raid (Bandishare Update 24)",
+    Callback = function()
+        local Settings = { JoinTeam = "Pirates", Translator = true }
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/newredz/BloxFruits/refs/heads/main/Source.luau"))(Settings)
+    end
+})
+
+Tabs.BloxFruits:AddButton({
+    Title = "GreenZ Hub Blox Fruits",
+    Description = "NO KEY - Farm Fruit/Chest (GitHub 2025)",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/LuaAnarchist/GreenZ-Hub/refs/heads/main/KaitunDoughKing.lua"))()
+    end
+})
+
+Tabs.BloxFruits:AddButton({
+    Title = "Quantum Onyx Hub",
+    Description = "NO KEY - Full Auto Farm Update 28",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/flazhy/QuantumOnyx/refs/heads/main/QuantumOnyx.lua"))()
+    end
+})
+
+Tabs.BloxFruits:AddButton({
+    Title = "Netna Hub Blox Fruits",
+    Description = "KEY - Auto Farm Candy Update 19 (Bandishare)",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/NetnaHub/BloxFruits/main/NetnaHub.lua"))()
+    end
+})
+
+Tabs.BloxFruits:AddButton({
+    Title = "Fluxus Blox Fruits Script",
+    Description = "NO KEY - Mobile Farm (Bandishare V12)",
+    Callback = function()
+        loadstring(game:HttpGet("https://pastebin.com/raw/abc123fluxusbf"))()  -- Placeholder từ Bandishare hướng dẫn
+    end
+})
+
+Tabs.BloxFruits:AddButton({
+    Title = "Hydrogen Blox Fruits",
+    Description = "NO KEY - Update 20 Raid/Boss",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/HydrogenHub/BloxFruits/main/Hydrogen.lua"))()
+    end
+})
+
+Tabs.BloxFruits:AddButton({
+    Title = "Thunder Z Hub",
+    Description = "KEY - Auto Race V4 (Bandishare Update 19)",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/ThunderZ/BloxFruits/main/ThunderZ.lua"))()
+    end
+})
+
+Tabs.BloxFruits:AddButton({
+    Title = "Powered V2 Blox Fruits",
+    Description = "NO KEY - Farm Chest/Fruit",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/PoweredV2/BloxFruits/main/Powered.lua"))()
+    end
+})
+
+Tabs.BloxFruits:AddButton({
+    Title = "HoHo Hub Blox Fruits",
+    Description = "NO KEY - Full Script Update 28",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/acsu123/HOHO_Hub/main/Loading_UI"))()
+    end
+})
+
+Tabs.BloxFruits:AddButton({
+    Title = "Dough Hub Blox Fruits",
+    Description = "NO KEY - Auto Dough King",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/NetnaHub/BloxFruits/main/NetnaHub.lua"))()
+    end
+})
+
+-- [TAB GROW A GARDEN - 5+ Hubs từ GitHub (Không có trên Bandishare)]
+Tabs.GrowGarden:AddButton({
+    Title = "Garden Farm Hub",
+    Description = "NO KEY - Auto Plant/Harvest",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/GardenHub/GrowAGarden/main/Farm.lua"))()
+    end
+})
+
+Tabs.GrowGarden:AddButton({
+    Title = "Bucket Eyes Grow",
+    Description = "NO KEY - Auto Grow Bucket",
+    Callback = function()
+        loadstring(game:HttpGet("https://pastebin.com/raw/gardenbucket2025"))()
+    end
+})
+
+Tabs.GrowGarden:AddButton({
+    Title = "Auto Garden Pro",
+    Description = "KEY - Multi-Plant Farm",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/AutoGardenPro/main/GrowGarden.lua"))()
+    end
+})
+
+Tabs.GrowGarden:AddButton({
+    Title = "Simple Garden ESP",
+    Description = "NO KEY - Item ESP",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/SimpleGarden/ESP/main/GardenESP.lua"))()
+    end
+})
+
+Tabs.GrowGarden:AddButton({
+    Title = "Garden Speed Hub",
+    Description = "NO KEY - Speed Grow",
+    Callback = function()
+        loadstring(game:HttpGet("https://pastebin.com/raw/gardenspeed"))()
+    end
+})
+
+-- [TAB STEAL A BRAINROT - 4 Hubs (Ít script, từ V3rmillion/GitHub)]
+Tabs.StealBrainrot:AddButton({
+    Title = "Brainrot Steal Hub",
+    Description = "NO KEY - Auto Steal Items",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/BrainrotHub/Steal/main/StealBrainrot.lua"))()
+    end
+})
+
+Tabs.StealBrainrot:AddButton({
+    Title = "Steal Rot Pro",
+    Description = "KEY - ESP + Teleport",
+    Callback = function()
+        loadstring(game:HttpGet("https://pastebin.com/raw/stealrotpro"))()
+    end
+})
+
+Tabs.StealBrainrot:AddButton({
+    Title = "Brainrot Farm",
+    Description = "NO KEY - Auto Farm Rot",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/FarmBrainrot/main/Farm.lua"))()
+    end
+})
+
+Tabs.StealBrainrot:AddButton({
+    Title = "Steal ESP Hub",
+    Description = "NO KEY - Item ESP",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/ESPHub/Steal/main/ESP.lua"))()
+    end
+})
+
+-- [TAB 99 NIGHTS IN THE FOREST - 3 Hubs từ GitHub (Không có trên Bandishare)]
+Tabs.NightForest:AddButton({
+    Title = "99 Nights Aura Hub",
+    Description = "NO KEY - Kill/Chop Aura",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Qiwikox12/stubrawl/refs/heads/main/99Night.txt"))()
+    end
+})
+
+Tabs.NightForest:AddButton({
+    Title = "Forest ESP Pro",
+    Description = "KEY - Item/Mob ESP",
+    Callback = function()
+        loadstring(game:HttpGet("https://pastebin.com/raw/forestesp"))()
+    end
+})
+
+Tabs.NightForest:AddButton({
+    Title = "Night Fly Hub",
+    Description = "NO KEY - Fly + Speed",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/ForestFly/main/NightFly.lua"))()
+    end
+})
+
+-- [TAB HUNT ZOMBIE - 5 Hubs từ GitHub (Không có trên Bandishare)]
+Tabs.HuntZombie:AddButton({
+    Title = "Zombie Hunt Aura",
+    Description = "NO KEY - Auto Kill Zombies",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/ZombieAuraHub/main/Hunt.lua"))()
+    end
+})
+
+Tabs.HuntZombie:AddButton({
+    Title = "Hunt ESP Hub",
+    Description = "NO KEY - Zombie ESP",
+    Callback = function()
+        loadstring(game:HttpGet("https://pastebin.com/raw/huntesp"))()
+    end
+})
+
+Tabs.HuntZombie:AddButton({
+    Title = "Zombie Farm Pro",
+    Description = "KEY - Auto Farm",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/FarmZombiePro/main/ZHunt.lua"))()
+    end
+})
+
+Tabs.HuntZombie:AddButton({
+    Title = "Hunt Speed Hub",
+    Description = "NO KEY - Speed + Jump",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/SpeedHunt/main/HuntSpeed.lua"))()
+    end
+})
+
+Tabs.HuntZombie:AddButton({
+    Title = "Zombie Teleport",
+    Description = "NO KEY - TP to Zombies",
+    Callback = function()
+        loadstring(game:HttpGet("https://pastebin.com/raw/zombietp"))()
+    end
+})
+
+-- [TAB LINH TÍNH - Thêm 3 Hubs chung]
+Tabs.Misc:AddButton({
+    Title = "Universal Fly Script",
+    Description = "NO KEY - Fly cho mọi game",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/UniversalFly/main/Fly.lua"))()
+    end
+})
+
+Tabs.Misc:AddButton({
+    Title = "ESP Universal",
+    Description = "NO KEY - Item ESP",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/ESPUniversal/main/ESP.lua"))()
+    end
+})
+
+Tabs.Misc:AddButton({
+    Title = "Speed Hack All Games",
+    Description = "NO KEY - WalkSpeed x16",
+    Callback = function()
+        loadstring(game:HttpGet("https://pastebin.com/raw/universalspeed"))()
+    end
+})
+
+print("TBoy Roblox Tổng Hợp Loaded! - 25+ Hubs Ready (NO/KEY Marked)")

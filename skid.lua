@@ -1,7 +1,7 @@
 local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/tbao143/Library-ui/refs/heads/main/Redzhubui"))()
 
 local Window = redzlib:MakeWindow({
-  Title = "HieuDRG Hub V1 | 99 night in the forest",
+  Title = "HieuDRG Hub V1 ",
   SubTitle = "by phanhieu",
   SaveFolder = "stellar"
 })

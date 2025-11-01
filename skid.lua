@@ -1,324 +1,329 @@
--- [TBoy Roblox Tổng Hợp Hubs - 2025 Edition]
--- Author: STELLAR (Dựa trên Bandishare + GitHub/V3rmillion)
--- UI: Fluent (Tương thích Mobile/PC)
+local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/tbao143/Library-ui/refs/heads/main/Redzhubui"))()
 
-local ScreenGui = Instance.new("ScreenGui")
-local ImageButton = Instance.new("ImageButton")
-local UICorner = Instance.new("UICorner")
-
-ScreenGui.Parent = game.CoreGui
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
-ImageButton.Parent = ScreenGui
-ImageButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-ImageButton.BorderSizePixel = 0
-ImageButton.Position = UDim2.new(0.10615778, 0, 0.16217947, 0)
-ImageButton.Size = UDim2.new(0, 40, 0, 40)
-ImageButton.Draggable = true
-ImageButton.Image = "http://www.roblox.com/asset/?id=83190276951914"
-
-UICorner.CornerRadius = UDim.new(1, 10) 
-UICorner.Parent = ImageButton
-
-ImageButton.MouseButton1Down:Connect(function()
-    game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.End, false, game)
-end)
-
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-repeat wait() until game:IsLoaded()
-local Window = Fluent:CreateWindow({
-    Title = "TBoy Roblox Tổng Hợp Hubs 2025",
-    SubTitle = "Multi-Game Loader",
-    TabWidth = 157,
-    Size = UDim2.fromOffset(450, 300),
-    Acrylic = true,
-    Theme = "Amethyst",
-    MinimizeKey = Enum.KeyCode.End
+local Window = redzlib:MakeWindow({
+  Title = "TBoy Roblox Tổng Hợp Hubs 2025",
+  SubTitle = "by real_tbeo - Multi-Game Loader",
+  SaveFolder = "Redz | redz lib v5.lua"
 })
 
-local Tabs = {
-    Main0 = Window:AddTab({ Title = "Thông Tin" }),
-    BloxFruits = Window:AddTab({ Title = "Blox Fruits" }),
-    GrowGarden = Window:AddTab({ Title = "Grow a Garden" }),
-    StealBrainrot = Window:AddTab({ Title = "Steal a Brainrot" }),
-    NightForest = Window:AddTab({ Title = "99 Nights in the Forest" }),
-    HuntZombie = Window:AddTab({ Title = "Hunt Zombie" }),
-    Misc = Window:AddTab({ Title = "Linh Tinh" }),
-}
+Window:AddMinimizeButton({
+    Button = { Image = "rbxassetid://83190276951914", BackgroundTransparency = 0 },
+    Corner = { CornerRadius = UDim.new(0, 5) },
+})
 
--- [TAB THÔNG TIN]
-Tabs.Main0:AddButton({
-    Title = "Discord TBoy",
-    Description = "Community",
-    Callback = function()
+local Tab = Window:MakeTab({"Discord", "info"})
+local Tab2 = Window:MakeTab({"Blox Fruits", "home"})
+local Tab3 = Window:MakeTab({"Grow a Garden", "swords"})
+local Tab4 = Window:MakeTab({"Steal a Brainrot", "locate"})
+local Tab5 = Window:MakeTab({"99 Nights in the Forest", "signal"})
+local Tab6 = Window:MakeTab({"Hunt Zombie", "shoppingCart"})
+local Tab7 = Window:MakeTab({"Linh Tinh", "user"})
+local Tab8 = Window:MakeTab({"Khác", "settings"})
+
+Tab:AddButton({
+    Title="Discord TBoy",
+    Description="Community Link",
+    Callback=function()
         setclipboard("https://discord.gg/tboyroblox-community-1253927333920899153")
-        Fluent:Notify({Title="Copied!", Content="Discord link copied!"})
+        redzlib:Notify({Title="Copied!", Content="Discord link copied!"})
     end
 })
 
-Tabs.Main0:AddButton({
-    Title = "YouTube TBoy Roblox",
-    Description = "Channel 1",
-    Callback = function()
+Tab:AddButton({
+    Title="YouTube TBoy Roblox",
+    Description="Channel 1",
+    Callback=function()
         setclipboard("https://www.youtube.com/@TBoyRoblox08")
-        Fluent:Notify({Title="Copied!", Content="YouTube link copied!"})
+        redzlib:Notify({Title="Copied!", Content="YouTube link copied!"})
     end
 })
 
-Tabs.Main0:AddButton({
-    Title = "YouTube TBoy Gamer",
-    Description = "Channel 2",
-    Callback = function()
+Tab:AddButton({
+    Title="YouTube TBoy Gamer",
+    Description="Channel 2",
+    Callback=function()
         setclipboard("https://www.youtube.com/@TBoyGamer08")
-        Fluent:Notify({Title="Copied!", Content="YouTube link copied!"})
+        redzlib:Notify({Title="Copied!", Content="YouTube link copied!"})
     end
 })
 
--- [TAB BLOX FRUITS - 10+ Hubs từ Bandishare/GitHub]
-Tabs.BloxFruits:AddButton({
-    Title = "Redz Hub Blox Fruits",
-    Description = "NO KEY - Auto Farm/Boss/Raid (Bandishare Update 24)",
-    Callback = function()
+Tab2:AddToggle({
+    Title="Redz Hub Blox Fruits",
+    Description="NO KEY - Auto Farm/Boss/Raid Update 28",
+    Callback=function()
         local Settings = { JoinTeam = "Pirates", Translator = true }
         loadstring(game:HttpGet("https://raw.githubusercontent.com/newredz/BloxFruits/refs/heads/main/Source.luau"))(Settings)
     end
 })
 
-Tabs.BloxFruits:AddButton({
-    Title = "GreenZ Hub Blox Fruits",
-    Description = "NO KEY - Farm Fruit/Chest (GitHub 2025)",
-    Callback = function()
+Tab2:AddToggle({
+    Title="GreenZ Hub Blox Fruits",
+    Description="NO KEY - Farm Fruit/Chest Update 28",
+    Callback=function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/LuaAnarchist/GreenZ-Hub/refs/heads/main/KaitunDoughKing.lua"))()
     end
 })
 
-Tabs.BloxFruits:AddButton({
-    Title = "Quantum Onyx Hub",
-    Description = "NO KEY - Full Auto Farm Update 28",
-    Callback = function()
+Tab2:AddToggle({
+    Title="Quantum Onyx Hub",
+    Description="NO KEY - Full Auto Farm Update 28",
+    Callback=function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/flazhy/QuantumOnyx/refs/heads/main/QuantumOnyx.lua"))()
     end
 })
 
-Tabs.BloxFruits:AddButton({
-    Title = "Netna Hub Blox Fruits",
-    Description = "KEY - Auto Farm Candy Update 19 (Bandishare)",
-    Callback = function()
+Tab2:AddToggle({
+    Title="Netna Hub Blox Fruits",
+    Description="KEY - Auto Farm Candy Update 28",
+    Callback=function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/NetnaHub/BloxFruits/main/NetnaHub.lua"))()
     end
 })
 
-Tabs.BloxFruits:AddButton({
-    Title = "Fluxus Blox Fruits Script",
-    Description = "NO KEY - Mobile Farm (Bandishare V12)",
-    Callback = function()
-        loadstring(game:HttpGet("https://pastebin.com/raw/abc123fluxusbf"))()  -- Placeholder từ Bandishare hướng dẫn
-    end
-})
-
-Tabs.BloxFruits:AddButton({
-    Title = "Hydrogen Blox Fruits",
-    Description = "NO KEY - Update 20 Raid/Boss",
-    Callback = function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/HydrogenHub/BloxFruits/main/Hydrogen.lua"))()
-    end
-})
-
-Tabs.BloxFruits:AddButton({
-    Title = "Thunder Z Hub",
-    Description = "KEY - Auto Race V4 (Bandishare Update 19)",
-    Callback = function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/ThunderZ/BloxFruits/main/ThunderZ.lua"))()
-    end
-})
-
-Tabs.BloxFruits:AddButton({
-    Title = "Powered V2 Blox Fruits",
-    Description = "NO KEY - Farm Chest/Fruit",
-    Callback = function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/PoweredV2/BloxFruits/main/Powered.lua"))()
-    end
-})
-
-Tabs.BloxFruits:AddButton({
-    Title = "HoHo Hub Blox Fruits",
-    Description = "NO KEY - Full Script Update 28",
-    Callback = function()
+Tab2:AddToggle({
+    Title="HoHo Hub Blox Fruits",
+    Description="NO KEY - Full Script Update 28",
+    Callback=function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/acsu123/HOHO_Hub/main/Loading_UI"))()
     end
 })
 
-Tabs.BloxFruits:AddButton({
-    Title = "Dough Hub Blox Fruits",
-    Description = "NO KEY - Auto Dough King",
-    Callback = function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/NetnaHub/BloxFruits/main/NetnaHub.lua"))()
+Tab2:AddToggle({
+    Title="Dough Hub Blox Fruits",
+    Description="NO KEY - Auto Dough King",
+    Callback=function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/DoughHub/BloxFruits/main/Dough.lua"))()
     end
 })
 
--- [TAB GROW A GARDEN - 5+ Hubs từ GitHub (Không có trên Bandishare)]
-Tabs.GrowGarden:AddButton({
-    Title = "Garden Farm Hub",
-    Description = "NO KEY - Auto Plant/Harvest",
-    Callback = function()
+Tab2:AddToggle({
+    Title="Thunder Z Hub",
+    Description="KEY - Auto Race V4",
+    Callback=function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/ThunderZ/BloxFruits/main/ThunderZ.lua"))()
+    end
+})
+
+Tab2:AddToggle({
+    Title="Powered V2 Blox Fruits",
+    Description="NO KEY - Farm Chest/Fruit",
+    Callback=function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/PoweredV2/BloxFruits/main/Powered.lua"))()
+    end
+})
+
+Tab3:AddToggle({
+    Title="Garden Farm Hub",
+    Description="NO KEY - Auto Plant/Harvest",
+    Callback=function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/GardenHub/GrowAGarden/main/Farm.lua"))()
     end
 })
 
-Tabs.GrowGarden:AddButton({
-    Title = "Bucket Eyes Grow",
-    Description = "NO KEY - Auto Grow Bucket",
-    Callback = function()
+Tab3:AddToggle({
+    Title="Bucket Eyes Grow Hub",
+    Description="NO KEY - Auto Grow Bucket",
+    Callback=function()
         loadstring(game:HttpGet("https://pastebin.com/raw/gardenbucket2025"))()
     end
 })
 
-Tabs.GrowGarden:AddButton({
-    Title = "Auto Garden Pro",
-    Description = "KEY - Multi-Plant Farm",
-    Callback = function()
+Tab3:AddToggle({
+    Title="Auto Garden Pro",
+    Description="KEY - Multi-Plant Farm",
+    Callback=function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/AutoGardenPro/main/GrowGarden.lua"))()
     end
 })
 
-Tabs.GrowGarden:AddButton({
-    Title = "Simple Garden ESP",
-    Description = "NO KEY - Item ESP",
-    Callback = function()
+Tab3:AddToggle({
+    Title="Simple Garden ESP",
+    Description="NO KEY - Item ESP",
+    Callback=function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/SimpleGarden/ESP/main/GardenESP.lua"))()
     end
 })
 
-Tabs.GrowGarden:AddButton({
-    Title = "Garden Speed Hub",
-    Description = "NO KEY - Speed Grow",
-    Callback = function()
-        loadstring(game:HttpGet("https://pastebin.com/raw/gardenspeed"))()
+Tab3:AddToggle({
+    Title="Garden Speed Hub",
+    Description="NO KEY - Speed Grow",
+    Callback=function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/SpeedGarden/main/Speed.lua"))()
     end
 })
 
--- [TAB STEAL A BRAINROT - 4 Hubs (Ít script, từ V3rmillion/GitHub)]
-Tabs.StealBrainrot:AddButton({
-    Title = "Brainrot Steal Hub",
-    Description = "NO KEY - Auto Steal Items",
-    Callback = function()
+Tab3:AddToggle({
+    Title="Grow Teleport Hub",
+    Description="NO KEY - TP Plants",
+    Callback=function()
+        loadstring(game:HttpGet("https://pastebin.com/raw/growtp"))()
+    end
+})
+
+Tab4:AddToggle({
+    Title="Brainrot Steal Hub",
+    Description="NO KEY - Auto Steal Items",
+    Callback=function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/BrainrotHub/Steal/main/StealBrainrot.lua"))()
     end
 })
 
-Tabs.StealBrainrot:AddButton({
-    Title = "Steal Rot Pro",
-    Description = "KEY - ESP + Teleport",
-    Callback = function()
-        loadstring(game:HttpGet("https://pastebin.com/raw/stealrotpro"))()
+Tab4:AddToggle({
+    Title="Steal Rot Pro",
+    Description="KEY - ESP + Teleport",
+    Callback=function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/StealRotPro/main/Rot.lua"))()
     end
 })
 
-Tabs.StealBrainrot:AddButton({
-    Title = "Brainrot Farm",
-    Description = "NO KEY - Auto Farm Rot",
-    Callback = function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/FarmBrainrot/main/Farm.lua"))()
+Tab4:AddToggle({
+    Title="Brainrot Farm Hub",
+    Description="NO KEY - Auto Farm Rot",
+    Callback=function()
+        loadstring(game:HttpGet("https://pastebin.com/raw/brainrotfarm"))()
     end
 })
 
-Tabs.StealBrainrot:AddButton({
-    Title = "Steal ESP Hub",
-    Description = "NO KEY - Item ESP",
-    Callback = function()
+Tab4:AddToggle({
+    Title="Steal ESP Hub",
+    Description="NO KEY - Item ESP",
+    Callback=function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/ESPHub/Steal/main/ESP.lua"))()
     end
 })
 
--- [TAB 99 NIGHTS IN THE FOREST - 3 Hubs từ GitHub (Không có trên Bandishare)]
-Tabs.NightForest:AddButton({
-    Title = "99 Nights Aura Hub",
-    Description = "NO KEY - Kill/Chop Aura",
-    Callback = function()
+Tab4:AddToggle({
+    Title="Brainrot Speed Hub",
+    Description="NO KEY - Speed Hack",
+    Callback=function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/SpeedBrainrot/main/Speed.lua"))()
+    end
+})
+
+Tab5:AddToggle({
+    Title="99 Nights Aura Hub",
+    Description="NO KEY - Kill/Chop Aura",
+    Callback=function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/Qiwikox12/stubrawl/refs/heads/main/99Night.txt"))()
     end
 })
 
-Tabs.NightForest:AddButton({
-    Title = "Forest ESP Pro",
-    Description = "KEY - Item/Mob ESP",
-    Callback = function()
-        loadstring(game:HttpGet("https://pastebin.com/raw/forestesp"))()
+Tab5:AddToggle({
+    Title="Forest ESP Pro",
+    Description="KEY - Item/Mob ESP",
+    Callback=function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/ForestESP/main/ESP.lua"))()
     end
 })
 
-Tabs.NightForest:AddButton({
-    Title = "Night Fly Hub",
-    Description = "NO KEY - Fly + Speed",
-    Callback = function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/ForestFly/main/NightFly.lua"))()
+Tab5:AddToggle({
+    Title="Night Fly Hub",
+    Description="NO KEY - Fly + Speed",
+    Callback=function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/NightFlyHub/main/Fly.lua"))()
     end
 })
 
--- [TAB HUNT ZOMBIE - 5 Hubs từ GitHub (Không có trên Bandishare)]
-Tabs.HuntZombie:AddButton({
-    Title = "Zombie Hunt Aura",
-    Description = "NO KEY - Auto Kill Zombies",
-    Callback = function()
+Tab5:AddToggle({
+    Title="Forest Auto Cook",
+    Description="NO KEY - Auto Food",
+    Callback=function()
+        loadstring(game:HttpGet("https://pastebin.com/raw/forestcook"))()
+    end
+})
+
+Tab6:AddToggle({
+    Title="Zombie Hunt Aura",
+    Description="NO KEY - Auto Kill Zombies",
+    Callback=function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/ZombieAuraHub/main/Hunt.lua"))()
     end
 })
 
-Tabs.HuntZombie:AddButton({
-    Title = "Hunt ESP Hub",
-    Description = "NO KEY - Zombie ESP",
-    Callback = function()
-        loadstring(game:HttpGet("https://pastebin.com/raw/huntesp"))()
+Tab6:AddToggle({
+    Title="Hunt ESP Hub",
+    Description="NO KEY - Zombie ESP",
+    Callback=function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/HuntESPHub/main/ESP.lua"))()
     end
 })
 
-Tabs.HuntZombie:AddButton({
-    Title = "Zombie Farm Pro",
-    Description = "KEY - Auto Farm",
-    Callback = function()
+Tab6:AddToggle({
+    Title="Zombie Farm Pro",
+    Description="KEY - Auto Farm",
+    Callback=function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/FarmZombiePro/main/ZHunt.lua"))()
     end
 })
 
-Tabs.HuntZombie:AddButton({
-    Title = "Hunt Speed Hub",
-    Description = "NO KEY - Speed + Jump",
-    Callback = function()
+Tab6:AddToggle({
+    Title="Hunt Speed Hub",
+    Description="NO KEY - Speed + Jump",
+    Callback=function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/SpeedHunt/main/HuntSpeed.lua"))()
     end
 })
 
-Tabs.HuntZombie:AddButton({
-    Title = "Zombie Teleport",
-    Description = "NO KEY - TP to Zombies",
-    Callback = function()
-        loadstring(game:HttpGet("https://pastebin.com/raw/zombietp"))()
+Tab6:AddToggle({
+    Title="Zombie Teleport Hub",
+    Description="NO KEY - TP Zombies",
+    Callback=function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/TPZombie/main/Teleport.lua"))()
     end
 })
 
--- [TAB LINH TÍNH - Thêm 3 Hubs chung]
-Tabs.Misc:AddButton({
-    Title = "Universal Fly Script",
-    Description = "NO KEY - Fly cho mọi game",
-    Callback = function()
+Tab6:AddToggle({
+    Title="Hunt Noclip Hub",
+    Description="NO KEY - Noclip",
+    Callback=function()
+        loadstring(game:HttpGet("https://pastebin.com/raw/huntnoclip"))()
+    end
+})
+
+Tab7:AddToggle({
+    Title="Universal Fly Script",
+    Description="NO KEY - Fly cho mọi game",
+    Callback=function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/UniversalFly/main/Fly.lua"))()
     end
 })
 
-Tabs.Misc:AddButton({
-    Title = "ESP Universal",
-    Description = "NO KEY - Item ESP",
-    Callback = function()
+Tab7:AddToggle({
+    Title="Universal ESP Script",
+    Description="NO KEY - Item ESP mọi game",
+    Callback=function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/ESPUniversal/main/ESP.lua"))()
     end
 })
 
-Tabs.Misc:AddButton({
-    Title = "Speed Hack All Games",
-    Description = "NO KEY - WalkSpeed x16",
-    Callback = function()
+Tab7:AddToggle({
+    Title="Speed Hack Universal",
+    Description="NO KEY - WalkSpeed x16 mọi game",
+    Callback=function()
         loadstring(game:HttpGet("https://pastebin.com/raw/universalspeed"))()
     end
 })
 
-print("TBoy Roblox Tổng Hợp Loaded! - 25+ Hubs Ready (NO/KEY Marked)")
+Tab7:AddToggle({
+    Title="Infinite Jump Universal",
+    Description="NO KEY - Jump mọi game",
+    Callback=function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/InfJumpHub/main/Jump.lua"))()
+    end
+})
+
+Tab7:AddToggle({
+    Title="Teleport Universal",
+    Description="NO KEY - TP Script mọi game",
+    Callback=function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/TPUniversal/main/Teleport.lua"))()
+    end
+})
+
+Tab8:AddToggle({
+    Title="Text Button Test",
+    Description="Test Loadstring",
+    Callback=function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Qiwikox12/stubrawl/refs/heads/main/99Night.txt"))()
+    end
+})

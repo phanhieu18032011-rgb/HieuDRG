@@ -1,5 +1,6 @@
 --[[
     Tập lệnh 99 NIGHT IN THE FOREST - Chuyển đổi sang Redz UI
+    Đã sửa lỗi không hiển thị UI do sai cấu trúc lệnh MakeTab.
     Toàn bộ logic chức năng được giữ nguyên. Chỉ thay đổi giao diện.
 --]]
 
@@ -166,11 +167,11 @@ Windows:AddMinimizeButton({
   Corner = { CornerRadius = UDim.new(0, 6) }
 })
 
--- Tạo các Tab
-local TabCombat = Windows:MakeTab("Combat")
-local TabFood = Windows:MakeTab("Food")
-local TabWorld = Windows:MakeTab("World")
-local TabESP = Windows:MakeTab("ESP")
+-- SỬA LỖI: Tạo các Tab bằng cách truyền vào bảng (table)
+local TabCombat = Windows:MakeTab({"Combat"})
+local TabFood = Windows:MakeTab({"Food"})
+local TabWorld = Windows:MakeTab({"World"})
+local TabESP = Windows:MakeTab({"ESP"})
 
 -- === [ TAB COMBAT (Chiến đấu) ] ===
 

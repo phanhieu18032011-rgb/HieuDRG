@@ -1,4 +1,4 @@
---[[
+--[[ v2
     Tập lệnh 99 NIGHT IN THE FOREST - Chuyển đổi sang Redz UI
     Đã sửa lỗi không hiển thị UI do sai cấu trúc lệnh MakeTab.
     Toàn bộ logic chức năng được giữ nguyên. Chỉ thay đổi giao diện.

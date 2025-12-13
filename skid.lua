@@ -1,270 +1,441 @@
 --[[
-    Tập lệnh GUI bay (Fly GUI Script)
-    Được thiết kế để chạy trên các trình thực thi Roblox (như Delta).
-    Đã sửa lỗi hỗ trợ di chuyển ngang trên thiết bị di động (joystick ảo).
-    Thêm nút LÊN/XUỐNG cho điều khiển độ cao trên mobile.
-    Cảnh báo: Việc sử dụng script này có thể vi phạm Điều khoản dịch vụ của Roblox.
+    Tập lệnh 99 NIGHT IN THE FOREST - Chuyển đổi sang Redz UI
+    Toàn bộ logic chức năng được giữ nguyên. Chỉ thay đổi giao diện.
 --]]
 
--- Khai báo các biến Firebase toàn cục (Không cần thiết nhưng giữ lại)
-local appId = typeof(__app_id) ~= 'undefined' and __app_id or 'default-app-id'
+local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/daucobonhi/UiRedzV5/refs/heads/main/DemoUi.lua"))();
 
--- Dịch vụ
+-- Dịch vụ Roblox
 local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
-
--- Thiết lập người chơi hiện tại
 local LocalPlayer = Players.LocalPlayer
-local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-local Humanoid = Character:WaitForChild("Humanoid")
-local RootPart = Character:WaitForChild("HumanoidRootPart")
 
--- Cấu hình
-local IsFlying = false
-local FlySpeed = 30 -- Tốc độ bay
-local LastPosition = RootPart.CFrame -- Lưu vị trí cuối cùng trước khi bay
+-- === [ KHAI BÁO BIẾN GỐC ] ===
 
--- === [ Thiết lập GUI Mới ] ===
+-- Combat
+local killAuraToggle = false
+local chopAuraToggle = false
+local auraRadius = 50
+local currentammount = 0 -- Biến này không được sử dụng trong logic gốc, giữ nguyên
 
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "FlyGui"
-ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+local toolsDamageIDs = {
+    ["Old Axe"] = "3_7367831688",
+    ["Good Axe"] = "112_7367831688",
+    ["Strong Axe"] = "116_7367831688",
+    ["Chainsaw"] = "647_8992824875",
+    ["Spear"] = "196_8999010016"
+}
 
--- Tăng kích thước khung để chứa các nút Lên/Xuống
-local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 220, 0, 145) 
-MainFrame.Position = UDim2.new(0.05, 0, 0.1, 0) -- Đặt ở góc trên bên trái
-MainFrame.BackgroundColor3 = Color3.fromRGB(27, 29, 33)
-MainFrame.BorderColor3 = Color3.fromRGB(15, 15, 15)
-MainFrame.BorderSizePixel = 1
-MainFrame.Parent = ScreenGui
+-- Auto Food
+local autoFeedToggle = false
+local selectedFood = "Carrot"
+local hungerThreshold = 75
+local alwaysFeedEnabledItems = {} -- Không được sử dụng trong logic gốc, giữ nguyên
+local alimentos = {
+    "Apple",
+    "Berry",
+    "Carrot",
+    "Cake",
+    "Chili",
+    "Cooked Morsel",
+    "Cooked Steak"
+}
 
--- Thêm góc bo tròn
-local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 10)
-UICorner.Parent = MainFrame
+-- ESP
+local ie = {
+    "Bandage", "Bolt", "Broken Fan", "Broken Microwave", "Cake", "Carrot", "Chair", "Coal", "Coin Stack",
+    "Cooked Morsel", "Cooked Steak", "Fuel Canister", "Glass", "Herb", "Large Rock", "Log", "Matches",
+    "Medkit", "Nut", "Old Axe", "Old Rifle", "Old Sheet", "Old Tool", "Orange Bottle", "Plank", "Rock",
+    "Rope", "Rotten Apple", "Rotten Berry", "Rope", "Small Rock", "Stick", "Strong Axe", "Water Bottle",
+    "Wood"
+}
+local espEnabled = false
+local espLoop = nil
+local espRenderedItems = {}
 
--- Thiết lập Shadow (Bóng)
-local UIStroke = Instance.new("UIStroke")
-UIStroke.Thickness = 2
-UIStroke.Color = Color3.fromRGB(13, 145, 255)
-UIStroke.Transparency = 0.5
-UIStroke.Parent = MainFrame
+-- Auto Loot/Interact & Auto Stun Deer
+local instantInteractEnabled = false
+local instantInteractConnection = nil
+local originalHoldDurations = {}
+local torchLoop = nil
 
-local TitleLabel = Instance.new("TextLabel")
-TitleLabel.Size = UDim2.new(1, 0, 0, 28)
-TitleLabel.Text = "✈️ FLY SCRIPT - Delta"
-TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-TitleLabel.Font = Enum.Font.SourceSansBold
-TitleLabel.TextSize = 18
-TitleLabel.BackgroundColor3 = Color3.fromRGB(40, 44, 52) 
-TitleLabel.Parent = MainFrame
+-- === [ HÀM HỖ TRỢ GỐC ] ===
 
-local InstructionLabel = Instance.new("TextLabel")
-InstructionLabel.Size = UDim2.new(1, 0, 0, 15)
-InstructionLabel.Position = UDim2.new(0, 0, 0, 30)
-InstructionLabel.Text = "PC: WASD/Space/Ctrl | MOBILE: Joystick/Buttons"
-InstructionLabel.TextColor3 = Color3.fromRGB(170, 170, 170)
-InstructionLabel.Font = Enum.Font.SourceSans
-InstructionLabel.TextSize = 12
-InstructionLabel.BackgroundTransparency = 1
-InstructionLabel.Parent = MainFrame
-
-
-local FlyButton = Instance.new("TextButton")
-FlyButton.Size = UDim2.new(0.85, 0, 0, 35)
-FlyButton.Position = UDim2.new(0.5, -93.5, 0, 50)
-FlyButton.Text = "BẬT BAY (Disabled)"
-FlyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-FlyButton.Font = Enum.Font.SourceSansBold
-FlyButton.TextSize = 16
-FlyButton.BackgroundColor3 = Color3.fromRGB(46, 204, 113) -- Màu xanh lá cây (Tắt)
-FlyButton.Parent = MainFrame
-
--- Thêm góc bo tròn cho nút chính
-local ButtonCorner = Instance.new("UICorner")
-ButtonCorner.CornerRadius = UDim.new(0, 6)
-ButtonCorner.Parent = FlyButton
-
--- Container cho nút LÊN/XUỐNG
-local ButtonContainer = Instance.new("Frame")
-ButtonContainer.Size = UDim2.new(1, 0, 0, 35)
-ButtonContainer.Position = UDim2.new(0, 0, 0, 95)
-ButtonContainer.BackgroundTransparency = 1
-ButtonContainer.Parent = MainFrame
-
-local UpButton = Instance.new("TextButton")
-UpButton.Name = "UpButton"
-UpButton.Size = UDim2.new(0.4, 0, 1, 0)
-UpButton.Position = UDim2.new(0.05, 0, 0, 0)
-UpButton.Text = "LÊN (↑)"
-UpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-UpButton.Font = Enum.Font.SourceSansBold
-UpButton.TextSize = 15
-UpButton.BackgroundColor3 = Color3.fromRGB(52, 152, 219) -- Màu xanh dương
-UpButton.Parent = ButtonContainer
-
-local DownButton = Instance.new("TextButton")
-DownButton.Name = "DownButton"
-DownButton.Size = UDim2.new(0.4, 0, 1, 0)
-DownButton.Position = UDim2.new(0.55, 0, 0, 0)
-DownButton.Text = "XUỐNG (↓)"
-DownButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-DownButton.Font = Enum.Font.SourceSansBold
-DownButton.TextSize = 15
-DownButton.BackgroundColor3 = Color3.fromRGB(155, 89, 182) -- Màu tím
-DownButton.Parent = ButtonContainer
-
--- Thêm góc bo tròn cho nút LÊN/XUỐNG
-local UpCorner = Instance.new("UICorner")
-UpCorner.CornerRadius = UDim.new(0, 6)
-UpCorner.Parent = UpButton
-
-local DownCorner = Instance.new("UICorner")
-DownCorner.CornerRadius = UDim.new(0, 6)
-DownCorner.Parent = DownButton
-
--- === [ Logic Bay đã sửa lỗi và thêm hỗ trợ Mobile ] ===
-
-local function ToggleFly(state)
-    IsFlying = state
-    
-    -- Vô hiệu hóa trọng lực và ngăn di chuyển mặc định
-    Humanoid.PlatformStand = state 
-    Humanoid.WalkSpeed = state and 0 or 16 -- Tắt tốc độ đi bộ khi bay
-
-    if IsFlying then
-        LastPosition = RootPart.CFrame -- Lưu vị trí khi bắt đầu bay
-        
-        FlyButton.Text = "TẮT BAY (Enabled)"
-        FlyButton.BackgroundColor3 = Color3.fromRGB(231, 76, 60) -- Màu đỏ (Bật)
-    else
-        RootPart.CFrame = LastPosition -- Quay về vị trí cuối cùng khi tắt
-        
-        FlyButton.Text = "BẬT BAY (Disabled)"
-        FlyButton.BackgroundColor3 = Color3.fromRGB(46, 204, 113) -- Màu xanh lá cây (Tắt)
-    end
-end
-
-FlyButton.MouseButton1Click:Connect(function()
-    ToggleFly(not IsFlying)
-end)
-
--- Biến lưu trữ hướng di chuyển (Dùng chung cho PC Space/Ctrl và Mobile Up/Down)
-local MovementVector = Vector3.new(0, 0, 0)
-
--- Xử lý đầu vào PC (WASD và Space/Ctrl)
-UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
-    -- Vẫn xử lý input cho PC, bỏ qua nếu đang tương tác với GUI
-    if gameProcessedEvent then return end
-    
-    local key = input.KeyCode
-    if key == Enum.KeyCode.W then MovementVector = MovementVector + Vector3.new(0, 0, -1) end
-    if key == Enum.KeyCode.S then MovementVector = MovementVector + Vector3.new(0, 0, 1) end
-    if key == Enum.KeyCode.A then MovementVector = MovementVector + Vector3.new(-1, 0, 0) end
-    if key == Enum.KeyCode.D then MovementVector = MovementVector + Vector3.new(1, 0, 0) end
-    if key == Enum.KeyCode.Space then MovementVector = MovementVector + Vector3.new(0, 1, 0) end
-    if key == Enum.KeyCode.LeftControl then MovementVector = MovementVector + Vector3.new(0, -1, 0) end
-end)
-
-UserInputService.InputEnded:Connect(function(input, gameProcessedEvent)
-    if gameProcessedEvent then return end
-    
-    local key = input.KeyCode
-    if key == Enum.KeyCode.W then MovementVector = MovementVector - Vector3.new(0, 0, -1) end
-    if key == Enum.KeyCode.S then MovementVector = MovementVector - Vector3.new(0, 0, 1) end
-    if key == Enum.KeyCode.A then MovementVector = MovementVector - Vector3.new(-1, 0, 0) end
-    if key == Enum.KeyCode.D then MovementVector = MovementVector - Vector3.new(1, 0, 0) end
-    if key == Enum.KeyCode.Space then MovementVector = MovementVector - Vector3.new(0, 1, 0) end
-    if key == Enum.KeyCode.LeftControl then MovementVector = MovementVector - Vector3.new(0, -1, 0) end
-end)
-
-
--- Mobile Up/Down Control Logic (Touch/Click)
-local function handleVerticalInput(isDown, direction)
-    if IsFlying then
-        if isDown then
-            MovementVector = MovementVector + Vector3.new(0, direction, 0)
-        else
-            MovementVector = MovementVector - Vector3.new(0, direction, 0)
+-- Combat
+local function getTool()
+    local tool = LocalPlayer.Character:FindFirstChildOfClass("Tool")
+    if tool then
+        if toolsDamageIDs[tool.Name] then
+            return tool
         end
     end
+    return nil
 end
 
-UpButton.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        handleVerticalInput(true, 1)
+-- Auto Food
+local function findFood(foodName)
+    local backpack = LocalPlayer.Backpack
+    local starterGear = LocalPlayer.StarterGear
+    
+    local item = backpack:FindFirstChild(foodName)
+    if not item then
+        item = starterGear:FindFirstChild(foodName)
     end
-end)
-UpButton.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        handleVerticalInput(false, 1)
+    
+    if item and item:IsA("Tool") then
+        return item
     end
-end)
+    return nil
+end
 
-DownButton.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        handleVerticalInput(true, -1)
+-- ESP
+local function removeEspItem(part)
+    if espRenderedItems[part] then
+        espRenderedItems[part]:Destroy()
+        espRenderedItems[part] = nil
     end
-end)
-DownButton.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        handleVerticalInput(false, -1)
+end
+
+local function updateEspRender()
+    for part, billboard in pairs(espRenderedItems) do
+        if not part or not part.Parent then
+            removeEspItem(part)
+        end
     end
-end)
-
-
--- Vòng lặp bay (Chạy trên mỗi khung hình)
-RunService.Stepped:Connect(function(_, deltaTime)
-    if IsFlying and RootPart and RootPart.Parent and Humanoid.Health > 0 then
-        -- Vô hiệu hóa vận tốc và trọng lực
-        RootPart.Velocity = Vector3.new(0, 0, 0)
-        RootPart.RotationalVelocity = Vector3.new(0, 0, 0)
-        Humanoid.Sit = false
-
-        -- Kiểm tra xem có input di chuyển nào không (PC WASD, Mobile Joystick, hoặc Mobile Buttons)
-        local hasHorizontalInput = Vector2.new(MovementVector.X, MovementVector.Z).Magnitude > 0 or Humanoid.MoveDirection.Magnitude > 0
-        local hasVerticalInput = MovementVector.Y ~= 0
-
-        if hasHorizontalInput or hasVerticalInput then
-            local CameraCFrame = workspace.CurrentCamera.CFrame
-            local DirectionVector = Vector3.new(0, 0, 0)
-
-            -- 1. Xử lý di chuyển ngang (Horizontal Movement)
-            if MovementVector.X ~= 0 or MovementVector.Z ~= 0 then
-                -- Input PC (WASD)
-                DirectionVector = DirectionVector + (CameraCFrame.RightVector * MovementVector.X)
-                DirectionVector = DirectionVector + (CameraCFrame.LookVector * -MovementVector.Z) 
-            elseif Humanoid.MoveDirection.Magnitude > 0 then
-                -- Input Mobile (Joystick) - Đây là phần sửa lỗi cho mobile
-                DirectionVector = DirectionVector + Humanoid.MoveDirection
-            end
-
-            -- Chiếu vector ngang xuống mặt phẳng XZ (loại bỏ độ nghiêng của camera khi bay)
-            DirectionVector = DirectionVector * Vector3.new(1, 0, 1)
-
-            -- 2. Xử lý di chuyển dọc (Vertical Movement)
-            DirectionVector = DirectionVector + Vector3.new(0, MovementVector.Y, 0) -- Dùng chung cho PC Space/Ctrl và Mobile Buttons
-
+    
+    local itemsFolder = Workspace:FindFirstChild("Items")
+    if itemsFolder then
+        for _, item in ipairs(itemsFolder:GetChildren()) do
+            local itemName = item.Name
             
-            if DirectionVector.Magnitude > 0 then
-                local NewVelocity = DirectionVector.unit * FlySpeed * deltaTime
-                RootPart.CFrame = RootPart.CFrame + NewVelocity
+            -- Kiểm tra xem item có trong danh sách ESP và chưa được render không
+            local isTargetItem = false
+            for _, name in ipairs(ie) do
+                if name == itemName then
+                    isTargetItem = true
+                    break
+                end
+            end
+            
+            if isTargetItem and not espRenderedItems[item] then
+                -- Render ESP
+                local billboard = Instance.new("BillboardGui")
+                billboard.Name = "ItemESP"
+                billboard.AlwaysOnTop = true
+                billboard.Size = UDim2.new(0, 150, 0, 50)
+                billboard.Adornee = item
                 
-                LastPosition = RootPart.CFrame
+                local textLabel = Instance.new("TextLabel")
+                textLabel.Size = UDim2.new(1, 0, 1, 0)
+                textLabel.BackgroundTransparency = 1
+                textLabel.TextScaled = true
+                textLabel.TextStrokeTransparency = 0
+                textLabel.TextColor3 = Color3.fromRGB(255, 255, 0)
+                textLabel.Text = itemName .. " (" .. math.floor((LocalPlayer.Character.HumanoidRootPart.Position - item.Position).Magnitude) .. "m)"
+                textLabel.Parent = billboard
+                
+                billboard.Parent = game.Workspace
+                espRenderedItems[item] = billboard
+            elseif not isTargetItem and espRenderedItems[item] then
+                -- Nếu item không còn là mục tiêu nhưng đang được render (chỉ xảy ra nếu logic thay đổi), hãy xóa nó.
+                removeEspItem(item)
             end
         end
     end
-end)
-
--- Đảm bảo HumanoidRootPart luôn không bị neo
-Character.ChildAdded:Connect(function(child)
-    if child == RootPart then
-        RootPart.Anchored = false
-    end
-end)
-
-if RootPart then
-    RootPart.Anchored = false
 end
+
+local function cleanUpEsp()
+    for _, billboard in pairs(espRenderedItems) do
+        billboard:Destroy()
+    end
+    espRenderedItems = {}
+end
+
+-- === [ THIẾT LẬP REDZ UI ] ===
+
+local Windows = redzlib:MakeWindow({
+    Title = "99 Night Hub",
+    SubTitle = "Ported by Gemini (Redz UI)",
+    SaveFolder = "99Night.lua" -- Tên tệp lưu cài đặt
+})
+
+Windows:AddMinimizeButton({
+  Button = { Image = "rbxassetid://131151731604309", BackgroundTransparency = 0 },
+  Corner = { CornerRadius = UDim.new(0, 6) }
+})
+
+-- Tạo các Tab
+local TabCombat = Windows:MakeTab("Combat")
+local TabFood = Windows:MakeTab("Food")
+local TabWorld = Windows:MakeTab("World")
+local TabESP = Windows:MakeTab("ESP")
+
+-- === [ TAB COMBAT (Chiến đấu) ] ===
+
+-- LOGIC GỐC: Kill Aura Loop
+local killLoop = nil
+local function startKillAura()
+    if killLoop then killLoop:Disconnect() end
+    killLoop = RunService.Heartbeat:Connect(function()
+        pcall(function()
+            if not killAuraToggle then return end
+            local tool = getTool()
+            local remote = ReplicatedStorage:FindFirstChild("RemoteEvents") 
+                and ReplicatedStorage.RemoteEvents:FindFirstChild("DamagePlayer")
+            
+            if tool and remote and LocalPlayer.Character and LocalPlayer.Character.Humanoid.Health > 0 then
+                for _, player in ipairs(Players:GetPlayers()) do
+                    if player ~= LocalPlayer and player.Character and player.Character.Humanoid.Health > 0 then
+                        local root = player.Character:FindFirstChild("HumanoidRootPart")
+                        local myRoot = LocalPlayer.Character.HumanoidRootPart
+                        if root and myRoot and (root.Position - myRoot.Position).Magnitude <= auraRadius then
+                            remote:InvokeServer(player, toolsDamageIDs[tool.Name], tool:GetMass(), tool.Name)
+                        end
+                    end
+                end
+            end
+        end)
+        task.wait(0.1)
+    end)
+end
+
+-- LOGIC GỐC: Chop Aura Loop
+local chopLoop = nil
+local function startChopAura()
+    if chopLoop then chopLoop:Disconnect() end
+    chopLoop = RunService.RenderStepped:Connect(function()
+        pcall(function()
+            if not chopAuraToggle then return end
+            
+            local remote = ReplicatedStorage:FindFirstChild("RemoteEvents")
+                and ReplicatedStorage.RemoteEvents:FindFirstChild("HitTree")
+            local tool = getTool()
+            
+            if remote and tool and tool.Name ~= "Chainsaw" then
+                local myRoot = LocalPlayer.Character.HumanoidRootPart
+                for _, tree in ipairs(Workspace.Trees:GetChildren()) do
+                    local wood = tree:FindFirstChild("Wood")
+                    if wood and (wood.Position - myRoot.Position).Magnitude <= auraRadius then
+                        remote:InvokeServer(tree.Name, toolsDamageIDs[tool.Name])
+                    end
+                end
+            end
+        end)
+        task.wait(0.1)
+    end)
+end
+
+-- 1. Toggle Kill Aura
+TabCombat:AddToggle({
+    Name = "Auto Kill Aura",
+    Callback = function(state)
+        killAuraToggle = state
+        if state then
+            startKillAura()
+        else
+            if killLoop then 
+                killLoop:Disconnect() 
+                killLoop = nil
+            end
+        end
+    end
+})
+
+-- 2. Toggle Chop Aura
+TabCombat:AddToggle({
+    Name = "Auto Chop Aura",
+    Callback = function(state)
+        chopAuraToggle = state
+        if state then
+            startChopAura()
+        else
+            if chopLoop then 
+                chopLoop:Disconnect() 
+                chopLoop = nil
+            end
+        end
+    end
+})
+
+-- 3. Slider Aura Radius
+TabCombat:AddSlider({
+    Name = "Aura Radius",
+    Min = 5,
+    Max = 100,
+    Default = auraRadius,
+    Rounding = 0,
+    Callback = function(value)
+        auraRadius = value
+    end
+})
+
+-- === [ TAB FOOD (Thức ăn) ] ===
+
+-- LOGIC GỐC: Auto Feed Loop
+local autoFeedLoop = nil
+local function startAutoFeed()
+    if autoFeedLoop then autoFeedLoop:Disconnect() end
+    autoFeedLoop = RunService.RenderStepped:Connect(function()
+        pcall(function()
+            if not autoFeedToggle then return end
+            local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
+            if humanoid and humanoid.Health > 0 then
+                local hunger = humanoid:GetAttribute("Hunger") or 100
+                if hunger <= hungerThreshold then
+                    local foodTool = findFood(selectedFood)
+                    if foodTool then
+                        local remote = ReplicatedStorage:FindFirstChild("RemoteEvents")
+                            and ReplicatedStorage.RemoteEvents:FindFirstChild("UseFood")
+                        if remote then
+                            remote:InvokeServer(foodTool)
+                            -- Logic gốc có task.wait(0.5) bên trong vòng lặp RenderStepped
+                            task.wait(0.5)
+                        end
+                    end
+                end
+            end
+        end)
+    end)
+end
+
+
+-- 1. Toggle Auto Feed
+TabFood:AddToggle({
+    Name = "Auto Feed",
+    Callback = function(state)
+        autoFeedToggle = state
+        if state then
+            startAutoFeed()
+        else
+            if autoFeedLoop then 
+                autoFeedLoop:Disconnect() 
+                autoFeedLoop = nil
+            end
+        end
+    end
+})
+
+-- 2. Dropdown Food Selector
+TabFood:AddDropdown({
+    Name = "Select Food",
+    List = alimentos,
+    Default = selectedFood,
+    Callback = function(value)
+        selectedFood = value
+    end
+})
+
+-- 3. Slider Hunger Threshold
+TabFood:AddSlider({
+    Name = "Hunger Threshold",
+    Min = 1,
+    Max = 100,
+    Default = hungerThreshold,
+    Rounding = 0,
+    Callback = function(value)
+        hungerThreshold = value
+    end
+})
+
+
+-- === [ TAB WORLD (Thế giới) ] ===
+
+-- 1. Toggle Instant Interact
+TabWorld:AddToggle({
+    Name = "Instant Interact",
+    Callback = function(state)
+        instantInteractEnabled = state
+        if state then
+            -- LOGIC GỐC: Tắt HoldDuration
+            local function disableHoldDuration()
+                for _, prompt in ipairs(Workspace:GetDescendants()) do
+                    if prompt:IsA("ProximityPrompt") and prompt.HoldDuration > 0 and not originalHoldDurations[prompt] then
+                        originalHoldDurations[prompt] = prompt.HoldDuration
+                        prompt.HoldDuration = 0
+                    end
+                end
+            end
+
+            instantInteractConnection = RunService.RenderStepped:Connect(function()
+                pcall(function()
+                    disableHoldDuration()
+                end)
+                task.wait(0.5) -- Logic gốc có task.wait(0.5) bên trong vòng lặp RenderStepped
+            end)
+        else
+            -- LOGIC GỐC: Khôi phục HoldDuration
+            if instantInteractConnection then
+                instantInteractConnection:Disconnect()
+                instantInteractConnection = nil
+            end
+            for obj, value in pairs(originalHoldDurations) do
+                if obj and obj:IsA("ProximityPrompt") then
+                    obj.HoldDuration = value
+                end
+            end
+            originalHoldDurations = {}
+        end
+    end
+})
+
+-- 2. Toggle Auto Stun Deer
+TabWorld:AddToggle({
+    Name = "Auto Stun Deer",
+    Callback = function(state)
+        if state then
+            -- LOGIC GỐC: Stun Deer Loop
+            torchLoop = RunService.RenderStepped:Connect(function()
+                pcall(function()
+                    local remote = ReplicatedStorage:FindFirstChild("RemoteEvents")
+                        and ReplicatedStorage.RemoteEvents:FindFirstChild("DeerHitByTorch")
+                    local deer = workspace:FindFirstChild("Characters")
+                        and workspace.Characters:FindFirstChild("Deer")
+                    if remote and deer then
+                        remote:InvokeServer(deer)
+                    end
+                end)
+                task.wait(0.1) -- Logic gốc có task.wait(0.1) bên trong vòng lặp RenderStepped
+            end)
+        else
+            if torchLoop then
+                torchLoop:Disconnect()
+                torchLoop = nil
+            end
+        end
+    end
+})
+
+
+-- === [ TAB ESP (Visual) ] ===
+
+-- 1. Toggle Item ESP
+TabESP:AddToggle({
+    Name = "Item ESP (All items in list)",
+    Callback = function(state)
+        espEnabled = state
+        if state then
+            -- LOGIC GỐC: Bật ESP Loop
+            espLoop = RunService.RenderStepped:Connect(function()
+                pcall(function()
+                    updateEspRender()
+                end)
+            end)
+        else
+            -- LOGIC GỐC: Tắt ESP Loop và dọn dẹp
+            if espLoop then
+                espLoop:Disconnect()
+                espLoop = nil
+            end
+            cleanUpEsp()
+        end
+    end
+})
+
+-- Thêm một Label đơn giản để hiển thị danh sách các items (chức năng không cần thay đổi)
+TabESP:AddLabel("Items to track: "..table.concat(ie, ", "))
+
+
+-- Khởi tạo ban đầu (chỉ dùng để đảm bảo các biến global có giá trị ban đầu nếu cần)
+-- Logic gốc không có code khởi tạo nào khác ngoài việc định nghĩa biến và UI.

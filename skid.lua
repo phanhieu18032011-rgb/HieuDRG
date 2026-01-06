@@ -1,15 +1,15 @@
 --[[
-    SHΔDØW CORE V99 - PROJECT FIRE
+    SHΔDØW CORE V100 - PROJECT FIRE
     CREDITS: HieuDRG
     HUB NAME: DRGTeam Hub (Redz Edition)
-    STATUS: INTEGRATED UI & FUNCTIONS
+    STATUS: FIXED GROUND CLAMPING & UPGRADED FLIGHT LOGIC
 ]]
 
 local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/daucobonhi/UiRedzV5/refs/heads/main/DemoUi.lua"))();
 
 -- Khởi tạo Cửa sổ chính
 local Windows = redzlib:MakeWindow({
-    Title = "DRGTeam Hub",
+    Title = "DRGTeam Hub v2",
     SubTitle = "Owner: HieuDRG",
     SaveFolder = "DRGTeam_Config.lua"
 })
@@ -35,10 +35,10 @@ local speed = 50
 local flyConn
 local noclipConn
 
--- Tính năng Fly
+-- Tính năng Fly (Đã sửa lỗi bay dí dưới đất)
 MainTab:AddToggle({
     Name = "Bật Bay (Fly)",
-    Description = "Nhấn Space để lên, Ctrl để xuống",
+    Description = "Nhìn lên để bay lên, nhìn xuống để bay xuống",
     Default = false,
     Callback = function(Value)
         flying = Value
@@ -56,28 +56,40 @@ MainTab:AddToggle({
                 end
                 
                 hum.PlatformStand = true
+                local cam = workspace.CurrentCamera
                 local moveDir = hum.MoveDirection
-                local newCF = hrp.CFrame
                 
-                -- Di chuyển theo WASD/Joystick
+                -- Tính toán hướng bay theo Camera (Nhìn đâu bay đó)
+                local velocity = Vector3.new(0, 0, 0)
+                
                 if moveDir.Magnitude > 0 then
-                    newCF = newCF + (moveDir * speed * dt)
+                    -- Lấy hướng nhìn của Camera làm hướng tiến
+                    velocity = cam.CFrame.LookVector * (moveDir.Z < 0 and speed or -speed)
+                    -- Thêm hướng di chuyển ngang (A, D)
+                    velocity = velocity + (cam.CFrame.RightVector * (moveDir.X > 0 and speed or -speed))
                 end
                 
-                -- Bay lên / Xuống
+                -- Hỗ trợ phím Space và Ctrl để bay thẳng đứng (dành cho Mobile/PC)
                 if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-                    newCF = newCF + Vector3.new(0, speed * dt, 0)
+                    velocity = velocity + Vector3.new(0, speed, 0)
                 elseif UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
-                    newCF = newCF + Vector3.new(0, -speed * dt, 0)
+                    velocity = velocity + Vector3.new(0, -speed, 0)
                 end
                 
-                -- Cập nhật CFrame
-                hrp.CFrame = CFrame.new(newCF.Position, newCF.Position + workspace.CurrentCamera.CFrame.LookVector)
+                -- Cập nhật CFrame và triệt tiêu vận tốc vật lý để không bị rơi
                 hrp.Velocity = Vector3.zero
+                hrp.CFrame = hrp.CFrame + (velocity * dt)
+                
+                -- Luôn giữ nhân vật hướng theo hướng nhìn Camera
+                hrp.CFrame = CFrame.new(hrp.Position, hrp.Position + cam.CFrame.LookVector)
             end)
         else
             if flyConn then flyConn:Disconnect() end
-            pcall(function() plr.Character.Humanoid.PlatformStand = false end)
+            pcall(function() 
+                if plr.Character and plr.Character:FindFirstChild("Humanoid") then
+                    plr.Character.Humanoid.PlatformStand = false 
+                end
+            end)
         end
     end
 })
@@ -122,5 +134,5 @@ MainTab:AddSlider({
 })
 
 -- Thông báo hệ thống
-redzlib:SetTheme("Dark") -- Thiết lập tông màu tối cho Shadow Mode
-print("DRGTeam Hub: Redz Edition Loaded Successfully. Owner: HieuDRG")
+redzlib:SetTheme("Dark")
+print("DRGTeam Hub: Redz V100 Loaded. Flight Logic Fixed. Owner: HieuDRG")

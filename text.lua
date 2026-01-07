@@ -3,7 +3,7 @@ local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/dauco
 -- Khởi tạo Cửa sổ chính
 local Windows = redzlib:MakeWindow({
     Title = "DRGTeam Hub",
-    SubTitle = "Shadow Core V105 - HieuDRG",
+    SubTitle = "Shadow Core V104 - HieuDRG",
     SaveFolder = "DRGTeam_V3.lua"
 })
 
@@ -22,6 +22,7 @@ local CombatTab = Windows:MakeTab({"Combat", "rbxassetid://4483362458"})
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
+local VirtualUser = game:GetService("VirtualUser")
 local plr = Players.LocalPlayer
 
 -- Biến Fly Logic (Từ XNEO V3)
@@ -37,6 +38,10 @@ local hitboxTransparency = 0.7
 local lockAimEnabled = false
 local lockTargetType = "Player"
 local rainbowColor = Color3.new(1,1,1)
+
+-- Biến Kill Aura
+local killAuraEnabled = false
+local killAuraRange = 20
 
 -- Cập nhật màu cầu vồng
 task.spawn(function()
@@ -136,7 +141,6 @@ MainTab:AddToggle({
 MainTab:AddButton({
     Name = "UP (Giữ để lên cao)",
     Callback = function()
-        -- Logic: Tự động dịch chuyển lên khi gọi
         if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
             plr.Character.HumanoidRootPart.CFrame *= CFrame.new(0, 2, 0)
         end
@@ -173,7 +177,7 @@ MainTab:AddToggle({
     end
 })
 
--- ================= TAB COMBAT (HITBOX & AIM) =================
+-- ================= TAB COMBAT (HITBOX, AIM & KILLAURA) =================
 
 CombatTab:AddToggle({
     Name = "Bật Hitbox (Tầm đánh to)",
@@ -186,6 +190,26 @@ CombatTab:AddSlider({
     Min = 1, Max = 30, Default = 10,
     Callback = function(Value) hitboxSize = Value end
 })
+
+CombatTab:AddSection({"Kill Aura (Tự động đánh)"})
+
+CombatTab:AddToggle({
+    Name = "Kích hoạt Kill Aura",
+    Default = false,
+    Callback = function(Value)
+        killAuraEnabled = Value
+    end
+})
+
+CombatTab:AddSlider({
+    Name = "Tầm đánh Kill Aura",
+    Min = 5, Max = 50, Default = 20,
+    Callback = function(Value)
+        killAuraRange = Value
+    end
+})
+
+CombatTab:AddSection({"Ghim Tâm (Lock Aim)"})
 
 CombatTab:AddToggle({
     Name = "Bật Ghim Tâm (Lock Aim)",
@@ -249,6 +273,33 @@ VisualTab:AddToggle({
     end
 })
 
+-- Logic Kill Aura Loop
+task.spawn(function()
+    while true do
+        if killAuraEnabled and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+            pcall(function()
+                for _, v in pairs(workspace:GetDescendants()) do
+                    if v:IsA("Model") and v:FindFirstChildOfClass("Humanoid") and v ~= plr.Character and v.Humanoid.Health > 0 then
+                        -- Không đánh Player nếu đang để chế độ farm quái (tùy game, mặc định quét mob)
+                        if not Players:GetPlayerFromCharacter(v) then
+                            local root = v:FindFirstChild("HumanoidRootPart")
+                            if root then
+                                local dist = (plr.Character.HumanoidRootPart.Position - root.Position).Magnitude
+                                if dist <= killAuraRange then
+                                    -- Giả lập nhấn chuột trái (M1)
+                                    VirtualUser:CaptureController()
+                                    VirtualUser:Button1Down(Vector2.new(1280, 672))
+                                end
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+        task.wait(0.1) -- Tốc độ đánh
+    end
+end)
+
 -- Loop xử lý Hitbox & Aim
 RunService.RenderStepped:Connect(function()
     if hitboxEnabled then
@@ -284,4 +335,4 @@ RunService.RenderStepped:Connect(function()
 end)
 
 redzlib:SetTheme("Dark")
-game:GetService("StarterGui"):SetCore("SendNotification", { Title = "DRGTeam Hub", Text = "Logic FLY V3 Loaded!", Duration = 5 })
+game:GetService("StarterGui"):SetCore("SendNotification", { Title = "DRGTeam Hub", Text = "Kill Aura & Combat Loaded!", Duration = 5 })

@@ -1,338 +1,263 @@
 local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/daucobonhi/UiRedzV5/refs/heads/main/DemoUi.lua"))();
 
--- Khởi tạo Cửa sổ chính
 local Windows = redzlib:MakeWindow({
-    Title = "DRGTeam Hub",
-    SubTitle = "Shadow Core V104 - HieuDRG",
-    SaveFolder = "DRGTeam_V3.lua"
+    Title = "FLY GUI V3",
+    SubTitle = "BY XNEO",
+    SaveFolder = "FlyGui.lua"
 })
 
--- Nút thu nhỏ
 Windows:AddMinimizeButton({
-    Button = { Image = "rbxassetid://76314993516756", BackgroundTransparency = 0 },
+    Button = { Image = "rbxassetid://131151731604309", BackgroundTransparency = 0 },
     Corner = { CornerRadius = UDim.new(0, 6) }
 })
 
-local MainTab = Windows:MakeTab({"Main/Fly", "rbxassetid://4483345998"})
-local SpeedTab = Windows:MakeTab({"Speed", "rbxassetid://4483362458"})
-local VisualTab = Windows:MakeTab({"Visual/ESP", "rbxassetid://4483362458"})
-local CombatTab = Windows:MakeTab({"Combat", "rbxassetid://4483362458"})
+local FlyTab = Windows:MakeTab({"Fly Settings", "rbxasset://textures/ui/GuiImagePlaceholder.png"})
 
--- Biến Logic Chung
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local Players = game:GetService("Players")
-local VirtualUser = game:GetService("VirtualUser")
-local plr = Players.LocalPlayer
-
--- Biến Fly Logic (Từ XNEO V3)
+-- Biến toàn cục
+local speaker = game:GetService("Players").LocalPlayer
 local nowe = false
-local flySpeeds = 1
+local speeds = 1
 local tpwalking = false
-local tis, dis -- Biến giữ cho UP/DOWN
 
--- Biến Combat & ESP
-local hitboxEnabled = false
-local hitboxSize = 10
-local hitboxTransparency = 0.7
-local lockAimEnabled = false
-local lockTargetType = "Player"
-local rainbowColor = Color3.new(1,1,1)
+game:GetService("StarterGui"):SetCore("SendNotification", { 
+    Title = "FLY GUI V3";
+    Text = "BY XNEO - Loaded Successfully";
+    Icon = "rbxthumb://type=Asset&id=5107182114&w=150&h=150"
+})
 
--- Biến Kill Aura
-local killAuraEnabled = false
-local killAuraRange = 20
-
--- Cập nhật màu cầu vồng
-task.spawn(function()
-    while true do
-        for i = 0, 1, 0.01 do
-            rainbowColor = Color3.fromHSV(i, 1, 1)
-            task.wait(0.05)
-        end
-    end
-end)
-
--- Hàm quản lý trạng thái Humanoid (Logic V3)
-local function SetHumanoidStates(state)
-    local hum = plr.Character and plr.Character:FindFirstChildOfClass("Humanoid")
-    if not hum then return end
-    local states = {
-        Enum.HumanoidStateType.Climbing, Enum.HumanoidStateType.FallingDown,
-        Enum.HumanoidStateType.Flying, Enum.HumanoidStateType.Freefall,
-        Enum.HumanoidStateType.GettingUp, Enum.HumanoidStateType.Jumping,
-        Enum.HumanoidStateType.Landed, Enum.HumanoidStateType.Physics,
-        Enum.HumanoidStateType.PlatformStanding, Enum.HumanoidStateType.Ragdoll,
-        Enum.HumanoidStateType.Running, Enum.HumanoidStateType.RunningNoPhysics,
-        Enum.HumanoidStateType.Seated, Enum.HumanoidStateType.StrafingNoPhysics,
-        Enum.HumanoidStateType.Swimming
-    }
-    for _, s in pairs(states) do
-        hum:SetStateEnabled(s, state)
+-- Hàm teleport lên
+local function teleportUp()
+    local tis
+    tis = game:GetService("RunService").Heartbeat:Connect(function()
+        if not tis then return end
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0,1,0)
+    end)
+    
+    task.wait(5)
+    if tis then
+        tis:Disconnect()
     end
 end
 
--- ================= TAB MAIN (FLY LOGIC V3) =================
+-- Hàm teleport xuống
+local function teleportDown()
+    local dis
+    dis = game:GetService("RunService").Heartbeat:Connect(function()
+        if not dis then return end
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0,-1,0)
+    end)
+    
+    task.wait(5)
+    if dis then
+        dis:Disconnect()
+    end
+end
 
-MainTab:AddToggle({
-    Name = "Kích hoạt FLY (XNEO Logic)",
-    Default = false,
-    Callback = function(Value)
-        nowe = Value
-        local char = plr.Character
-        local hum = char and char:FindFirstChildOfClass("Humanoid")
+-- Hàm bật/tắt bay
+local function toggleFly()
+    if nowe == true then
+        nowe = false
         
-        if nowe then
-            -- Tắt Animate
-            if char:FindFirstChild("Animate") then char.Animate.Disabled = true end
-            for _, v in next, hum:GetPlayingAnimationTracks() do v:AdjustSpeed(0) end
-            
-            SetHumanoidStates(false)
-            hum:ChangeState(Enum.HumanoidStateType.Swimming)
-            
-            -- Logic TP Walking
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Climbing,true)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown,true)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Flying,true)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall,true)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.GettingUp,true)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping,true)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Landed,true)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics,true)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.PlatformStanding,true)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll,true)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Running,true)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.RunningNoPhysics,true)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated,true)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.StrafingNoPhysics,true)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Swimming,true)
+        speaker.Character.Humanoid:ChangeState(Enum.HumanoidStateType.RunningNoPhysics)
+    else 
+        nowe = true
+        
+        for i = 1, speeds do
             task.spawn(function()
+                local hb = game:GetService("RunService").Heartbeat
                 tpwalking = true
-                while tpwalking and RunService.Heartbeat:Wait() do
+                local chr = game.Players.LocalPlayer.Character
+                local hum = chr and chr:FindFirstChildWhichIsA("Humanoid")
+                while tpwalking and hb:Wait() and chr and hum and hum.Parent do
                     if hum.MoveDirection.Magnitude > 0 then
-                        for i = 1, flySpeeds do
-                            char:TranslateBy(hum.MoveDirection)
-                        end
-                    end
-                end
-            end)
-            
-            -- Logic BodyGyro & Velocity (Hỗ trợ R6/R15)
-            local root = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Torso") or char:FindFirstChild("UpperTorso")
-            if root then
-                local bg = Instance.new("BodyGyro", root)
-                bg.Name = "DRG_FlyGyro"
-                bg.P = 9e4
-                bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
-                bg.cframe = root.CFrame
-                
-                local bv = Instance.new("BodyVelocity", root)
-                bv.Name = "DRG_FlyVelocity"
-                bv.velocity = Vector3.new(0, 0.1, 0)
-                bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
-                
-                hum.PlatformStand = true
-                
-                task.spawn(function()
-                    while nowe do
-                        RunService.RenderStepped:Wait()
-                        bg.cframe = workspace.CurrentCamera.CFrame
-                        bv.velocity = Vector3.new(0,0,0)
-                    end
-                    bg:Destroy()
-                    bv:Destroy()
-                end)
-            end
-        else
-            tpwalking = false
-            if char:FindFirstChild("Animate") then char.Animate.Disabled = false end
-            hum.PlatformStand = false
-            SetHumanoidStates(true)
-            hum:ChangeState(Enum.HumanoidStateType.RunningNoPhysics)
-        end
-    end
-})
-
-MainTab:AddButton({
-    Name = "UP (Giữ để lên cao)",
-    Callback = function()
-        if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-            plr.Character.HumanoidRootPart.CFrame *= CFrame.new(0, 2, 0)
-        end
-    end
-})
-
-MainTab:AddButton({
-    Name = "DOWN (Giữ để xuống thấp)",
-    Callback = function()
-        if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-            plr.Character.HumanoidRootPart.CFrame *= CFrame.new(0, -2, 0)
-        end
-    end
-})
-
-MainTab:AddSlider({
-    Name = "Tốc độ Bay (Fly Speed)",
-    Min = 1, Max = 20, Default = 1,
-    Callback = function(Value) flySpeeds = Value end
-})
-
-MainTab:AddToggle({
-    Name = "Noclip (Xuyên tường)",
-    Default = false,
-    Callback = function(Value)
-        _G.Noclip = Value
-        RunService.Stepped:Connect(function()
-            if _G.Noclip and plr.Character then
-                for _, v in pairs(plr.Character:GetDescendants()) do
-                    if v:IsA("BasePart") then v.CanCollide = false end
-                end
-            end
-        end)
-    end
-})
-
--- ================= TAB COMBAT (HITBOX, AIM & KILLAURA) =================
-
-CombatTab:AddToggle({
-    Name = "Bật Hitbox (Tầm đánh to)",
-    Default = false,
-    Callback = function(Value) hitboxEnabled = Value end
-})
-
-CombatTab:AddSlider({
-    Name = "Kích thước Hitbox",
-    Min = 1, Max = 30, Default = 10,
-    Callback = function(Value) hitboxSize = Value end
-})
-
-CombatTab:AddSection({"Kill Aura (Tự động đánh)"})
-
-CombatTab:AddToggle({
-    Name = "Kích hoạt Kill Aura",
-    Default = false,
-    Callback = function(Value)
-        killAuraEnabled = Value
-    end
-})
-
-CombatTab:AddSlider({
-    Name = "Tầm đánh Kill Aura",
-    Min = 5, Max = 50, Default = 20,
-    Callback = function(Value)
-        killAuraRange = Value
-    end
-})
-
-CombatTab:AddSection({"Ghim Tâm (Lock Aim)"})
-
-CombatTab:AddToggle({
-    Name = "Bật Ghim Tâm (Lock Aim)",
-    Default = false,
-    Callback = function(Value) lockAimEnabled = Value end
-})
-
-CombatTab:AddDropdown({
-    Name = "Mục tiêu ghim",
-    Options = {"Player", "Mob"},
-    Default = "Player",
-    Callback = function(Value) lockTargetType = Value end
-})
-
--- ================= TAB SPEED & VISUAL (GIỮ NGUYÊN) =================
-
-SpeedTab:AddToggle({
-    Name = "Bật Speed Hack",
-    Default = false,
-    Callback = function(Value)
-        _G.SpeedLoop = Value
-        task.spawn(function()
-            while _G.SpeedLoop do
-                pcall(function() plr.Character.Humanoid.WalkSpeed = walkSpeedValue end)
-                task.wait(0.1)
-            end
-            pcall(function() plr.Character.Humanoid.WalkSpeed = 16 end)
-        end)
-    end
-})
-
-local walkSpeedValue = 16
-SpeedTab:AddSlider({ Name = "WalkSpeed", Min = 16, Max = 300, Default = 16, Callback = function(V) walkSpeedValue = V end })
-
--- ESP Player & Mob
-local function CreateESP(object)
-    if not object:FindFirstChild("DRG_ESP") then
-        local highlight = Instance.new("Highlight", object)
-        highlight.Name = "DRG_ESP"
-        task.spawn(function()
-            while highlight.Parent do
-                highlight.FillColor = rainbowColor
-                highlight.OutlineColor = rainbowColor
-                task.wait(0.1)
-            end
-        end)
-    end
-end
-
-VisualTab:AddToggle({
-    Name = "ESP Player",
-    Default = false,
-    Callback = function(Value)
-        _G.ESPPlayer = Value
-        while _G.ESPPlayer do
-            for _, p in pairs(Players:GetPlayers()) do
-                if p ~= plr and p.Character then CreateESP(p.Character) end
-            end
-            task.wait(1)
-        end
-    end
-})
-
--- Logic Kill Aura Loop
-task.spawn(function()
-    while true do
-        if killAuraEnabled and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-            pcall(function()
-                for _, v in pairs(workspace:GetDescendants()) do
-                    if v:IsA("Model") and v:FindFirstChildOfClass("Humanoid") and v ~= plr.Character and v.Humanoid.Health > 0 then
-                        -- Không đánh Player nếu đang để chế độ farm quái (tùy game, mặc định quét mob)
-                        if not Players:GetPlayerFromCharacter(v) then
-                            local root = v:FindFirstChild("HumanoidRootPart")
-                            if root then
-                                local dist = (plr.Character.HumanoidRootPart.Position - root.Position).Magnitude
-                                if dist <= killAuraRange then
-                                    -- Giả lập nhấn chuột trái (M1)
-                                    VirtualUser:CaptureController()
-                                    VirtualUser:Button1Down(Vector2.new(1280, 672))
-                                end
-                            end
-                        end
+                        chr:TranslateBy(hum.MoveDirection)
                     end
                 end
             end)
         end
-        task.wait(0.1) -- Tốc độ đánh
-    end
-end)
-
--- Loop xử lý Hitbox & Aim
-RunService.RenderStepped:Connect(function()
-    if hitboxEnabled then
-        for _, p in pairs(Players:GetPlayers()) do
-            if p ~= plr and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                p.Character.HumanoidRootPart.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
-                p.Character.HumanoidRootPart.Transparency = 0.7
-                p.Character.HumanoidRootPart.CanCollide = false
-            end
+        
+        game.Players.LocalPlayer.Character.Animate.Disabled = true
+        local Char = game.Players.LocalPlayer.Character
+        local Hum = Char:FindFirstChildOfClass("Humanoid") or Char:FindFirstChildOfClass("AnimationController")
+        
+        for i,v in next, Hum:GetPlayingAnimationTracks() do
+            v:AdjustSpeed(0)
         end
+        
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Climbing,false)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown,false)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Flying,false)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall,false)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.GettingUp,false)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping,false)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Landed,false)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics,false)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.PlatformStanding,false)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll,false)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Running,false)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.RunningNoPhysics,false)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated,false)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.StrafingNoPhysics,false)
+        speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Swimming,false)
+        speaker.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Swimming)
     end
     
-    if lockAimEnabled then
-        local target = nil
-        local shortestDistance = math.huge
-        local function checkTarget(obj)
-            if obj and obj:FindFirstChild("HumanoidRootPart") and obj:FindFirstChildOfClass("Humanoid") and obj.Humanoid.Health > 0 then
-                local dist = (plr.Character.HumanoidRootPart.Position - obj.HumanoidRootPart.Position).Magnitude
-                if dist < shortestDistance then shortestDistance = dist; target = obj end
-            end
+    -- Fly logic cho R6/R15
+    if game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid").RigType == Enum.HumanoidRigType.R6 then
+        local plr = game.Players.LocalPlayer
+        local torso = plr.Character.Torso
+        local ctrl = {f = 0, b = 0, l = 0, r = 0}
+        local lastctrl = {f = 0, b = 0, l = 0, r = 0}
+        local maxspeed = 50
+        local speed = 0
+        
+        local bg = Instance.new("BodyGyro", torso)
+        bg.P = 9e4
+        bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+        bg.cframe = torso.CFrame
+        local bv = Instance.new("BodyVelocity", torso)
+        bv.velocity = Vector3.new(0,0.1,0)
+        bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
+        
+        if nowe == true then
+            plr.Character.Humanoid.PlatformStand = true
         end
-        if lockTargetType == "Player" then
-            for _, p in pairs(Players:GetPlayers()) do if p ~= plr and p.Character then checkTarget(p.Character) end end
-        else
-            for _, v in pairs(workspace:GetDescendants()) do
-                if v:IsA("Model") and v:FindFirstChildOfClass("Humanoid") and not Players:GetPlayerFromCharacter(v) then checkTarget(v) end
+        
+        while nowe == true and game:GetService("Players").LocalPlayer.Character.Humanoid.Health > 0 do
+            game:GetService("RunService").RenderStepped:Wait()
+            
+            if ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0 then
+                speed = speed+.5+(speed/maxspeed)
+                if speed > maxspeed then speed = maxspeed end
+            elseif not (ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0) and speed ~= 0 then
+                speed = speed-1
+                if speed < 0 then speed = 0 end
             end
+            
+            if (ctrl.l + ctrl.r) ~= 0 or (ctrl.f + ctrl.b) ~= 0 then
+                bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (ctrl.f+ctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(ctrl.l+ctrl.r,(ctrl.f+ctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
+                lastctrl = {f = ctrl.f, b = ctrl.b, l = ctrl.l, r = ctrl.r}
+            elseif (ctrl.l + ctrl.r) == 0 and (ctrl.f + ctrl.b) == 0 and speed ~= 0 then
+                bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (lastctrl.f+lastctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(lastctrl.l+lastctrl.r,(lastctrl.f+lastctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
+            else
+                bv.velocity = Vector3.new(0,0,0)
+            end
+            
+            bg.cframe = game.Workspace.CurrentCamera.CoordinateFrame * CFrame.Angles(-math.rad((ctrl.f+ctrl.b)*50*speed/maxspeed),0,0)
         end
-        if target then
-            workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, target.HumanoidRootPart.Position)
+        
+        bg:Destroy()
+        bv:Destroy()
+        plr.Character.Humanoid.PlatformStand = false
+        game.Players.LocalPlayer.Character.Animate.Disabled = false
+        tpwalking = false
+    else
+        local plr = game.Players.LocalPlayer
+        local UpperTorso = plr.Character.UpperTorso
+        local ctrl = {f = 0, b = 0, l = 0, r = 0}
+        local lastctrl = {f = 0, b = 0, l = 0, r = 0}
+        local maxspeed = 50
+        local speed = 0
+        
+        local bg = Instance.new("BodyGyro", UpperTorso)
+        bg.P = 9e4
+        bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+        bg.cframe = UpperTorso.CFrame
+        local bv = Instance.new("BodyVelocity", UpperTorso)
+        bv.velocity = Vector3.new(0,0.1,0)
+        bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
+        
+        if nowe == true then
+            plr.Character.Humanoid.PlatformStand = true
+        end
+        
+        while nowe == true and game:GetService("Players").LocalPlayer.Character.Humanoid.Health > 0 do
+            task.wait()
+            
+            if ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0 then
+                speed = speed+.5+(speed/maxspeed)
+                if speed > maxspeed then speed = maxspeed end
+            elseif not (ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0) and speed ~= 0 then
+                speed = speed-1
+                if speed < 0 then speed = 0 end
+            end
+            
+            if (ctrl.l + ctrl.r) ~= 0 or (ctrl.f + ctrl.b) ~= 0 then
+                bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (ctrl.f+ctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(ctrl.l+ctrl.r,(ctrl.f+ctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
+                lastctrl = {f = ctrl.f, b = ctrl.b, l = ctrl.l, r = ctrl.r}
+            elseif (ctrl.l + ctrl.r) == 0 and (ctrl.f + ctrl.b) == 0 and speed ~= 0 then
+                bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (lastctrl.f+lastctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(lastctrl.l+lastctrl.r,(lastctrl.f+lastctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
+            else
+                bv.velocity = Vector3.new(0,0,0)
+            end
+            
+            bg.cframe = game.Workspace.CurrentCamera.CoordinateFrame * CFrame.Angles(-math.rad((ctrl.f+ctrl.b)*50*speed/maxspeed),0,0)
+        end
+        
+        bg:Destroy()
+        bv:Destroy()
+        plr.Character.Humanoid.PlatformStand = false
+        game.Players.LocalPlayer.Character.Animate.Disabled = false
+        tpwalking = false
+    end
+end
+
+-- UI Elements
+FlyTab:AddToggle({
+    Title = "Enable Fly",
+    Default = false,
+    Callback = function(bool)
+        if bool then
+            toggleFly()
         end
     end
-end)
+})
 
-redzlib:SetTheme("Dark")
-game:GetService("StarterGui"):SetCore("SendNotification", { Title = "DRGTeam Hub", Text = "Kill Aura & Combat Loaded!", Duration = 5 })
+FlyTab:AddButton({
+    Title = "Teleport UP",
+    Callback = function()
+        teleportUp()
+    end
+})
+
+FlyTab:AddButton({
+    Title = "Teleport DOWN",
+    Callback = function()
+        teleportDown()
+    end
+})
+
+FlyTab:AddSlider({
+    Title = "Speed Multiplier",
+    Min = 1,
+    Max = 10,
+    Default = 1,
+    Decimals = 0,
+    Callback = function(num)
+        speeds = num
+    end
+})
+
+-- Respawn handler
+game:GetService("Players").LocalPlayer.CharacterAdded:Connect(function(char)
+    task.wait(0.7)
+    nowe = false
+    tpwalking = false
+    game.Players.LocalPlayer.Character.Humanoid.PlatformStand = false
+    game.Players.LocalPlayer.Character.Animate.Disabled = false
+end)

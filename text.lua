@@ -2,7 +2,7 @@ local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/dauco
 
 local Windows = redzlib:MakeWindow({
     Title = "FLY GUI V3",
-    SubTitle = "BY XNEO",
+    SubTitle = "BY DRG",
     SaveFolder = "FlyGui.lua"
 })
 
@@ -18,6 +18,8 @@ local speaker = game:GetService("Players").LocalPlayer
 local nowe = false
 local speeds = 1
 local tpwalking = false
+local noclipEnabled = false
+local noclipConnection = nil
 
 game:GetService("StarterGui"):SetCore("SendNotification", { 
     Title = "FLY GUI V3";
@@ -25,8 +27,56 @@ game:GetService("StarterGui"):SetCore("SendNotification", {
     Icon = "rbxthumb://type=Asset&id=5107182114&w=150&h=150"
 })
 
--- Hàm teleport lên
-local function teleportUp()
+-- Hàm noclip
+local function toggleNoclip(enabled)
+    noclipEnabled = enabled
+    local character = game.Players.LocalPlayer.Character
+    
+    if enabled then
+        if noclipConnection then
+            noclipConnection:Disconnect()
+        end
+        
+        noclipConnection = game:GetService("RunService").Heartbeat:Connect(function()
+            if not noclipEnabled then return end
+            
+            local char = game.Players.LocalPlayer.Character
+            if not char then return end
+            
+            for _, part in pairs(char:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end)
+        
+        game:GetService("StarterGui"):SetCore("SendNotification", { 
+            Title = "Noclip";
+            Text = "Noclip Enabled";
+            Duration = 2
+        })
+    else
+        if noclipConnection then
+            noclipConnection:Disconnect()
+            noclipConnection = nil
+        end
+        
+        local char = game.Players.LocalPlayer.Character
+        if char then
+            for _, part in pairs(char:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = true
+                end
+            end
+        end
+        
+        game:GetService("StarterGui"):SetCore("SendNotification", { 
+            Title = "Noclip";
+            Text = "Noclip Disabled";
+            Duration = 2
+        })
+    end
+end
     local tis
     tis = game:GetService("RunService").Heartbeat:Connect(function()
         if not tis then return end
@@ -253,11 +303,24 @@ FlyTab:AddSlider({
     end
 })
 
+FlyTab:AddToggle({
+    Title = "Noclip",
+    Default = false,
+    Callback = function(bool)
+        toggleNoclip(bool)
+    end
+})
+
 -- Respawn handler
 game:GetService("Players").LocalPlayer.CharacterAdded:Connect(function(char)
     task.wait(0.7)
     nowe = false
     tpwalking = false
+    noclipEnabled = false
+    if noclipConnection then
+        noclipConnection:Disconnect()
+        noclipConnection = nil
+    end
     game.Players.LocalPlayer.Character.Humanoid.PlatformStand = false
     game.Players.LocalPlayer.Character.Animate.Disabled = false
 end)

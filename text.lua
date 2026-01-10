@@ -2,7 +2,7 @@ local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/dauco
 
 local Windows = redzlib:MakeWindow({
     Title = "FLY GUI V3",
-    SubTitle = "BY DRG",
+    SubTitle = "BY DRG V1",
     SaveFolder = "FlyGui.lua"
 })
 

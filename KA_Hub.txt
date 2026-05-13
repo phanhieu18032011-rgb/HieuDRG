@@ -1,4 +1,4 @@
--- [UPDATE 3] --
+-- [Fix 4] --
 local Y = game.Players;
 local d = Y.LocalPlayer;
 local R = d.Character.HumanoidRootPart;
@@ -1756,7 +1756,7 @@ local Iz = game:GetService("TweenService");
 local Wz = game:GetService("UserInputService");
 local Nz = game:GetService("RunService");
 local function Dz(Y, d)
-	local R = nil;
+	local R = false;
 	local Q = nil;
 	local r = nil;
 	local a = nil;
@@ -1779,12 +1779,13 @@ local function Dz(Y, d)
 	end);
 	Wz.InputChanged:Connect(function(Y)
 		if Y == Q and R then
-			local R = Y.Position - r;
-			if not djtmemay and cac then
-				(Iz:Create(d, TweenInfo.new(Rz and 0 or .35, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), { Position = UDim2.new(a.X.Scale, a.X.Offset + R.X, a.Y.Scale, a.Y.Offset + R.Y) })):Play();
-			elseif not djtmemay and not cac then
-				d.Position = UDim2.new(a.X.Scale, a.X.Offset + R.X, a.Y.Scale, a.Y.Offset + R.Y);
-			end;
+			local Q = Y.Position - r;
+			d.Position = UDim2.new(a.X.Scale, a.X.Offset + Q.X, a.Y.Scale, a.Y.Offset + Q.Y);
+		end;
+	end);
+	Wz.InputEnded:Connect(function(Y)
+		if Y.UserInputType == Enum.UserInputType.MouseButton1 or Y.UserInputType == Enum.UserInputType.Touch then
+			R = false;
 		end;
 	end);
 end;
@@ -6369,11 +6370,26 @@ spawn(function()
 	end;
 end);
 CF.CreateToggle({
-	Title = "Initialize Attack [M1/Melee/Sword]",
+	Title = "Fast Attack [M1/Melee/Sword]",
 	Description = "[ Not Supported Gas M1 ]",
 	Default = true,
 	Callback = function(Y)
 		_G.Seriality = Y;
+		local d = getgenv and getgenv() or _G;
+		d.FastAttack = Y;
+		if Y and ActivateKobyAttack then
+			ActivateKobyAttack();
+		end;
+	end,
+});
+CF.CreateToggle({
+	Title = "Aura Fruit",
+	Description = "",
+	Default = false,
+	Callback = function(Y)
+		local d = getgenv and getgenv() or _G;
+		d.AuraFruit = Y;
+		_G.AuraFruit = Y;
 	end,
 });
 CF.CreateToggle({
@@ -12702,6 +12718,13 @@ function AttackNoCoolDown()
 		F:FireServer(K, M);
 	end;
 end;
+function ActivateKobyAttack()
+	local Y = getgenv and getgenv() or _G;
+	if not Y.FastAttack and not _G.Seriality then
+		return;
+	end;
+	AttackNoCoolDown();
+end;
 CameraShakerR = require(game.ReplicatedStorage.Util.CameraShaker);
 CameraShakerR:Stop();
 get_Monster = function()
@@ -12735,21 +12758,33 @@ Actived = function()
 task.spawn(function()
 	W.Heartbeat:Connect(function()
 		pcall(function()
-			if not _G.Seriality then
+			local Y = getgenv and getgenv() or _G;
+			local d = _G.Seriality or Y.FastAttack;
+			local R = _G.AuraFruit or Y.AuraFruit;
+			if not d and not R then
 				return;
 			end;
-			AttackNoCoolDown();
-			local Y = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool");
-			local d = Y.ToolTip;
-			local R, Q = get_Monster();
-			if d == "Blox Fruit" then
-				if R then
-					local d = Y:FindFirstChild("LeftClickRemote");
-					if d then
-						Actived();
-						d:FireServer(Vector3.new(.01, -500, .01), 1, true);
-						d:FireServer(false);
-					end;
+			if d then
+				ActivateKobyAttack();
+			end;
+			if not R then
+				return;
+			end;
+			local Q = game.Players.LocalPlayer.Character;
+			if not Q then
+				return;
+			end;
+			local r = Q:FindFirstChildOfClass("Tool");
+			if not r or r.ToolTip ~= "Blox Fruit" then
+				return;
+			end;
+			local a = get_Monster();
+			if a then
+				local w = r:FindFirstChild("LeftClickRemote");
+				if w then
+					Actived();
+					w:FireServer(Vector3.new(.01, -500, .01), 1, true);
+					w:FireServer(false);
 				end;
 			end;
 		end);
